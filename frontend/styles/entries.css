@@ -1,0 +1,146 @@
+.entries {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  margin-block-start: var(--margin);
+  margin-block-end: var(--margin);
+}
+
+.entry {
+  background-color: #fafafa;
+  border-radius: var(--border-radius);
+  display: flex;
+  @container (max-width: 710px) {
+    flex-direction: column;
+  }
+}
+
+.entry__link {
+  display: contents;
+}
+
+.entry__info {
+  padding: 30px 33px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.gallery {
+  display: contents;
+}
+
+.gallery__container {
+  background-color: #fff;
+  flex: 0 0 380px;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+  @media screen and (max-width: 767px) {
+    flex: 1;
+    flex-direction: column;
+  }
+  .gallery__photos {
+    aspect-ratio: 380 / 280;
+    object-fit: cover;
+    @media screen and (max-width: 767px) {
+      margin: auto;
+    }
+  }
+}
+
+.gallery__inner {
+  display: flex;
+  transition: transform 250ms ease;
+}
+
+.gallery__nav {
+  background: transparent;
+  border: 0;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  svg {
+    pointer-events: none;
+  }
+}
+.gallery__nav--right {
+  right: 20px;
+}
+.gallery__nav--left {
+  left: 20px;
+}
+
+.single-entry {
+  .gallery {
+    display: flex;
+    gap: var(--margin);
+    height: 500px;
+  }
+  .gallery__container {
+    flex: auto;
+  }
+  .gallery__photos {
+    flex: 0 0 100%;
+    cursor: pointer;
+  }
+  .gallery__nav {
+    transform: scale(1.5);
+  }
+}
+
+.single-container {
+  display: flex;
+  gap: var(--margin);
+  .entry__info {
+    width: 63%;
+    padding: 32px 0;
+  }
+  .entry__contact {
+    width: 37%;
+  }
+}
+
+.gallery__thumbnails {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-auto-rows: 86px;
+  gap: 25px;
+  max-width: 270px;
+  .gallery__photos {
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.address {
+  margin-block-start: 6px;
+}
+
+.entry__description {
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  display: -webkit-box;
+}
+
+.entry__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.entry__list-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--primary-text);
+  svg {
+    margin-inline-end: 3px;
+  }
+}
+
+.entry__list-item span {
+  font-weight: bold;
+  color: var(--primary-titles);
+}

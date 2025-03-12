@@ -1,0 +1,29 @@
+.header {
+  padding: 29px 0;
+  margin-block-end: 43px;
+}
+
+.header__container {
+  display: flex;
+  justify-content: space-between;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 30px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+}
+
+nav {
+  display: flex;
+  align-items: center;
+  gap: var(--margin);
+
+  a {
+    font-weight: bold;
+    color: var(--primary-bg);
+    text-decoration: none;
+  }
+}

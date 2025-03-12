@@ -1,0 +1,104 @@
+/* Popover */
+.popover-button {
+  background: var(--secondary-bg);
+  border-radius: var(--border-radius);
+  border: 1px solid #ddd;
+  padding: 15px 12px;
+  width: 100%;
+  color: var(--primary-text);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  .arrow {
+    transition: rotate 0.25s;
+    background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMCIgaGVpZ2h0PSI2IiBmaWxsPSJub25lIj48cGF0aCBmaWxsPSIjNzM3MzczIiBkPSJtMS41MzUuMzE1IDMuMjM4IDMuMjM5TDguMDExLjMxNWwxLjI5Ni42NDgtNC41MzQgNC41MzRMLjIzOS45NjMgMS41MzUuMzE1WiIvPjwvc3ZnPg==')
+      no-repeat;
+    width: 9px;
+    height: 5px;
+  }
+}
+.popover {
+  &:popover-open {
+    height: auto;
+    display: block;
+    @starting-style {
+      height: 0;
+    }
+  }
+  border: 1px solid #ddd;
+  border-top: 0;
+  background: var(--secondary-bg);
+  border-radius: 0 0 var(--border-radius) var(--border-radius);
+  margin-top: -1px;
+  position: absolute;
+  position-area: bottom center;
+  padding: 15px 20px 0;
+  width: anchor-size(width);
+  display: none;
+  height: 0;
+  overflow: hidden;
+  transition:
+    height 250ms ease allow-discrete,
+    display 250ms ease allow-discrete;
+  &#mas-filtros {
+    padding-block-start: 25px;
+    max-height: 600px;
+    scrollbar-width: thin;
+    overflow: auto;
+    @media screen and (min-width: 1280px) {
+      width: 350px;
+      position-area: bottom left;
+      margin-inline-end: calc(-1 * anchor-size(width));
+    }
+  }
+}
+
+.popover-isolated {
+  margin-block-end: 30px;
+}
+
+.popover-column {
+  column-count: 2;
+}
+
+.popover-container {
+  width: min(50vw, 270px);
+  &:has(:popover-open) {
+    .arrow {
+      rotate: 180deg;
+    }
+    .popover-button {
+      border-radius: var(--border-radius) var(--border-radius) 0 0;
+    }
+  }
+  &.mas-filtros {
+    width: 110px;
+    flex-shrink: 0;
+    flex-grow: 1;
+  }
+}
+
+.popover-title {
+  color: var(--primary-text);
+  margin-block-end: 20px;
+}
+
+.popover__item {
+  margin-block-end: 20px;
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  color: var(--primary-text);
+  cursor: pointer;
+  label {
+    display: flex;
+    flex-grow: 1;
+    padding-left: 13px;
+    cursor: inherit;
+  }
+  .popover__item--hidden {
+    display: none;
+  }
+}
+/* End Popover */
