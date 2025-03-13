@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import Listing from '@/components/Listing';
 
 export default function ResultsPage() {

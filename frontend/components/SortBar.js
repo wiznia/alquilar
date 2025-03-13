@@ -1,10 +1,9 @@
-import { useContext } from 'react';
 import Popover from './Popover';
-import { AppContext } from '../pages/listings';
+import { useAppContext } from './AppContext';
 
 export default function SortBar() {
-  const { data } = useContext(AppContext);
-  const { count } = data.getListings;
+  const { data } = useAppContext();
+  const count = data?.getListings?.count || 0;
   const orderMenu = [
     {
       name: 'ordenar_por',

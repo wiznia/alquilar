@@ -1,10 +1,10 @@
-import { useState, useEffect, useContext } from 'react';
-import { AppContext } from '../pages/listings';
+import { useState, useEffect } from 'react';
+import { useAppContext } from './AppContext';
 import { formatText } from '../config';
 
 export default function Popover({ props }) {
   const { updateListings, filterVariables, setSortBy, sortBy } =
-    useContext(AppContext);
+    useAppContext();
   const { name, options } = props;
   const [selectedOptions, setSelectedOptions] = useState([]);
   const [minPrice, setMinPrice] = useState('');

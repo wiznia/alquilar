@@ -1,9 +1,9 @@
-import { useState, useEffect, useContext } from 'react';
-import { AppContext } from '../pages/listings';
+import { useState, useEffect } from 'react';
+import { useAppContext } from './AppContext';
 import { formatText } from '../config';
 
 export default function MoreFilters({ props }) {
-  const { updateListings, filterVariables } = useContext(AppContext);
+  const { updateListings, filterVariables } = useAppContext();
   const [selectedOptions, setSelectedOptions] = useState({});
   const [minSuperficie, setMinSuperficie] = useState('');
   const [maxSuperficie, setMaxSuperficie] = useState('');

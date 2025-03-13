@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLazyQuery } from '@apollo/client';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { list } from './data';
 import AutoComplete from './AutoComplete';
 import { SEARCH_LISTINGS_QUERY } from './queries/queries';

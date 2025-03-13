@@ -1,10 +1,14 @@
-import { useContext } from 'react';
-import { AppContext } from '../pages/listings';
+import { useAppContext } from './AppContext';
 import Listing from './Listing';
 
 export default function Listings() {
-  const { data } = useContext(AppContext);
-  const { count } = data.getListings;
+  const { data, loading, error } = useAppContext();
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error loading listings</p>;
+
+  const getListings = data?.getListings || { count: 0, listings: [] };
+  const { count, listings } = getListings;
 
   return (
     <>
@@ -15,7 +19,7 @@ export default function Listings() {
         </>
       ) : (
         <div className="entries">
-          {data.getListings.listings.map((listing) => (
+          {listings.map((listing) => (
             <Listing key={listing.id} listing={listing} />
           ))}
         </div>

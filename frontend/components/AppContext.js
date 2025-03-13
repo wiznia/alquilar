@@ -1,23 +1,19 @@
-import { useState, useEffect, createContext } from 'react';
+'use client';
+
+import { createContext, useContext, useState, useEffect } from 'react';
 import { useQuery } from '@apollo/client';
-import { useRouter } from 'next/router';
-import { perPage } from '../../config';
-import { ALL_LISTINGS_QUERY } from '../../components/queries/queries';
-import Listings from '../../components/Listings';
-import Pagination from '../../components/Pagination';
-import SortBar from '../../components/SortBar';
-import SearchFilters from '../../components/SearchFilters';
+import { ALL_LISTINGS_QUERY } from './queries/queries';
+import { perPage } from '../config';
 
-export const AppContext = createContext();
+const AppContext = createContext();
 
-export default function ListingsPage() {
-  const { query } = useRouter();
-  const page = parseInt(query.page) || 1;
-  const [sortBy, setSortBy] = useState(null);
+export function AppProvider({ children }) {
   const [filterVariables, setFilterVariables] = useState({});
-  const { data, error, loading, refetch } = useQuery(ALL_LISTINGS_QUERY, {
+  const [sortBy, setSortBy] = useState(null);
+  const [page, setPage] = useState(1);
+  const { data, loading, error, refetch } = useQuery(ALL_LISTINGS_QUERY, {
     variables: {
-      skip: page * perPage - perPage,
+      skip: (page - 1) * perPage,
       first: perPage,
       sortBy,
       ...filterVariables,
@@ -57,33 +53,43 @@ export default function ListingsPage() {
     });
   };
 
+  useEffect(() => {}, [data, loading, error]);
+
   useEffect(() => {
     refetch({
-      skip: page * perPage - perPage,
+      skip: (page - 1) * perPage,
       first: perPage,
       sortBy,
       ...filterVariables,
+    }).then(({ data }) => {
+      const totalCount = data?.getListings?.count || 0;
+      const totalPages = Math.ceil(totalCount / perPage);
+
+      if (page > totalPages) {
+        setPage(1);
+      }
     });
   }, [filterVariables, page, sortBy]);
-
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error.message}</p>;
 
   return (
     <AppContext.Provider
       value={{
-        page,
-        data,
-        sortBy,
-        setSortBy,
         updateListings,
         filterVariables,
+        setSortBy,
+        sortBy,
+        data,
+        loading,
+        error,
+        page,
+        setPage,
       }}
     >
-      <SearchFilters />
-      <SortBar />
-      <Listings />
-      <Pagination />
+      {children}
     </AppContext.Provider>
   );
+}
+
+export function useAppContext() {
+  return useContext(AppContext);
 }
