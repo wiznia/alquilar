@@ -3,7 +3,7 @@ import ApolloProviderWrapper from '../components/ApolloProviderWrapper';
 import Page from '../components/Page';
 import { AppProvider } from '../components/AppContext';
 
-export default function RootLayout({ children, modal }) {
+export default function RootLayout({ children, auth }) {
   return (
     <html lang="es">
       <head>
@@ -13,7 +13,7 @@ export default function RootLayout({ children, modal }) {
         <ApolloProviderWrapper>
           <AppProvider>
             <Page>
-              {modal}
+              {auth}
               {children}
             </Page>
           </AppProvider>
