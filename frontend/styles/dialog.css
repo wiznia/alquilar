@@ -1,0 +1,57 @@
+dialog {
+  margin: auto;
+  border: 0;
+  width: min(650px, 90vw);
+  &::backdrop {
+    background-color: rgba(0, 0, 0, 0.55);
+  }
+}
+
+.modal-container {
+  padding: 40px 70px 40px 50px;
+  display: flex;
+  flex-direction: column;
+  gap: 23px;
+  input[type='text'],
+  input[type='email'],
+  input[type='tel'],
+  input[type='number'],
+  input[type='password'],
+  select {
+    padding: 17px 18px;
+  }
+
+  label {
+    color: var(--primary-text);
+  }
+
+  fieldset {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    &.terms {
+      flex-direction: row;
+    }
+    &:has(input[required], select[required]) {
+      label {
+        &::after {
+          content: '*';
+          color: var(--error);
+          margin-inline-start: 4px;
+        }
+      }
+    }
+  }
+}
+
+.close {
+  background-color: var(--primary-bg);
+  border-radius: 100%;
+  width: 32px;
+  height: 32px;
+  font-size: 24px;
+  color: #fff;
+  position: absolute;
+  right: 14px;
+  top: 12px;
+}

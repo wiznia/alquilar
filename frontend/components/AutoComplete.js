@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from 'react';
 
 const Autocomplete = ({ options = [], value, placeholder, onChange }) => {
   const autocomplete = useRef();
@@ -10,12 +10,12 @@ const Autocomplete = ({ options = [], value, placeholder, onChange }) => {
   const handleInputChange = (v) => {
     setQuery(v);
     onChange(v);
-    v === ""
+    v === ''
       ? setOptionsData([])
       : setOptionsData([
           ...options.filter(
-            (x) => x.toLowerCase().indexOf(v.toLowerCase()) > -1
-          )
+            (x) => x.toLowerCase().indexOf(v.toLowerCase()) > -1,
+          ),
         ]);
   };
 
@@ -26,15 +26,15 @@ const Autocomplete = ({ options = [], value, placeholder, onChange }) => {
   };
 
   const highlightSearchText = (text) => {
-    var pattern = new RegExp("(" + query + ")", "gi");
+    var pattern = new RegExp('(' + query + ')', 'gi');
     var new_text = text.replace(pattern, `<b>${query}</b>`);
     return new_text;
   };
 
   useEffect(() => {
-    document.addEventListener("mousedown", handleClickOutSide);
+    document.addEventListener('mousedown', handleClickOutSide);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutSide);
+      document.removeEventListener('mousedown', handleClickOutSide);
     };
   }, []);
 
@@ -55,13 +55,13 @@ const Autocomplete = ({ options = [], value, placeholder, onChange }) => {
       {isShow && (
         <div className="autocomplete">
           {optionsData.map((x, index) => (
-            <div className="autocomplete__item"
-              onClick={() =>
-                {
-                  setQuery(x);
-                  setIsShow(false);
-                  onChange(x);
-                }}
+            <div
+              className="autocomplete__item"
+              onClick={() => {
+                setQuery(x);
+                setIsShow(false);
+                onChange(x);
+              }}
               key={index}
             >
               {

@@ -16,10 +16,9 @@ export default function Search() {
         const searchValue = document.querySelector(
           'input[type="search"]',
         ).value;
-        router.push({
-          pathname: '/results',
-          query: {
-            results: JSON.stringify(data.getListings.listings),
+        router.push('/results', {
+          state: {
+            results: data.getListings.listings,
             searchTerm: searchValue,
           },
         });
@@ -31,12 +30,19 @@ export default function Search() {
     e.preventDefault();
     const searchValue = document.querySelector('input[type="search"]').value;
     findListings({
-      variables: {
-        searchTerm: searchValue,
+      variables: { searchTerm: searchValue },
+      onCompleted: (data) => {
+        sessionStorage.setItem(
+          'searchResults',
+          JSON.stringify(data.getListings.listings),
+        );
+        sessionStorage.setItem('searchTerm', searchValue);
+        router.push('/results');
       },
     });
   };
 
+  if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
   if (error) console.error('Error:', error);
 

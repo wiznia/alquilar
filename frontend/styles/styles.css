@@ -6,6 +6,7 @@
   --primary-titles: #040134;
   --primary-bg: hsl(35.06deg 100% 50%);
   --secondary-bg: #f9f9f9;
+  --error: #bd0000;
   --margin: 32px;
   interpolate-size: allow-keywords;
 }
@@ -25,6 +26,14 @@
 
 body {
   font-family: '__Quicksand_e5584b', '__Quicksand_Fallback_e5584b';
+}
+
+a {
+  color: var(--primary-bg);
+}
+
+fieldset {
+  border: 0;
 }
 
 input,
@@ -57,6 +66,8 @@ input {
 }
 
 input[type='text'],
+input[type='email'],
+input[type='tel'],
 input[type='number'],
 input[type='search'] {
   transition: all 250ms ease;
@@ -95,6 +106,35 @@ input[type='checkbox']:checked {
 }
 /* End Checkbox */
 
+/* Select */
+select,
+::picker(select) {
+  appearance: base-select;
+}
+
+select {
+  &:open {
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+  }
+  option {
+    padding: 17px 18px;
+  }
+}
+
+::picker(select) {
+  background-color: var(--secondary-bg);
+  border: 1px solid #ddd;
+  border-top: 0;
+  margin-block-start: -1px;
+  border-radius: 0 0 var(--border-radius) var(--border-radius);
+}
+
+option::checkmark,
+select::picker-icon {
+  display: none;
+}
+/* End Select */
+
 .shadow {
   box-shadow:
     0 0 0 1px rgb(14 63 126 / 3.14%),
@@ -115,6 +155,7 @@ h1 {
   font-size: 48px;
   font-weight: bold;
   line-height: 1.2;
+  color: var(--primary-titles);
 }
 
 h2 {
@@ -184,8 +225,12 @@ small,
   font-weight: bold;
   color: #fff;
   transition: background-color 500ms ease;
+  text-align: center;
   &:hover {
     background-color: hsl(35.06deg 100% 60%);
+  }
+  &.button--large {
+    padding: 15px 25px;
   }
 }
 
@@ -195,6 +240,7 @@ small,
 @import url('./header.css');
 @import url('./pagination.css');
 @import url('./footer.css');
+@import url('./dialog.css');
 
 #__next {
   container-type: inline-size;
@@ -205,7 +251,7 @@ small,
   margin: 0 auto;
   padding: 0 30px;
   container-type: inline-size;
-  @container (max-width: 1202px) {
+  @container (max-width: 1204px) {
     padding: 0 20px;
   }
 }
@@ -215,7 +261,7 @@ small,
   gap: 16px;
   margin-block-end: var(--margin);
   container-type: inline-size;
-  @container (max-width: 1202px) {
+  @container (max-width: 1204px) {
     flex-wrap: wrap;
     .search {
       flex: 0 0 100%;
@@ -291,4 +337,11 @@ small,
       background-color: #ddd;
     }
   }
+}
+
+.loading {
+  min-height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

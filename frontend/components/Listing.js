@@ -11,6 +11,7 @@ export default function Listing({ listing }) {
     superficie_total,
     superficie_cubierta,
     antiguedad_max,
+    moneda,
   } = listing;
   const features = {
     ambientes,
@@ -26,7 +27,7 @@ export default function Listing({ listing }) {
       <ImageSlider listing={listing} thumbnails="no" />
       <Link className="entry__link" href={`/listing/${listing.id}`}>
         <div className="entry__info">
-          <h4>{formatMoney(listing.precio)}</h4>
+          <h4>{formatMoney(listing.precio, moneda)}</h4>
           <p>{formatMoney(listing.expensas)} Expensas</p>
           <div className="address">
             <h6>{listing.direccion}</h6>

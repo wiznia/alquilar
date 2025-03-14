@@ -1,7 +1,7 @@
 import Popover from './Popover';
 import { useAppContext } from './AppContext';
 
-export default function SortBar() {
+export default function SortBar({ count: searchCount }) {
   const { data } = useAppContext();
   const count = data?.getListings?.count || 0;
   const orderMenu = [
@@ -17,10 +17,17 @@ export default function SortBar() {
   ];
   return (
     <div className="sort-bar">
-      <h6>
-        {count} departamento
-        {count > 1 || count === 0 ? 's' : ''} en Buenos Aires
-      </h6>
+      {count > 0 && !searchCount ? (
+        <h6>
+          {count} departamento
+          {count > 1 || count === 0 ? 's' : ''} en Buenos Aires
+        </h6>
+      ) : (
+        <h6>
+          {searchCount} departamento
+          {searchCount > 1 || searchCount === 0 ? 's' : ''} en Buenos Aires
+        </h6>
+      )}
       {orderMenu.map((field) => (
         <Popover key={field.name} props={field} />
       ))}

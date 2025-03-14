@@ -50,6 +50,20 @@
       width: 350px;
       position-area: bottom left;
       margin-inline-end: calc(-1 * anchor-size(width));
+      border-radius: var(--border-radius);
+      &::before {
+        content: '';
+        border-top: 1px solid #ddd;
+        width: 240px;
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+    }
+    @media screen and (min-width: 1458px) {
+      &::before {
+        width: 204px;
+      }
     }
   }
 }

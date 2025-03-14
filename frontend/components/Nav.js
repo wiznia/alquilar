@@ -5,7 +5,7 @@ export default function Nav() {
     <nav>
       <Link href="/listings">FAQs</Link>
       <Link href="/login">Iniciar sesión</Link>
-      <Link className="button" href="/orders">
+      <Link className="button" href="/register">
         Registrarse
       </Link>
     </nav>
