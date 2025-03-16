@@ -17,17 +17,18 @@ export default function SortBar({ count: searchCount }) {
   ];
   return (
     <div className="sort-bar">
-      {count > 0 && !searchCount ? (
-        <h6>
-          {count} departamento
-          {count > 1 || count === 0 ? 's' : ''} en Buenos Aires
-        </h6>
-      ) : (
-        <h6>
-          {searchCount} departamento
-          {searchCount > 1 || searchCount === 0 ? 's' : ''} en Buenos Aires
-        </h6>
-      )}
+      {count > 0 &&
+        (!searchCount ? (
+          <h6>
+            {count} departamento
+            {count > 1 || count === 0 ? 's' : ''} en Buenos Aires
+          </h6>
+        ) : (
+          <h6>
+            {searchCount} departamento
+            {searchCount > 1 || searchCount === 0 ? 's' : ''} en Buenos Aires
+          </h6>
+        ))}
       {orderMenu.map((field) => (
         <Popover key={field.name} props={field} />
       ))}

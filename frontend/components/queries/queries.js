@@ -137,3 +137,70 @@ export const SEARCH_LISTINGS_QUERY = gql`
     }
   }
 `;
+
+export const REGISTER = gql`
+  mutation Register(
+    $email: String!
+    $password: String!
+    $usuario: String!
+    $tipo_de_cuenta: String!
+    $nombre: String!
+    $apellido: String!
+    $condicion_fiscal: String!
+    $dni: Int!
+    $telefono: Int
+    $celular: Int
+  ) {
+    register(
+      email: $email
+      password: $password
+      usuario: $usuario
+      tipo_de_cuenta: $tipo_de_cuenta
+      nombre: $nombre
+      apellido: $apellido
+      condicion_fiscal: $condicion_fiscal
+      dni: $dni
+      telefono: $telefono
+      celular: $celular
+    ) {
+      id
+      email
+      token
+      usuario
+      tipo_de_cuenta
+      nombre
+      apellido
+      condicion_fiscal
+      dni
+      telefono
+      celular
+    }
+  }
+`;
+
+export const LOGIN = gql`
+  mutation Login($email: String!, $password: String!) {
+    login(email: $email, password: $password) {
+      token
+      id
+      email
+    }
+  }
+`;
+
+export const GET_USER = gql`
+  query {
+    user {
+      id
+      email
+      nombre
+      apellido
+      usuario
+      tipo_de_cuenta
+      condicion_fiscal
+      dni
+      telefono
+      celular
+    }
+  }
+`;

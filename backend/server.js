@@ -3,13 +3,31 @@ import { startStandaloneServer } from '@apollo/server/standalone';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import Listing from './listingSchema.js';
+import User from './userSchema.js';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
 
 dotenv.config();
 
 mongoose.connect(process.env.DATABASE_URL, {});
 
 const typeDefs = `
+  type User {
+    id: ID!
+    email: String!
+    token: String
+    tipo_de_cuenta: String!
+    nombre: String!
+    apellido: String!
+    usuario: String!
+    condicion_fiscal: String!
+    dni: Int!
+    telefono: Int
+    celular: Int
+  }
+
   type Query {
+    user: User
     getListings(
       searchTerm: String 
       tipo_de_alquiler: [String]
@@ -133,12 +151,44 @@ const typeDefs = `
   }
 
   type Mutation {
+    register(
+      email: String!,
+      password: String!,
+      tipo_de_cuenta: String!,
+      nombre: String!,
+      apellido: String!,
+      usuario: String!,
+      condicion_fiscal: String!,
+      dni: Int!,
+      telefono: Int,
+      celular: Int
+    ): User
+    login(email: String!, password: String!): User
     createListing(input: CreateListingInput!): Listing
   }
 `;
 
 const resolvers = {
   Query: {
+    user: async (_, __, context) => {
+      if (!context.req || !context.req.headers) {
+        throw new Error('Request headers not found');
+      }
+
+      const authHeader = context.req.headers.authorization;
+      if (!authHeader) {
+        throw new Error('No token provided');
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const user = await User.findById(decoded.userId);
+        return user;
+      } catch (error) {
+        throw new Error('Invalid token');
+      }
+    },
     getListings: async (_, args) => {
       const filter = {};
 
@@ -245,6 +295,70 @@ const resolvers = {
     },
   },
   Mutation: {
+    register: async (
+      _,
+      {
+        email,
+        password,
+        usuario,
+        tipo_de_cuenta,
+        nombre,
+        apellido,
+        condicion_fiscal,
+        dni,
+        telefono,
+        celular,
+      },
+    ) => {
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        throw new Error('User already exists');
+      }
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const newUser = new User({
+        email,
+        password: hashedPassword,
+        tipo_de_cuenta,
+        nombre,
+        apellido,
+        usuario,
+        condicion_fiscal,
+        dni,
+        telefono,
+        celular,
+      });
+      await newUser.save();
+      const token = jwt.sign({ userId: newUser.id }, process.env.JWT_SECRET, {
+        expiresIn: '1h',
+      });
+      return {
+        id: newUser.id,
+        email: newUser.email,
+        token,
+        tipo_de_cuenta: newUser.tipo_de_cuenta,
+        nombre: newUser.nombre,
+        apellido: newUser.apellido,
+        usuario: newUser.usuario,
+        condicion_fiscal: newUser.condicion_fiscal,
+        dni: newUser.dni,
+        telefono: newUser.telefono,
+        celular: newUser.celular,
+      };
+    },
+    login: async (_, { email, password }) => {
+      const user = await User.findOne({ email });
+      if (!user) {
+        throw new Error('User not found');
+      }
+      const valid = await bcrypt.compare(password, user.password);
+      if (!valid) {
+        throw new Error('Invalid password');
+      }
+      const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
+        expiresIn: '1h',
+      });
+      return { id: user.id, email: user.email, token };
+    },
     createListing: async (args) => {
       const {
         id,
@@ -299,6 +413,9 @@ const server = new ApolloServer({ typeDefs, resolvers });
 const { url } = await startStandaloneServer(server, {
   listen: {
     port: 4000,
+  },
+  context: async ({ req }) => {
+    return { req };
   },
 });
 

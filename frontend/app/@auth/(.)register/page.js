@@ -1,6 +1,51 @@
+'use client';
+
+import { useState } from 'react';
 import { Modal } from '@/components/Modal';
+import { REGISTER } from '@/components/queries/queries';
+import { useMutation } from '@apollo/client';
+import { useRouter } from 'next/navigation';
 
 export default function Page() {
+  const [tipoDeCuenta, setTipoDeCuenta] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [usuario, setUsuario] = useState('');
+  const [nombre, setNombre] = useState('');
+  const [apellido, setApellido] = useState('');
+  const [condicionFiscal, setCondicionFiscal] = useState('');
+  const [dni, setDni] = useState('');
+  const [telefono, setTelefono] = useState('');
+  const [celular, setCelular] = useState('');
+  const [terms, setTerms] = useState(false);
+  const [register] = useMutation(REGISTER);
+  const router = useRouter();
+
+  const handleRegister = async () => {
+    try {
+      const { data } = await register({
+        variables: {
+          tipo_de_cuenta: tipoDeCuenta,
+          email,
+          password,
+          nombre,
+          apellido,
+          usuario,
+          condicion_fiscal: condicionFiscal,
+          dni: parseInt(dni, 10),
+          telefono: telefono ? parseInt(telefono, 10) : null,
+          celular: celular ? parseInt(celular, 10) : null,
+        },
+      });
+      if (data?.register?.token) {
+        localStorage.setItem('token', data.register.token);
+        router.push('/account');
+      }
+    } catch (error) {
+      console.error('Registration error:', error);
+    }
+  };
+
   return (
     <Modal>
       <h1>Registrá tu cuenta</h1>
@@ -12,6 +57,8 @@ export default function Page() {
           id="tipo_de_cuenta"
           placeholder="Tipo de cuenta"
           required
+          value={tipoDeCuenta}
+          onChange={(e) => setTipoDeCuenta(e.target.value)}
         >
           <button>
             <selectedcontent></selectedcontent>
@@ -26,6 +73,18 @@ export default function Page() {
         </select>
       </fieldset>
       <fieldset>
+        <label htmlFor="email">Usuario:</label>
+        <input
+          type="text"
+          className="small"
+          id="usuario"
+          placeholder="Usuario"
+          required
+          value={usuario}
+          onChange={(e) => setUsuario(e.target.value)}
+        />
+      </fieldset>
+      <fieldset>
         <label htmlFor="email">Email:</label>
         <input
           type="email"
@@ -33,6 +92,8 @@ export default function Page() {
           id="email"
           placeholder="Email"
           required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
         />
       </fieldset>
       <fieldset>
@@ -43,6 +104,8 @@ export default function Page() {
           id="contrasena"
           placeholder="Contraseña"
           required
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
         />
       </fieldset>
       <fieldset>
@@ -53,6 +116,8 @@ export default function Page() {
           id="nombre"
           placeholder="Nombre"
           required
+          value={nombre}
+          onChange={(e) => setNombre(e.target.value)}
         />
       </fieldset>
       <fieldset>
@@ -63,6 +128,8 @@ export default function Page() {
           id="apellido"
           placeholder="Apellido"
           required
+          value={apellido}
+          onChange={(e) => setApellido(e.target.value)}
         />
       </fieldset>
       <fieldset>
@@ -73,6 +140,8 @@ export default function Page() {
           id="condicion_fiscal"
           placeholder="Condición fiscal"
           required
+          value={condicionFiscal}
+          onChange={(e) => setCondicionFiscal(e.target.value)}
         >
           <button>
             <selectedcontent></selectedcontent>
@@ -95,6 +164,8 @@ export default function Page() {
           id="DNI"
           placeholder="DNI"
           required
+          value={dni}
+          onChange={(e) => setDni(e.target.value)}
         />
       </fieldset>
       <fieldset>
@@ -104,6 +175,8 @@ export default function Page() {
           className="small"
           id="telefono"
           placeholder="Teléfono"
+          value={telefono}
+          onChange={(e) => setTelefono(e.target.value)}
         />
       </fieldset>
       <fieldset>
@@ -113,6 +186,8 @@ export default function Page() {
           className="small"
           id="celular"
           placeholder="Celular"
+          value={celular}
+          onChange={(e) => setCelular(e.target.value)}
         />
       </fieldset>
       <fieldset className="terms">
@@ -120,12 +195,16 @@ export default function Page() {
           type="checkbox"
           id="terms"
           placeholder="Acepto los términos y condiciones de uso"
+          required
+          onChange={() => setTerms(!terms)}
         />
         <label htmlFor="terms">
           Acepto los <a href="/">Términos y condiciones de uso</a>
         </label>
       </fieldset>
-      <a className="button button--large">Registrarse</a>
+      <a onClick={handleRegister} className="button button--large">
+        Registrarse
+      </a>
     </Modal>
   );
 }

@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useQuery } from '@apollo/client';
-import { ALL_LISTINGS_QUERY } from './queries/queries';
+import { ALL_LISTINGS_QUERY, GET_USER } from './queries/queries';
 import { perPage } from '../config';
 
 const AppContext = createContext();
@@ -19,6 +19,7 @@ export function AppProvider({ children }) {
       ...filterVariables,
     },
   });
+  const { userData, userLoading, userError } = useQuery(GET_USER);
 
   const updateListings = (newFilters, fieldName) => {
     setFilterVariables((prevFilters) => {
@@ -53,6 +54,7 @@ export function AppProvider({ children }) {
     });
   };
 
+  useEffect(() => {}, [userData, userLoading, userError]);
   useEffect(() => {}, [data, loading, error]);
 
   useEffect(() => {
@@ -83,6 +85,7 @@ export function AppProvider({ children }) {
         error,
         page,
         setPage,
+        userData,
       }}
     >
       {children}

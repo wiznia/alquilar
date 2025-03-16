@@ -226,6 +226,14 @@ small,
   color: #fff;
   transition: background-color 500ms ease;
   text-align: center;
+  svg {
+    transition: all 500ms ease;
+  }
+  &:has(svg):hover {
+    svg {
+      transform: translateX(5px);
+    }
+  }
   &:hover {
     background-color: hsl(35.06deg 100% 60%);
   }
