@@ -61,9 +61,6 @@ export const ALL_LISTINGS_QUERY = gql`
             publicUrlTransformed
           }
         }
-        owner {
-          account
-        }
       }
     }
   }
@@ -94,9 +91,6 @@ export const SINGLE_LISTING_QUERY = gql`
         image {
           publicUrlTransformed
         }
-      }
-      owner {
-        account
       }
     }
   }
@@ -129,9 +123,6 @@ export const SEARCH_LISTINGS_QUERY = gql`
           image {
             publicUrlTransformed
           }
-        }
-        owner {
-          account
         }
       }
     }
@@ -201,6 +192,35 @@ export const GET_USER = gql`
       dni
       telefono
       celular
+    }
+  }
+`;
+
+export const REQUEST_PASSWORD_RESET = gql`
+  mutation RequestPasswordReset($email: String!) {
+    requestPasswordReset(email: $email)
+  }
+`;
+
+export const RESET_PASSWORD = gql`
+  mutation ResetPassword($token: String!, $newPassword: String!) {
+    resetPassword(token: $token, newPassword: $newPassword)
+  }
+`;
+
+export const CHECK_EXISTING_USER_OR_DNI = gql`
+  query CHECK_EXISTING_USER_OR_DNI($dni: Int, $usuario: String) {
+    checkExistingUserOrDNI(dni: $dni, usuario: $usuario) {
+      exists
+      field
+    }
+  }
+`;
+
+export const CHECK_USER_EXISTENCE = gql`
+  query CheckUserExists($email: String!) {
+    checkUserExists(email: $email) {
+      exists
     }
   }
 `;

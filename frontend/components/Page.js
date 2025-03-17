@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import Header from './Header';
 import Footer from './Footer';
 import { Quicksand } from 'next/font/google';
@@ -21,7 +20,3 @@ export default function Page({ children }) {
     </div>
   );
 }
-
-Page.propTypes = {
-  children: PropTypes.any,
-};

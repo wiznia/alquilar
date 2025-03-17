@@ -1,4 +1,4 @@
-export default function Reset() {
+export default function Page() {
   return (
     <div className="modal-container">
       <h1>Reseteá tu contraseña</h1>

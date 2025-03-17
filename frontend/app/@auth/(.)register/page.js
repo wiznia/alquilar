@@ -1,64 +1,73 @@
 'use client';
 
-import { useState } from 'react';
 import { Modal } from '@/components/Modal';
 import { REGISTER } from '@/components/queries/queries';
 import { useMutation } from '@apollo/client';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { useFormValidation } from '@/app/hooks/useFormValidation';
+import { useAuth } from '@/components/AuthContext';
 
 export default function Page() {
-  const [tipoDeCuenta, setTipoDeCuenta] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [usuario, setUsuario] = useState('');
-  const [nombre, setNombre] = useState('');
-  const [apellido, setApellido] = useState('');
-  const [condicionFiscal, setCondicionFiscal] = useState('');
-  const [dni, setDni] = useState('');
-  const [telefono, setTelefono] = useState('');
-  const [celular, setCelular] = useState('');
-  const [terms, setTerms] = useState(false);
+  const { login } = useAuth();
+  const initialState = {
+    tipo_de_cuenta: '',
+    email: '',
+    password: '',
+    usuario: '',
+    nombre: '',
+    apellido: '',
+    condicion_fiscal: '',
+    dni: null,
+    telefono: null,
+    celular: null,
+    terms: false,
+  };
+  const { form, errors, handleChange, validateFormCheck, setErrors } =
+    useFormValidation(initialState, 'register');
   const [register] = useMutation(REGISTER);
   const router = useRouter();
 
   const handleRegister = async () => {
+    if (!validateFormCheck()) return;
+
     try {
       const { data } = await register({
         variables: {
-          tipo_de_cuenta: tipoDeCuenta,
-          email,
-          password,
-          nombre,
-          apellido,
-          usuario,
-          condicion_fiscal: condicionFiscal,
-          dni: parseInt(dni, 10),
-          telefono: telefono ? parseInt(telefono, 10) : null,
-          celular: celular ? parseInt(celular, 10) : null,
+          ...form,
         },
       });
+
       if (data?.register?.token) {
         localStorage.setItem('token', data.register.token);
+        await login();
         router.push('/account');
       }
     } catch (error) {
       console.error('Registration error:', error);
+      setErrors({
+        api: 'Error en el registro. Intentá de nuevo.',
+      });
     }
   };
 
   return (
     <Modal>
       <h1>Registrá tu cuenta</h1>
+      <p>
+        ¿No estás seguro qué significan estas opciones? <br />
+        Revisá nuestra sección de <Link href="/faqs">FAQs</Link>.
+      </p>
       <fieldset>
         <label htmlFor="tipo_de_cuenta">Tipo de cuenta:</label>
         <select
           className="popover-button small"
           type="text"
+          name="tipo_de_cuenta"
           id="tipo_de_cuenta"
           placeholder="Tipo de cuenta"
           required
-          value={tipoDeCuenta}
-          onChange={(e) => setTipoDeCuenta(e.target.value)}
+          onChange={handleChange}
         >
           <button>
             <selectedcontent></selectedcontent>
@@ -71,6 +80,9 @@ export default function Page() {
           <option>Dueño</option>
           <option>Escribano</option>
         </select>
+        {errors.tipo_de_cuenta && (
+          <small className="error-message">{errors.tipo_de_cuenta}</small>
+        )}
       </fieldset>
       <fieldset>
         <label htmlFor="email">Usuario:</label>
@@ -78,11 +90,14 @@ export default function Page() {
           type="text"
           className="small"
           id="usuario"
+          name="usuario"
           placeholder="Usuario"
           required
-          value={usuario}
-          onChange={(e) => setUsuario(e.target.value)}
+          onChange={handleChange}
         />
+        {errors.usuario && (
+          <small className="error-message">{errors.usuario}</small>
+        )}
       </fieldset>
       <fieldset>
         <label htmlFor="email">Email:</label>
@@ -90,11 +105,14 @@ export default function Page() {
           type="email"
           className="small"
           id="email"
+          name="email"
           placeholder="Email"
           required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={handleChange}
         />
+        {errors.email && (
+          <small className="error-message">{errors.email}</small>
+        )}
       </fieldset>
       <fieldset>
         <label htmlFor="contrasena">Contraseña:</label>
@@ -102,11 +120,14 @@ export default function Page() {
           type="password"
           className="small"
           id="contrasena"
+          name="password"
           placeholder="Contraseña"
           required
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={handleChange}
         />
+        {errors.password && (
+          <small className="error-message">{errors.password}</small>
+        )}
       </fieldset>
       <fieldset>
         <label htmlFor="nombre">Nombre:</label>
@@ -114,11 +135,14 @@ export default function Page() {
           type="text"
           className="small"
           id="nombre"
+          name="nombre"
           placeholder="Nombre"
           required
-          value={nombre}
-          onChange={(e) => setNombre(e.target.value)}
+          onChange={handleChange}
         />
+        {errors.nombre && (
+          <small className="error-message">{errors.nombre}</small>
+        )}
       </fieldset>
       <fieldset>
         <label htmlFor="apellido">Apellido:</label>
@@ -126,11 +150,14 @@ export default function Page() {
           type="text"
           className="small"
           id="apellido"
+          name="apellido"
           placeholder="Apellido"
           required
-          value={apellido}
-          onChange={(e) => setApellido(e.target.value)}
+          onChange={handleChange}
         />
+        {errors.apellido && (
+          <small className="error-message">{errors.apellido}</small>
+        )}
       </fieldset>
       <fieldset>
         <label htmlFor="condicion_fiscal">Condición fiscal:</label>
@@ -138,10 +165,10 @@ export default function Page() {
           className="popover-button small"
           type="text"
           id="condicion_fiscal"
+          name="condicion_fiscal"
           placeholder="Condición fiscal"
           required
-          value={condicionFiscal}
-          onChange={(e) => setCondicionFiscal(e.target.value)}
+          onChange={handleChange}
         >
           <button>
             <selectedcontent></selectedcontent>
@@ -155,6 +182,9 @@ export default function Page() {
           <option>Responsable Inscripto</option>
           <option>Exento</option>
         </select>
+        {errors.condicion_fiscal && (
+          <small className="error-message">{errors.condicion_fiscal}</small>
+        )}
       </fieldset>
       <fieldset>
         <label htmlFor="DNI">DNI:</label>
@@ -162,11 +192,12 @@ export default function Page() {
           type="number"
           className="small"
           id="DNI"
+          name="dni"
           placeholder="DNI"
           required
-          value={dni}
-          onChange={(e) => setDni(e.target.value)}
+          onChange={handleChange}
         />
+        {errors.dni && <small className="error-message">{errors.dni}</small>}
       </fieldset>
       <fieldset>
         <label htmlFor="telefono">Teléfono:</label>
@@ -174,9 +205,9 @@ export default function Page() {
           type="tel"
           className="small"
           id="telefono"
+          name="telefono"
           placeholder="Teléfono"
-          value={telefono}
-          onChange={(e) => setTelefono(e.target.value)}
+          onChange={handleChange}
         />
       </fieldset>
       <fieldset>
@@ -185,26 +216,32 @@ export default function Page() {
           type="tel"
           className="small"
           id="celular"
+          name="celular"
           placeholder="Celular"
-          value={celular}
-          onChange={(e) => setCelular(e.target.value)}
+          onChange={handleChange}
         />
       </fieldset>
       <fieldset className="terms">
-        <input
-          type="checkbox"
-          id="terms"
-          placeholder="Acepto los términos y condiciones de uso"
-          required
-          onChange={() => setTerms(!terms)}
-        />
-        <label htmlFor="terms">
-          Acepto los <a href="/">Términos y condiciones de uso</a>
-        </label>
+        <div className="terms__inner">
+          <input
+            type="checkbox"
+            id="terms"
+            name="terms"
+            placeholder="Acepto los términos y condiciones de uso"
+            required
+            onChange={handleChange}
+          />
+          <label htmlFor="terms">
+            Acepto los <a href="/">Términos y condiciones de uso</a>
+          </label>
+        </div>
+        {errors.terms && (
+          <small className="error-message">{errors.terms}</small>
+        )}
       </fieldset>
-      <a onClick={handleRegister} className="button button--large">
+      <button onClick={handleRegister} className="button button--large">
         Registrarse
-      </a>
+      </button>
     </Modal>
   );
 }

@@ -6,32 +6,42 @@ import NavbarPopover from './NavbarPopover';
 
 export default function Nav() {
   const { user, logout } = useAuth();
-  const anchorName = `--anchor-notifications`;
+  const notificationsAnchorName = `--anchor-notifications`;
+  const accountAnchorName = `--anchor-account`;
 
   return (
     <nav>
       <Link href="/listings">FAQs</Link>
       {user ? (
         <>
-          <a href="/account">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              fill="none"
-            >
-              <circle cx="12" cy="12" r="12" fill="#FF9500" />
-              <path
-                fill="#fff"
-                d="M12 11.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM18 17v.75a.75.75 0 0 1-.75.75H6.75a.75.75 0 0 1-.75-.75V17a4.5 4.5 0 0 1 4.5-4.5h3A4.5 4.5 0 0 1 18 17Z"
-              />
-            </svg>
-            {user.nombre} {user.apellido.slice(0, 1)}.
-          </a>
+          <button
+            popoverTarget="account"
+            style={{ anchorName: accountAnchorName }}
+          >
+            <a>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                fill="none"
+              >
+                <circle cx="12" cy="12" r="12" fill="#FF9500" />
+                <path
+                  fill="#fff"
+                  d="M12 11.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM18 17v.75a.75.75 0 0 1-.75.75H6.75a.75.75 0 0 1-.75-.75V17a4.5 4.5 0 0 1 4.5-4.5h3A4.5 4.5 0 0 1 18 17Z"
+                />
+              </svg>
+              {user.nombre} {user.apellido.slice(0, 1)}.
+            </a>
+          </button>
+          <NavbarPopover id="account">
+            <Link href="/account/settings">Mi cuenta</Link>
+            <a onClick={logout}>Salir</a>
+          </NavbarPopover>
           <button
             className="notifications"
             popoverTarget="notifications"
-            style={{ anchorName }}
+            style={{ anchorName: notificationsAnchorName }}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -46,9 +56,7 @@ export default function Nav() {
             </svg>
             <span className="notifications__count">1</span>
           </button>
-          <NavbarPopover id="notifications">
-            <a onClick={logout}>Salir</a>
-          </NavbarPopover>
+          <NavbarPopover id="notifications">Test</NavbarPopover>
           <Link className="button" href="/createListing">
             Publicar
           </Link>

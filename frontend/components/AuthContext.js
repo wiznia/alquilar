@@ -1,31 +1,16 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { useQuery, gql } from '@apollo/client';
+import { useQuery } from '@apollo/client';
+import { GET_USER } from './queries/queries';
 import { useRouter } from 'next/navigation';
 
 const AuthContext = createContext();
 
-const GET_USER = gql`
-  query GetUser {
-    user {
-      id
-      email
-      nombre
-      apellido
-      usuario
-      condicion_fiscal
-      dni
-      telefono
-      celular
-    }
-  }
-`;
-
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const router = useRouter();
-  const { data, loading, error } = useQuery(GET_USER, {
+  const { data, loading, error, refetch } = useQuery(GET_USER, {
     fetchPolicy: 'network-only',
   });
 
@@ -35,6 +20,13 @@ export const AuthProvider = ({ children }) => {
     }
   }, [data]);
 
+  const login = async () => {
+    await refetch();
+    if (data?.user) {
+      setUser(data.user);
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
@@ -42,7 +34,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, error, logout }}>
+    <AuthContext.Provider value={{ user, loading, error, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

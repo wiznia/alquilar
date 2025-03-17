@@ -48,3 +48,10 @@ nav {
   align-items: center;
   justify-content: center;
 }
+
+.nav-popover {
+  position-area: bottom center;
+  border: 0;
+  padding: 15px;
+  margin-block-start: 20px;
+}
