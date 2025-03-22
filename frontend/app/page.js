@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { APIProvider } from '@vis.gl/react-google-maps';
 import { AppProvider, useAppContext } from '../components/AppContext';
 import Listings from '../components/Listings';
 import Pagination from '../components/Pagination';
@@ -29,8 +30,10 @@ function PageContent() {
 
 export default function ListingsPage() {
   return (
-    <AppProvider>
-      <PageContent />
-    </AppProvider>
+    <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY}>
+      <AppProvider>
+        <PageContent />
+      </AppProvider>
+    </APIProvider>
   );
 }

@@ -1,9 +1,16 @@
-import Popover from './Popover';
+'use client';
+
+import { useEffect, useState } from 'react';
 import { useAppContext } from './AppContext';
+import Popover from './Popover';
+import { useGeocoding } from '@/app/hooks/useGeocoding';
 
 export default function SortBar({ count: searchCount }) {
   const { data } = useAppContext();
+  const [userCoords, setUserCoords] = useState({});
+  const [locationCity, setLocationCity] = useState('');
   const count = data?.getListings?.count || 0;
+  const { geocode } = useGeocoding();
   const orderMenu = [
     {
       name: 'ordenar_por',
@@ -15,13 +22,42 @@ export default function SortBar({ count: searchCount }) {
       ],
     },
   ];
+
+  const geolocationSuccess = (pos) => {
+    const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+    setUserCoords(coords);
+  };
+
+  const geolocationError = (error) => {
+    console.log(error.message);
+  };
+
+  useEffect(() => {
+    if (geocode && userCoords.lat && userCoords.lng) {
+      geocode(userCoords)
+        .then((result) => {
+          setLocationCity(result?.city);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    }
+  }, [userCoords, geocode]);
+
+  useEffect(() => {
+    navigator.geolocation.getCurrentPosition(
+      geolocationSuccess,
+      geolocationError,
+    );
+  }, []);
+
   return (
     <div className="sort-bar">
       {count > 0 &&
         (!searchCount ? (
           <h6>
             {count} departamento
-            {count > 1 || count === 0 ? 's' : ''} en Buenos Aires
+            {count > 1 || count === 0 ? 's' : ''} en {locationCity}
           </h6>
         ) : (
           <h6>

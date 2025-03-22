@@ -15,7 +15,7 @@ export const AuthProvider = ({ children }) => {
   });
 
   useEffect(() => {
-    if (data && data.user) {
+    if (data?.user) {
       setUser(data.user);
     }
   }, [data]);

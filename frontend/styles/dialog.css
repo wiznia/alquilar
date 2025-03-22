@@ -29,8 +29,10 @@ dialog {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    &.terms {
-      flex-direction: row;
+    .terms__inner {
+      display: flex;
+      gap: 12px;
+      align-items: center;
     }
     &:has(input[required], select[required]) {
       label {

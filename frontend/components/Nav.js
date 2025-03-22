@@ -57,7 +57,7 @@ export default function Nav() {
             <span className="notifications__count">1</span>
           </button>
           <NavbarPopover id="notifications">Test</NavbarPopover>
-          <Link className="button" href="/createListing">
+          <Link className="button" href="/account/listings/createListing">
             Publicar
           </Link>
         </>

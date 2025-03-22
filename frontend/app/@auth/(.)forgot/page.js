@@ -25,6 +25,7 @@ export default function Page() {
         setPasswordResetSuccess(true);
       }
     } catch (error) {
+      setIsLoading(false);
       console.error('Password reset error:', error);
     }
   };

@@ -1,20 +1,14 @@
-import {
-  AdvancedMarker,
-  Map,
-  useMap,
-  useMapsLibrary,
-} from '@vis.gl/react-google-maps';
+import { AdvancedMarker, Map } from '@vis.gl/react-google-maps';
 import { useCallback, useEffect, useState } from 'react';
+import { useGeocoding } from '@/app/hooks/useGeocoding';
 
 export default function MapComponent({ address }) {
-  const map = useMap();
+  const { geocode } = useGeocoding();
   const [coordinates, setCoordinates] = useState({
     lat: -34.6036844,
     lng: -58.3815591,
   });
   const [initialCoordinates, setInitialCoordinates] = useState(null);
-  const geocodingLib = useMapsLibrary('geocoding');
-  const [geocodingService, setGeocodingService] = useState(null);
 
   const handleDrag = useCallback((ev) => {
     const newCenter = ev.detail.center;
@@ -22,25 +16,18 @@ export default function MapComponent({ address }) {
   }, []);
 
   useEffect(() => {
-    if (!geocodingLib || !map) return;
-
-    setGeocodingService(new geocodingLib.Geocoder());
-  }, [geocodingLib, map]);
-
-  useEffect(() => {
-    if (!geocodingService) return;
-
-    geocodingService.geocode({ address }, (results, status) => {
-      if (status === 'OK' && results[0]) {
-        const { lat, lng } = results[0].geometry.location;
-
-        setCoordinates({ lat: lat(), lng: lng() });
-        setInitialCoordinates({ lat: lat(), lng: lng() });
-      } else {
-        console.error('Geocoding failed:', status);
-      }
-    });
-  }, [geocodingService]);
+    geocode(address)
+      .then((result) => {
+        if (result.coordinates) {
+          const { lat, lng } = result.coordinates;
+          setCoordinates({ lat, lng });
+          setInitialCoordinates({ lat, lng });
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }, [address, geocode]);
 
   return (
     <Map

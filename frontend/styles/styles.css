@@ -63,17 +63,26 @@ form {
 /* End Reset */
 
 /* Utility classes */
-input {
+input,
+textarea {
   border: 1px solid hsl(0deg 0% 86.67%);
   border-radius: var(--border-radius);
   background-color: var(--secondary-bg);
+}
+
+textarea {
+  width: 100%;
+  min-height: 180px;
+  resize: none;
 }
 
 input[type='text'],
 input[type='email'],
 input[type='tel'],
 input[type='number'],
-input[type='search'] {
+input[type='search'],
+textarea {
+  font-family: inherit;
   transition: all 250ms ease;
   padding: 13px 25px;
   &:focus {
@@ -270,6 +279,7 @@ small,
 @import url('./pagination.css');
 @import url('./footer.css');
 @import url('./dialog.css');
+@import url('./account.css');
 
 #__next {
   container-type: inline-size;

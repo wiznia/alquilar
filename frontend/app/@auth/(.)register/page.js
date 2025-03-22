@@ -7,8 +7,10 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useFormValidation } from '@/app/hooks/useFormValidation';
 import { useAuth } from '@/components/AuthContext';
+import { useState } from 'react';
 
 export default function Page() {
+  const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const initialState = {
     tipo_de_cuenta: '',
@@ -32,6 +34,7 @@ export default function Page() {
     if (!validateFormCheck()) return;
 
     try {
+      setIsLoading(true);
       const { data } = await register({
         variables: {
           ...form,
@@ -39,15 +42,28 @@ export default function Page() {
       });
 
       if (data?.register?.token) {
+        setIsLoading(false);
         localStorage.setItem('token', data.register.token);
         await login();
         router.push('/account');
       }
     } catch (error) {
       console.error('Registration error:', error);
-      setErrors({
-        api: 'Error en el registro. Intentá de nuevo.',
-      });
+      const errorMessage =
+        error.graphQLErrors?.[0]?.message ||
+        'Error en el inicio de sesión. Intentá de nuevo.';
+
+      const newErrors = {};
+
+      if (errorMessage.includes('User already exists')) {
+        newErrors.usuario = 'Ya existe un usuario con este nombre, elegí otro.';
+      } else if (errorMessage.includes('Email already exists')) {
+        newErrors.email = 'El email ingresado ya existe en el sistema.';
+      } else {
+        newErrors.api = errorMessage;
+      }
+
+      setErrors(newErrors);
     }
   };
 
@@ -240,7 +256,11 @@ export default function Page() {
         )}
       </fieldset>
       <button onClick={handleRegister} className="button button--large">
-        Registrarse
+        {isLoading ? (
+          <span className="loader"></span>
+        ) : (
+          <span>Registrarse</span>
+        )}
       </button>
     </Modal>
   );

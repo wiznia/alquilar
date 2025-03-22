@@ -5,7 +5,8 @@
   margin: 150px 0;
 }
 
-.pagination__item, .pagination__text {
+.pagination__item,
+.pagination__text {
   border: 1px solid #ddd;
   padding: 25px;
   font-size: 16px;
@@ -13,7 +14,7 @@
   color: var(--primary-bg);
   text-decoration: none;
 }
-.pagination__item[aria-disabled="true"] {
+.pagination__item[aria-disabled='true'] {
   cursor: auto;
   pointer-events: none;
   background-color: var(--secondary-bg);
@@ -30,5 +31,12 @@
     color: #fff;
     background-color: var(--primary-bg);
     border-color: var(--primary-bg);
+  }
+  @media screen and (max-width: 767px) {
+    display: none;
+    &:first-child,
+    &:last-child {
+      display: block;
+    }
   }
 }

@@ -17,19 +17,26 @@ export default function SingleListingPage({ id }) {
   if (error) return <p>Error: {error.message}</p>;
 
   const {
-    titulo,
     ambientes,
-    dormitorios,
-    banos,
-    superficie_total,
-    superficie_cubierta,
-    precio,
-    expensas,
-    direccion,
-    barrio,
-    localidad,
-    descripcion,
+    ammenities,
     antiguedad_max,
+    banos,
+    barrio,
+    ciudad,
+    descripcion,
+    direccion,
+    dormitorios,
+    estado,
+    expensas,
+    precio,
+    provincia,
+    superficie_cubierta,
+    superficie_total,
+    tipo_de_alquiler,
+    tipo_de_ambientes,
+    tipo_de_propiedad,
+    titulo,
+    toilettes,
   } = data.getListingById;
   const features = {
     ambientes,
@@ -50,7 +57,7 @@ export default function SingleListingPage({ id }) {
           <div className="address">
             <h5>{direccion}</h5>
             <p>
-              {barrio}, {localidad}
+              {barrio}, {ciudad}
             </p>
           </div>
           <ul className="entry__list">
@@ -64,7 +71,7 @@ export default function SingleListingPage({ id }) {
         <div className="entry__contact"></div>
       </div>
       <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY}>
-        <MapComponent address={`${direccion}, ${localidad}`} />
+        <MapComponent address={`${direccion}, ${ciudad}`} />
       </APIProvider>
     </div>
   );

@@ -10,6 +10,7 @@ import { useFormValidation } from '@/app/hooks/useFormValidation';
 import { useAuth } from '@/components/AuthContext';
 
 export default function Page() {
+  const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const initialState = {
     email: '',
@@ -27,20 +28,41 @@ export default function Page() {
     try {
       const { data } = await loginMutation({ variables: { ...form } });
 
+      setIsLoading(true);
+
       if (data?.login?.token) {
+        setIsLoading(false);
         localStorage.setItem('token', data.login.token);
         await login();
         router.push('/account');
       }
     } catch (error) {
       console.error('Login error:', error);
-      setErrors({ api: 'Error en el registro. Intentá de nuevo.' });
+      setIsLoading(false);
+      const errorMessage =
+        error.graphQLErrors?.[0]?.message ||
+        'Error en el inicio de sesión. Intentá de nuevo.';
+
+      const newErrors = {};
+
+      if (errorMessage.includes('User not found')) {
+        newErrors.email = 'El email no está registrado.';
+      } else if (errorMessage.includes('Invalid password')) {
+        newErrors.password = 'La contraseña es incorrecta.';
+      } else {
+        newErrors.api = errorMessage;
+      }
+
+      setErrors(newErrors);
     }
   };
 
   return (
     <Modal>
       <h1>Ingresá a tu cuenta</h1>
+      {errors.api && !errors.email && !errors.password && (
+        <small className="error-message">{errors.api}</small>
+      )}
       <fieldset>
         <label htmlFor="email">Email:</label>
         <input
@@ -118,7 +140,7 @@ export default function Page() {
       </fieldset>
       <Link href="/forgot">Olvidé mi contraseña</Link>
       <button onClick={handleLogin} className="button button--large">
-        Ingresar
+        {isLoading ? <span className="loader"></span> : <span>Ingresar</span>}
       </button>
     </Modal>
   );
