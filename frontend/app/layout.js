@@ -4,7 +4,7 @@ import Page from '../components/Page';
 import { AppProvider } from '../components/AppContext';
 import { AuthProvider } from '../components/AuthContext';
 
-export default function RootLayout({ children, auth, deletelisting }) {
+export default function RootLayout({ children, auth, modal }) {
   return (
     <html lang="es">
       <head>
@@ -15,9 +15,9 @@ export default function RootLayout({ children, auth, deletelisting }) {
           <AppProvider>
             <AuthProvider>
               <Page>
-                {auth}
-                {deletelisting}
                 {children}
+                {auth}
+                {/*modal*/}
               </Page>
             </AuthProvider>
           </AppProvider>

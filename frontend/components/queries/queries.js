@@ -93,6 +93,7 @@ export const SINGLE_LISTING_QUERY = gql`
   query SINGLE_LISTING_QUERY($id: ID!) {
     getListingById(id: $id) {
       ambientes
+      ammenities
       antiguedad_max
       banos
       barrio

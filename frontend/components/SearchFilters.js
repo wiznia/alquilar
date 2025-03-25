@@ -100,19 +100,19 @@ export default function SearchFilters() {
       options: [
         {
           label: 'Balcón',
-          value: 'Balcón',
+          value: 'balcon',
         },
         {
           label: 'Jardín',
-          value: 'Jardín',
+          value: 'jardin',
         },
         {
           label: 'Patio',
-          value: 'Patio',
+          value: 'patio',
         },
         {
           label: 'Terraza',
-          value: 'Terraza',
+          value: 'terraza',
         },
       ],
     },
@@ -121,23 +121,23 @@ export default function SearchFilters() {
       options: [
         {
           label: 'Gimnasio',
-          value: 'Gimnasio',
+          value: 'gimnasio',
         },
         {
           label: 'Lavadero',
-          value: 'Lavadero',
+          value: 'lavadero',
         },
         {
           label: 'Parrilla',
-          value: 'Parrilla',
+          value: 'parrilla',
         },
         {
           label: 'Pileta',
-          value: 'Pileta',
+          value: 'pileta',
         },
         {
           label: 'Quincho',
-          value: 'Quincho',
+          value: 'quincho',
         },
         {
           label: 'SUM',
