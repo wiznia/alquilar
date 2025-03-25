@@ -8,10 +8,20 @@ import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
+import cors from 'cors';
+import express from 'express';
 
 dotenv.config();
 
 mongoose.connect(process.env.DATABASE_URL, {});
+
+const app = express();
+const corsOptions = {
+  origin: 'https://alquilar-client.vercel.app',
+  optionsSuccessStatus: 200,
+};
+
+app.use(cors(corsOptions));
 
 const typeDefs = `
   type Query {
