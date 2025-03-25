@@ -578,20 +578,4 @@ const { url } = await startStandaloneServer(server, {
   },
 });
 
-import dns from 'dns';
-import os from 'os';
-
-const getPublicIP = async () => {
-  return new Promise((resolve, reject) => {
-    dns.lookup(os.hostname(), (err, address) => {
-      if (err) reject(err);
-      else resolve(address);
-    });
-  });
-};
-
-getPublicIP()
-  .then((ip) => console.log(`🚀 La IP pública de Vercel es: ${ip}`))
-  .catch((err) => console.error('Error obteniendo la IP:', err));
-
 console.log(`Server running at: ${url}`);
