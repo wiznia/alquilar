@@ -9,7 +9,7 @@ import {
 import { setContext } from '@apollo/client/link/context';
 
 const httpLink = createHttpLink({
-  uri: process.env.NEXT_PUBLIC_FRONTEND_URL,
+  uri: process.env.NEXT_PUBLIC_BACKEND_URL,
 });
 
 const authLink = setContext((_, prevContext) => {
