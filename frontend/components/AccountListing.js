@@ -1,7 +1,4 @@
 import Link from 'next/link';
-import formatMoney from '../lib/formatMoney';
-import ListItem from './ListItem';
-import ImageSlider from './ImageSlider';
 
 export default function Listing({ listing }) {
   const { direccion, provincia, barrio, estado } = listing;
