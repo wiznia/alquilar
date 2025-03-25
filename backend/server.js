@@ -383,8 +383,8 @@ const resolvers = {
           from: 'no-reply@alquilar.com',
           subject: 'Bienvenido a Alquil.AR!',
           html: `
-      <p>Si necesitás ayuda, chequeá las <a href="http://localhost:3000/faq">FAQs</a></p>
-      <a href="http://localhost:3000/">Entrar a Alquil.AR</a>
+      <p>Si necesitás ayuda, chequeá las <a href="http://${process.env.FRONTEND_URL}/faq">FAQs</a></p>
+      <a href="http://${process.env.FRONTEND_URL}/">Entrar a Alquil.AR</a>
     `,
         });
         console.log('Email enviado correctamente');
@@ -418,6 +418,7 @@ const resolvers = {
       const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
         expiresIn: '24h',
       });
+
       return { id: user.id, email: user.email, token };
     },
     requestPasswordReset: async (_, { email }) => {
@@ -446,7 +447,7 @@ const resolvers = {
         subject: 'Reseteá tu contraseña',
         html: `
         <p>Clickeá en el link para resetear tu contraseña.</p>
-        <a href="http://localhost:3000/reset?token=${token}">Resetear contraseña</a>
+        <a href="http://${process.env.FRONTEND_URL}/reset?token=${token}">Resetear contraseña</a>
       `,
       });
 
