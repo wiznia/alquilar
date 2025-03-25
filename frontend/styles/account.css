@@ -145,3 +145,48 @@
 .account-map {
   width: 100%;
 }
+
+.account__column,
+.account__column-inner {
+  display: flex;
+  gap: 32px;
+  flex-direction: column;
+  flex: 1;
+  .account__column-inner {
+    margin: auto;
+    align-items: center;
+  }
+}
+
+.account__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.account-listing-container {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.account-listing {
+  border-radius: 5px;
+  background-color: rgba(250, 250, 250, 0.2);
+  padding: 24px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.account-listing__info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+.account-listing__buttons {
+  display: flex;
+  gap: 16px;
+}

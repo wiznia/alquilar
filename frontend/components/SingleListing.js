@@ -22,7 +22,6 @@ export default function SingleListingPage({ id }) {
     antiguedad_max,
     banos,
     barrio,
-    ciudad,
     descripcion,
     direccion,
     dormitorios,
@@ -57,7 +56,7 @@ export default function SingleListingPage({ id }) {
           <div className="address">
             <h5>{direccion}</h5>
             <p>
-              {barrio}, {ciudad}
+              {barrio}, {provincia}
             </p>
           </div>
           <ul className="entry__list">
@@ -71,7 +70,7 @@ export default function SingleListingPage({ id }) {
         <div className="entry__contact"></div>
       </div>
       <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY}>
-        <MapComponent address={`${direccion}, ${ciudad}`} />
+        <MapComponent address={`${direccion}, ${barrio}, ${provincia}`} />
       </APIProvider>
     </div>
   );

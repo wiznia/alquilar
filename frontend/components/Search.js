@@ -1,17 +1,14 @@
 import { useState } from 'react';
 import { useLazyQuery } from '@apollo/client';
 import { useRouter } from 'next/navigation';
-import { list } from './data';
-import AutoComplete from './AutoComplete';
 import { SEARCH_LISTINGS_QUERY } from './queries/queries';
 
 export default function Search() {
   const router = useRouter();
-  const [selected, setSelected] = useState('');
+  const [search, setSearch] = useState('');
   const [findListings, { loading, error }] = useLazyQuery(
     SEARCH_LISTINGS_QUERY,
     {
-      fetchPolicy: 'no-cache',
       onCompleted: (data) => {
         const searchValue = document.querySelector(
           'input[type="search"]',
@@ -48,12 +45,15 @@ export default function Search() {
 
   return (
     <form onSubmit={(e) => submitSearch(e)} type="submit" className="search">
-      <AutoComplete
-        placeholder="Buscar por ciudad o barrio"
-        options={list}
-        value={selected}
-        onChange={(val) => setSelected(val)}
-      />
+      <div className="search-container">
+        <input
+          className="p"
+          type="search"
+          placeholder="Buscar propiedades"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
       <button type="submit">
         <svg
           xmlns="http://www.w3.org/2000/svg"

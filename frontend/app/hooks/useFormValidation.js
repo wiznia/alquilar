@@ -50,26 +50,65 @@ export const useFormValidation = (initialState, formType) => {
   }, [selectedCity]);
 
   const handleChange = (e) => {
-    const { name, value, type } = e.target;
+    const { name, value, type, checked } = e.target;
 
+    if (type === 'number' || type === 'tel') {
+      const numberValue = Number(value);
+      setForm((prevForm) => ({
+        ...prevForm,
+        [name]: numberValue,
+      }));
+    } else if (type === 'file') {
+      const fileValue = e.target.files[0];
+      setForm((prevForm) => ({
+        ...prevForm,
+        [name]: fileValue,
+      }));
+    } else if (type === 'checkbox') {
+      setForm((prevForm) => {
+        const updatedArray = checked
+          ? [...(prevForm[name] || []), value]
+          : (prevForm[name] || []).filter((item) => item !== value);
+
+        return {
+          ...prevForm,
+          [name]: updatedArray,
+        };
+      });
+    } else {
+      setForm((prevForm) => ({
+        ...prevForm,
+        [name]: value,
+      }));
+
+      if (name === 'provincia') {
+        setSelectedProvince(value);
+        setSelectedCity('');
+        setSelectedLocalidad('');
+        setCityData([]);
+        setLocalidadesData([]);
+      } else if (name === 'barrio') {
+        setSelectedCity(value);
+        setSelectedLocalidad('');
+        setLocalidadesData([]);
+      } else if (name === 'municipio') {
+        setSelectedLocalidad(value);
+      }
+    }
+  };
+
+  const handleIncrement = (field) => {
     setForm((prevForm) => ({
       ...prevForm,
-      [name]: type === 'number' || type === 'tel' ? Number(value) : value,
+      [field]: (prevForm[field] || 0) + 1,
     }));
+  };
 
-    if (name === 'provincia') {
-      setSelectedProvince(value);
-      setSelectedCity('');
-      setSelectedLocalidad('');
-      setCityData([]);
-      setLocalidadesData([]);
-    } else if (name === 'barrio') {
-      setSelectedCity(value);
-      setSelectedLocalidad('');
-      setLocalidadesData([]);
-    } else if (name === 'municipio') {
-      setSelectedLocalidad(value);
-    }
+  const handleDecrement = (field) => {
+    setForm((prevForm) => ({
+      ...prevForm,
+      [field]: Math.max((prevForm[field] || 0) - 1, 0),
+    }));
   };
 
   const validateFormCheck = () => {
@@ -80,6 +119,7 @@ export const useFormValidation = (initialState, formType) => {
 
   return {
     form,
+    setForm,
     errors,
     handleChange,
     validateFormCheck,
@@ -87,5 +127,7 @@ export const useFormValidation = (initialState, formType) => {
     provinceData,
     cityData,
     localidadesData,
+    handleIncrement,
+    handleDecrement,
   };
 };

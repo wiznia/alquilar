@@ -4,7 +4,7 @@ import Page from '../components/Page';
 import { AppProvider } from '../components/AppContext';
 import { AuthProvider } from '../components/AuthContext';
 
-export default function RootLayout({ children, auth }) {
+export default function RootLayout({ children, auth, confirmDelete }) {
   return (
     <html lang="es">
       <head>
@@ -16,6 +16,7 @@ export default function RootLayout({ children, auth }) {
             <AuthProvider>
               <Page>
                 {auth}
+                {confirmDelete}
                 {children}
               </Page>
             </AuthProvider>

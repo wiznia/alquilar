@@ -32,7 +32,7 @@ export default function Listing({ listing }) {
           <div className="address">
             <h6>{listing.direccion}</h6>
             <p>
-              {listing.barrio}, {listing.localidad}
+              {listing.barrio}, {listing.provincia}
             </p>
           </div>
           <ul className="entry__list">

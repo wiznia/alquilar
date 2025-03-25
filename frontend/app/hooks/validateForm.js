@@ -28,5 +28,44 @@ export const validateForm = (form, formType) => {
     if (!form.terms) errors.terms = 'Debés aceptar los términos y condiciones.';
   }
 
+  if (formType === 'createListing') {
+    if (!form.tipo_de_alquiler) {
+      errors.tipo_de_alquiler = 'Debés seleccionar un tipo de operación.';
+    }
+    if (!form.tipo_de_alquiler) {
+      errors.moneda = 'Debés seleccionar una moneda.';
+    }
+    if (!form.precio) {
+      errors.precio = 'Debés seleccionar un precio.';
+    }
+    if (!form.expensas) {
+      errors.expensas = 'Las expensas no pueden estar vacías.';
+    }
+    if (!form.tipo_de_propiedad) {
+      errors.tipo_de_propiedad = 'Debés seleccionar un tipo de propiedad.';
+    }
+    if (!form.antiguedad_max) {
+      errors.antiguedad_max = 'Debés seleccionar una antiguedad.';
+    }
+    if (!form.superficie_cubierta) {
+      errors.superficie_cubierta = 'Debés seleccionar una superficie cubierta.';
+    }
+    if (!form.superficie_total) {
+      errors.superficie_total = 'Debés seleccionar una superficie total.';
+    }
+    if (!form.provincia) {
+      errors.provincia = 'Debés seleccionar una provincia.';
+    }
+    if (!form.barrio) {
+      errors.barrio = 'Debés seleccionar un barrio.';
+    }
+    if (!form.direccion) {
+      errors.direccion = 'Debés seleccionar una direccion.';
+    }
+    if (!form.titulo) {
+      errors.titulo = 'Debés seleccionar un título.';
+    }
+  }
+
   return errors;
 };

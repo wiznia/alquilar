@@ -4,27 +4,32 @@ import { useState } from 'react';
 import { APIProvider } from '@vis.gl/react-google-maps';
 import AccountSidebar from '@/components/AccountSidebar';
 import MapComponent from '@/components/Map';
-import { useFormValidation } from '@/app/hooks/useFormValidation';
 import Select from '@/components/Select';
-import {} from '@/components/queries/queries';
+import { useFormValidation } from '@/app/hooks/useFormValidation';
 import { useMutation } from '@apollo/client';
+import { CREATE_LISTING, UPDATE_LISTING } from '@/components/queries/queries';
+import { useRouter } from 'next/navigation';
 
 export default function Page() {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
   const [inputFiles, setInputFiles] = useState([]);
+  const [address, setAddress] = useState('Buenos Aires, Argentina');
+  const [listingId, setListingId] = useState(null);
   const initialState = {
-    ambientes: null,
+    ambientes: 0,
     ammenities: [],
     antiguedad_max: null,
-    banos: null,
+    banos: 0,
     barrio: '',
-    ciudad: '',
     descripcion: '',
     direccion: null,
-    dormitorios: null,
+    dormitorios: 0,
     estado: 'Activo',
     expensas: null,
     fotos: [],
     moneda: '',
+    municipio: '',
     precio: null,
     provincia: '',
     superficie_cubierta: null,
@@ -33,18 +38,28 @@ export default function Page() {
     tipo_de_ambientes: [],
     tipo_de_propiedad: '',
     titulo: '',
-    toilettes: null,
+    toilettes: 0,
   };
   const {
     form,
+    setForm,
     errors,
     handleChange,
     validateFormCheck,
-    setErrors,
+    handleIncrement,
+    handleDecrement,
     provinceData,
     cityData,
     localidadesData,
   } = useFormValidation(initialState, 'createListing');
+  const [createListing] = useMutation(CREATE_LISTING, {
+    onCompleted: (data) => {
+      if (data?.createListing?.id) {
+        setListingId(data.createListing.id);
+      }
+    },
+  });
+  const [updateListing] = useMutation(UPDATE_LISTING);
 
   const handleUploadFile = (e) => {
     const files = [...e.target.files];
@@ -54,6 +69,10 @@ export default function Page() {
     }));
 
     setInputFiles((prevFiles) => [...prevFiles, ...filesData]);
+    setForm((prevForm) => ({
+      ...prevForm,
+      fotos: [...prevForm.fotos, ...filesData],
+    }));
   };
 
   const handleRemoveFile = (e, indexToRemove) => {
@@ -61,13 +80,60 @@ export default function Page() {
     setInputFiles((prevFiles) =>
       prevFiles.filter((_, index) => index !== indexToRemove),
     );
+    setForm((prevForm) => ({
+      ...prevForm,
+      fotos: prevForm.fotos.filter((_, index) => index !== indexToRemove),
+    }));
   };
 
-  const handleSubmit = () => {
-    if (!validateFormCheck()) return;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!validateFormCheck()) {
+      document.querySelector('html').scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    const buttonType = e.target.name;
+    const estadoValue = buttonType === 'save' ? 'Borrador' : 'Activo';
 
     try {
-    } catch (error) {}
+      setIsLoading(true);
+
+      if (listingId) {
+        await updateListing({
+          variables: {
+            id: listingId,
+            input: { ...form, estado: estadoValue, id: listingId },
+          },
+        });
+      } else {
+        const { data } = await createListing({
+          variables: {
+            input: { ...form, estado: estadoValue },
+          },
+        });
+
+        if (data?.createListing?.id) {
+          setListingId(data.createListing.id);
+        }
+      }
+
+      setIsLoading(false);
+
+      if (estadoValue === 'Activo') {
+        router.push('/account/listings');
+      }
+    } catch (error) {
+      console.error('Listing error:', error);
+      setIsLoading(false);
+    }
+  };
+
+  const handleBlur = (e) => {
+    if (provincia?.value && barrio?.value && e.target.value) {
+      setAddress(`${e.target.value}, ${barrio.value}, ${provincia.value}`);
+    }
   };
 
   return (
@@ -75,7 +141,7 @@ export default function Page() {
       <AccountSidebar />
       <div className="account__info">
         <h2>Nueva publicación</h2>
-        <form onSubmit={handleSubmit}>
+        <form>
           <fieldset>
             <p>Tipo de operación:</p>
             <div className="account__item">
@@ -85,6 +151,8 @@ export default function Page() {
                   id="alquiler"
                   name="tipo_de_alquiler"
                   required
+                  onChange={handleChange}
+                  value="Alquiler"
                 />
                 <label htmlFor="alquiler">Alquiler</label>
               </div>
@@ -94,23 +162,45 @@ export default function Page() {
                   id="alquiler-temporario"
                   name="tipo_de_alquiler"
                   required
+                  onChange={handleChange}
+                  value="Alquiler temporario"
                 />
                 <label htmlFor="alquiler-temporario">Alquiler temporario</label>
               </div>
             </div>
+            {errors.tipo_de_alquiler && (
+              <small className="error-message">{errors.tipo_de_alquiler}</small>
+            )}
           </fieldset>
           <fieldset>
             <p>Moneda:</p>
             <div className="account__item">
               <div className="account__item-inner popover__item">
-                <input type="radio" id="pesos" name="moneda" required />
+                <input
+                  type="radio"
+                  id="pesos"
+                  name="moneda"
+                  required
+                  onChange={handleChange}
+                  value="Pesos"
+                />
                 <label htmlFor="pesos">Pesos</label>
               </div>
               <div className="account__item-inner popover__item">
-                <input type="radio" id="dolares" name="moneda" required />
+                <input
+                  type="radio"
+                  id="dolares"
+                  name="moneda"
+                  required
+                  onChange={handleChange}
+                  value="Dolares"
+                />
                 <label htmlFor="dolares">Dólares</label>
               </div>
             </div>
+            {errors.moneda && (
+              <small className="error-message">{errors.moneda}</small>
+            )}
           </fieldset>
           <fieldset>
             <div className="account__item">
@@ -121,7 +211,11 @@ export default function Page() {
                   name="precio"
                   placeholder="Precio"
                   required
+                  onChange={handleChange}
                 />
+                {errors.precio && (
+                  <small className="error-message">{errors.precio}</small>
+                )}
               </div>
               <div className="account__item-inner account__item-inner--half">
                 <p>Expensas:</p>
@@ -130,7 +224,11 @@ export default function Page() {
                   name="expensas"
                   placeholder="Expensas"
                   required
+                  onChange={handleChange}
                 />
+                {errors.expensas && (
+                  <small className="error-message">{errors.expensas}</small>
+                )}
               </div>
             </div>
           </fieldset>
@@ -144,6 +242,7 @@ export default function Page() {
                   id="tipo_de_propiedad"
                   placeholder="Tipo de propiedad"
                   required
+                  onChange={handleChange}
                 >
                   <button>
                     <selectedcontent></selectedcontent>
@@ -157,20 +256,31 @@ export default function Page() {
                   <option>PH</option>
                   <option>Otros</option>
                 </select>
+                {errors.tipo_de_propiedad && (
+                  <small className="error-message">
+                    {errors.tipo_de_propiedad}
+                  </small>
+                )}
               </div>
             </div>
           </fieldset>
           <fieldset>
             <div className="account__item">
               <div className="account__item-inner account__item-inner--half">
-                <p>Antiguedad:</p>
+                <p>Antiguedad (años):</p>
                 <input
                   type="number"
-                  name="antiguedad"
+                  name="antiguedad_max"
                   placeholder="Antiguedad"
                   required
                   min="0"
+                  onChange={handleChange}
                 />
+                {errors.antiguedad_max && (
+                  <small className="error-message">
+                    {errors.antiguedad_max}
+                  </small>
+                )}
               </div>
             </div>
           </fieldset>
@@ -184,7 +294,13 @@ export default function Page() {
                   placeholder="Superficie cubierta"
                   required
                   min="0"
+                  onChange={handleChange}
                 />
+                {errors.superficie_cubierta && (
+                  <small className="error-message">
+                    {errors.superficie_cubierta}
+                  </small>
+                )}
               </div>
               <div className="account__item-inner account__item-inner--half">
                 <p>Superficie total (mts2):</p>
@@ -194,20 +310,13 @@ export default function Page() {
                   placeholder="Superficie total"
                   required
                   min="0"
+                  onChange={handleChange}
                 />
-              </div>
-            </div>
-          </fieldset>
-          <fieldset>
-            <div className="account__item">
-              <div className="account__item-inner account__item-inner--half">
-                <p>Dirección:</p>
-                <input
-                  type="text"
-                  name="direccion"
-                  placeholder="Dirección"
-                  required
-                />
+                {errors.superficie_total && (
+                  <small className="error-message">
+                    {errors.superficie_total}
+                  </small>
+                )}
               </div>
             </div>
           </fieldset>
@@ -219,9 +328,12 @@ export default function Page() {
                   name="provincia"
                   placeholder="Provincia"
                   resource="provincias"
-                  onChange={handleChange}
                   options={provinceData ? provinceData.provincias : []}
+                  onChange={handleChange}
                 />
+                {errors.provincia && (
+                  <small className="error-message">{errors.provincia}</small>
+                )}
               </div>
             </div>
           </fieldset>
@@ -235,6 +347,27 @@ export default function Page() {
                   onChange={handleChange}
                   options={cityData ? cityData.localidades : []}
                 />
+                {errors.barrio && (
+                  <small className="error-message">{errors.barrio}</small>
+                )}
+              </div>
+            </div>
+          </fieldset>
+          <fieldset>
+            <div className="account__item">
+              <div className="account__item-inner account__item-inner--half">
+                <p>Dirección:</p>
+                <input
+                  type="text"
+                  name="direccion"
+                  placeholder="Dirección"
+                  required
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                />
+                {errors.direccion && (
+                  <small className="error-message">{errors.direccion}</small>
+                )}
               </div>
             </div>
           </fieldset>
@@ -263,7 +396,11 @@ export default function Page() {
                   name="titulo"
                   placeholder="Título"
                   required
+                  onChange={handleChange}
                 />
+                {errors.titulo && (
+                  <small className="error-message">{errors.titulo}</small>
+                )}
               </div>
             </div>
           </fieldset>
@@ -275,6 +412,7 @@ export default function Page() {
                   name="descripcion"
                   placeholder="Descripción"
                   required
+                  onChange={handleChange}
                 ></textarea>
               </div>
             </div>
@@ -284,27 +422,59 @@ export default function Page() {
               <div className="account__item-inner account__item-inner--half">
                 <p>Ambientes:</p>
                 <div className="account__item-number">
-                  <button>-</button>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleDecrement('ambientes');
+                    }}
+                  >
+                    -
+                  </button>
                   <input
                     min="0"
                     type="number"
                     name="ambientes"
                     placeholder="0"
+                    value={form.ambientes}
+                    onChange={handleChange}
                   />
-                  <button>+</button>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleIncrement('ambientes');
+                    }}
+                  >
+                    +
+                  </button>
                 </div>
               </div>
               <div className="account__item-inner account__item-inner--half">
                 <p>Dormitorios:</p>
                 <div className="account__item-number">
-                  <button>-</button>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleDecrement('dormitorios');
+                    }}
+                  >
+                    -
+                  </button>
                   <input
                     min="0"
                     type="number"
                     name="dormitorios"
                     placeholder="0"
+                    onChange={handleChange}
+                    value={form.dormitorios}
                   />
-                  <button>+</button>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleIncrement('dormitorios');
+                    }}
+                  >
+                    +
+                  </button>
                 </div>
               </div>
             </div>
@@ -314,22 +484,59 @@ export default function Page() {
               <div className="account__item-inner account__item-inner--half">
                 <p>Baños:</p>
                 <div className="account__item-number">
-                  <button>-</button>
-                  <input min="0" type="number" name="banos" placeholder="0" />
-                  <button>+</button>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleDecrement('banos');
+                    }}
+                  >
+                    -
+                  </button>
+                  <input
+                    min="0"
+                    type="number"
+                    name="banos"
+                    placeholder="0"
+                    onChange={handleChange}
+                    value={form.banos}
+                  />
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleIncrement('banos');
+                    }}
+                  >
+                    +
+                  </button>
                 </div>
               </div>
               <div className="account__item-inner account__item-inner--half">
                 <p>Toilettes:</p>
                 <div className="account__item-number">
-                  <button>-</button>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleDecrement('toilettes');
+                    }}
+                  >
+                    -
+                  </button>
                   <input
                     min="0"
                     type="number"
                     name="toilettes"
                     placeholder="0"
+                    onChange={handleChange}
+                    value={form.toilettes}
                   />
-                  <button>+</button>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleIncrement('toilettes');
+                    }}
+                  >
+                    +
+                  </button>
                 </div>
               </div>
             </div>
@@ -339,25 +546,49 @@ export default function Page() {
             <div className="account__item account__item--checkbox">
               <div className="account__item-inner account__item-inner--half">
                 <div className="popover__item">
-                  <input type="checkbox" id="balcon" name="balcon" />
+                  <input
+                    type="checkbox"
+                    id="balcon"
+                    name="tipo_de_ambientes"
+                    onChange={handleChange}
+                    value="balcon"
+                  />
                   <label htmlFor="balcon">Balcón</label>
                 </div>
               </div>
               <div className="account__item-inner account__item-inner--half">
                 <div className="popover__item">
-                  <input type="checkbox" id="jardin" name="jardin" />
+                  <input
+                    type="checkbox"
+                    id="jardin"
+                    name="tipo_de_ambientes"
+                    onChange={handleChange}
+                    value="jardin"
+                  />
                   <label htmlFor="jardin">Jardín</label>
                 </div>
               </div>
               <div className="account__item-inner account__item-inner--half">
                 <div className="popover__item">
-                  <input type="checkbox" id="patio" name="patio" />
+                  <input
+                    type="checkbox"
+                    id="patio"
+                    name="tipo_de_ambientes"
+                    onChange={handleChange}
+                    value="patio"
+                  />
                   <label htmlFor="patio">Patio</label>
                 </div>
               </div>
               <div className="account__item-inner account__item-inner--half">
                 <div className="popover__item">
-                  <input type="checkbox" id="terraza" name="terraza" />
+                  <input
+                    type="checkbox"
+                    id="terraza"
+                    name="tipo_de_ambientes"
+                    onChange={handleChange}
+                    value="terraza"
+                  />
                   <label htmlFor="terraza">Terraza</label>
                 </div>
               </div>
@@ -368,37 +599,73 @@ export default function Page() {
             <div className="account__item account__item--checkbox">
               <div className="account__item-inner account__item-inner--half">
                 <div className="popover__item">
-                  <input type="checkbox" id="gimnasio" name="gimnasio" />
+                  <input
+                    type="checkbox"
+                    id="gimnasio"
+                    name="ammenities"
+                    onChange={handleChange}
+                    value="gimnasio"
+                  />
                   <label htmlFor="gimnasio">Gimnasio</label>
                 </div>
               </div>
               <div className="account__item-inner account__item-inner--half">
                 <div className="popover__item">
-                  <input type="checkbox" id="lavadero" name="lavadero" />
+                  <input
+                    type="checkbox"
+                    id="lavadero"
+                    name="ammenities"
+                    onChange={handleChange}
+                    value="lavadero"
+                  />
                   <label htmlFor="lavadero">Lavadero</label>
                 </div>
               </div>
               <div className="account__item-inner account__item-inner--half">
                 <div className="popover__item">
-                  <input type="checkbox" id="parrilla" name="parrilla" />
+                  <input
+                    type="checkbox"
+                    id="parrilla"
+                    name="ammenities"
+                    onChange={handleChange}
+                    value="parrilla"
+                  />
                   <label htmlFor="parrilla">Parrilla</label>
                 </div>
               </div>
               <div className="account__item-inner account__item-inner--half">
                 <div className="popover__item">
-                  <input type="checkbox" id="pileta" name="pileta" />
+                  <input
+                    type="checkbox"
+                    id="pileta"
+                    name="ammenities"
+                    onChange={handleChange}
+                    value="pileta"
+                  />
                   <label htmlFor="pileta">Pileta</label>
                 </div>
               </div>
               <div className="account__item-inner account__item-inner--half">
                 <div className="popover__item">
-                  <input type="checkbox" id="quincho" name="quincho" />
+                  <input
+                    type="checkbox"
+                    id="quincho"
+                    name="ammenities"
+                    onChange={handleChange}
+                    value="quincho"
+                  />
                   <label htmlFor="quincho">Quincho</label>
                 </div>
               </div>
               <div className="account__item-inner account__item-inner--half">
                 <div className="popover__item">
-                  <input type="checkbox" id="SUM" name="SUM" />
+                  <input
+                    type="checkbox"
+                    id="SUM"
+                    name="ammenities"
+                    onChange={handleChange}
+                    value="SUM"
+                  />
                   <label htmlFor="SUM">SUM</label>
                 </div>
               </div>
@@ -450,18 +717,38 @@ export default function Page() {
             </div>
           </fieldset>
           <div className="button-container">
-            <button type="button" className="button">
-              Guardar cambios
+            <button
+              onClick={handleSubmit}
+              type="submit"
+              name="save"
+              className="button"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <span className="loader"></span>
+              ) : (
+                <span>Guardar cambios</span>
+              )}
             </button>
-            <button type="button" className="button">
-              Publicar
+            <button
+              onClick={handleSubmit}
+              type="submit"
+              name="publish"
+              className="button"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <span className="loader"></span>
+              ) : (
+                <span>Publicar</span>
+              )}
             </button>
           </div>
         </form>
       </div>
       <div className="account-map">
         <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY}>
-          <MapComponent address={`Buenos Aires, Argentina`} />
+          <MapComponent address={address} />
         </APIProvider>
       </div>
     </div>

@@ -7,7 +7,6 @@ export const ALL_LISTINGS_QUERY = gql`
     $antiguedad_max: Int
     $banos: Int
     $barrio: String
-    $ciudad: String
     $descripcion: String
     $direccion: String
     $dormitorios: Int
@@ -36,7 +35,6 @@ export const ALL_LISTINGS_QUERY = gql`
       antiguedad_max: $antiguedad_max
       banos: $banos
       barrio: $barrio
-      ciudad: $ciudad
       descripcion: $descripcion
       direccion: $direccion
       dormitorios: $dormitorios
@@ -66,7 +64,6 @@ export const ALL_LISTINGS_QUERY = gql`
         antiguedad_max
         banos
         barrio
-        ciudad
         descripcion
         direccion
         dormitorios
@@ -74,9 +71,8 @@ export const ALL_LISTINGS_QUERY = gql`
         expensas
         fotos {
           id
-          image {
-            publicUrlTransformed
-          }
+          name
+          url
         }
         id
         moneda
@@ -100,7 +96,6 @@ export const SINGLE_LISTING_QUERY = gql`
       antiguedad_max
       banos
       barrio
-      ciudad
       descripcion
       direccion
       dormitorios
@@ -108,9 +103,8 @@ export const SINGLE_LISTING_QUERY = gql`
       expensas
       fotos {
         id
-        image {
-          publicUrlTransformed
-        }
+        name
+        url
       }
       id
       precio
@@ -132,7 +126,6 @@ export const SEARCH_LISTINGS_QUERY = gql`
         antiguedad_max
         banos
         barrio
-        ciudad
         descripcion
         direccion
         dormitorios
@@ -140,9 +133,8 @@ export const SEARCH_LISTINGS_QUERY = gql`
         expensas
         fotos {
           id
-          image {
-            publicUrlTransformed
-          }
+          name
+          url
         }
         id
         moneda
@@ -225,6 +217,45 @@ export const GET_USER = gql`
   }
 `;
 
+export const GET_LISTINGS_BY_OWNER = gql`
+  query GET_LISTINGS_BY_OWNER($id: ID!) {
+    getListings(owner: $id) {
+      count
+      listings {
+        id
+        titulo
+        tipo_de_alquiler
+        tipo_de_propiedad
+        direccion
+        provincia
+        barrio
+        descripcion
+        estado
+        precio
+        moneda
+        owner {
+          nombre
+          apellido
+        }
+        expensas
+        ambientes
+        dormitorios
+        banos
+        superficie_cubierta
+        superficie_total
+        ammenities
+        antiguedad_max
+        fotos {
+          id
+          name
+          url
+        }
+        viewCount
+      }
+    }
+  }
+`;
+
 export const REQUEST_PASSWORD_RESET = gql`
   mutation RequestPasswordReset($email: String!) {
     requestPasswordReset(email: $email)
@@ -238,52 +269,65 @@ export const RESET_PASSWORD = gql`
 `;
 
 export const CREATE_LISTING = gql`
-  mutation CreateListing(
-    $ambientes: Int!
-    $ammenities: [String]
-    $antiguedad_max: Int
-    $banos: Int!
-    $barrio: String!
-    $ciudad: String!
-    $descripcion: String
-    $direccion: String!
-    $dormitorios: Int
-    $estado: String!
-    $expensas: Float
-    $moneda: String!
-    $precio: Float!
-    $provincia: String!
-    $superficie_cubierta: Int
-    $superficie_total: Int
-    $tipo_de_alquiler: String!
-    $tipo_de_ambientes: [String]
-    $tipo_de_propiedad: String!
-    $titulo: String!
-    $toilettes: Int
-  ) {
-    register(
-      apellido: $apellido
-      celular: $celular
-      condicion_fiscal: $condicion_fiscal
-      dni: $dni
-      email: $email
-      nombre: $nombre
-      password: $password
-      telefono: $telefono
-      tipo_de_cuenta: $tipo_de_cuenta
-      usuario: $usuario
-    ) {
-      apellido
-      celular
-      condicion_fiscal
-      dni
-      email
+  mutation CreateListing($input: CreateListingInput!) {
+    createListing(input: $input) {
+      ambientes
+      antiguedad_max
+      ammenities
+      banos
+      barrio
+      descripcion
+      direccion
+      dormitorios
+      estado
+      expensas
+      fotos {
+        id
+        name
+        url
+      }
       id
-      nombre
-      telefono
-      tipo_de_cuenta
-      token
-      usuario
+      moneda
+      precio
+      provincia
+      superficie_cubierta
+      superficie_total
+      tipo_de_alquiler
+      tipo_de_propiedad
+      titulo
+      toilettes
+    }
+  }
+`;
+
+export const UPDATE_LISTING = gql`
+  mutation UpdateListing($id: ID!, $input: UpdateListingInput!) {
+    updateListing(id: $id, input: $input) {
+      ambientes
+      antiguedad_max
+      ammenities
+      banos
+      barrio
+      descripcion
+      direccion
+      dormitorios
+      estado
+      expensas
+      fotos {
+        id
+        name
+        url
+      }
+      id
+      moneda
+      precio
+      provincia
+      superficie_cubierta
+      superficie_total
+      tipo_de_alquiler
+      tipo_de_propiedad
+      titulo
+      toilettes
     }
   }
 `;

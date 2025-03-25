@@ -15,7 +15,7 @@ export default function Listings() {
     return (
       <div className="loading">
         <p>
-          Hubo un problema al cargar el listado de publicaciones:{' '}
+          Hubo un problema al cargar el listado de publicaciones:
           {error.message}
         </p>
       </div>

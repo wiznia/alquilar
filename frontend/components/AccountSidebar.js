@@ -16,7 +16,7 @@ export default function AccountSidebar() {
   ];
   const navPagesLoggedOut = [
     { name: 'Configuración general', path: '/account/settings' },
-    { name: 'Mis alquileres', path: '/account/listings/' },
+    { name: 'Mis alquileres', path: '/account/alquileres/' },
     { name: 'Wishlist', path: '/account/wishlist' },
     { name: 'Mensajes', path: '/account/messages' },
     { name: 'Calendario', path: '/account/calendar' },

@@ -11,6 +11,8 @@ const userSchema = new mongoose.Schema({
   dni: { type: Number, required: true },
   telefono: { type: Number },
   celular: { type: Number },
+  resetToken: { type: String },
+  resetTokenExpiration: { type: Date },
 });
 
 const User = mongoose.model('User', userSchema);

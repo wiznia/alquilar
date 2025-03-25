@@ -246,17 +246,21 @@ small,
 .button {
   border-radius: var(--border-radius);
   background-color: var(--primary-bg);
-  padding: 10px 20px;
+  padding: 14px 16px;
   font-size: 14px;
   font-weight: bold;
   color: #fff;
   transition: background-color 500ms ease;
   text-align: center;
   text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 13px;
   svg {
     transition: all 500ms ease;
   }
-  &:has(svg):hover {
+  &:has(svg.register):hover {
     svg {
       transform: translateX(5px);
     }
@@ -269,6 +273,36 @@ small,
   }
   &[disabled] {
     background-color: rgb(255 149 0 / 40%);
+  }
+  &.button--secondary {
+    background-color: #fff;
+    border: 3px solid var(--primary-bg);
+    color: var(--primary-bg);
+    padding: 11px 16px;
+  }
+  &.button--danger {
+    background-color: #ff3b30;
+  }
+}
+
+.pill {
+  padding: 4px 16px;
+  color: #fff;
+  border-radius: 37px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-block-start: 5px;
+  &.borrador {
+    background-color: var(--primary-text);
+  }
+  &.activo {
+    background-color: #5dc81c;
+  }
+  &.pausado {
+    background-color: #007aff;
+  }
+  &.alquilado {
+    background-color: #000;
   }
 }
 
@@ -288,8 +322,9 @@ small,
 .container {
   max-width: var(--max-width);
   margin: 0 auto;
-  padding: 0 30px;
+  padding: 64px 30px;
   container-type: inline-size;
+  min-height: calc(100vh - 205px);
   @container (max-width: 1204px) {
     padding: 0 20px;
   }
@@ -347,6 +382,9 @@ small,
     width: 50%;
     padding: 13px 10px;
   }
+  span {
+    pointer-events: none;
+  }
 }
 
 .sort-bar {
@@ -376,6 +414,11 @@ small,
       background-color: #ddd;
     }
   }
+}
+
+.error-message {
+  color: var(--error);
+  margin-block-start: -5px;
 }
 
 .loading {
@@ -486,9 +529,4 @@ small,
       -2.6em 0em 0 0em rgba(255, 255, 255, 0.7),
       -1.8em -1.8em 0 0em #ffffff;
   }
-}
-
-.error-message {
-  color: var(--error);
-  margin-block-start: -5px;
 }

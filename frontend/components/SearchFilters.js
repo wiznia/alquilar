@@ -46,7 +46,7 @@ export default function SearchFilters() {
           value: 'Pesos',
         },
         {
-          label: 'Dolares',
+          label: 'Dólares',
           value: 'Dolares',
         },
       ],
