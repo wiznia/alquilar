@@ -8,20 +8,10 @@ import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
-import cors from 'cors';
-import express from 'express';
 
 dotenv.config();
 
 mongoose.connect(process.env.DATABASE_URL, {});
-
-const app = express();
-const corsOptions = {
-  origin: 'https://alquilar-client.vercel.app',
-  optionsSuccessStatus: 200,
-};
-
-app.use(cors(corsOptions));
 
 const typeDefs = `
   type Query {
@@ -587,5 +577,21 @@ const { url } = await startStandaloneServer(server, {
     return { req };
   },
 });
+
+import dns from 'dns';
+import os from 'os';
+
+const getPublicIP = async () => {
+  return new Promise((resolve, reject) => {
+    dns.lookup(os.hostname(), (err, address) => {
+      if (err) reject(err);
+      else resolve(address);
+    });
+  });
+};
+
+getPublicIP()
+  .then((ip) => console.log(`🚀 La IP pública de Vercel es: ${ip}`))
+  .catch((err) => console.error('Error obteniendo la IP:', err));
 
 console.log(`Server running at: ${url}`);
