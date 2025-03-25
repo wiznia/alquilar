@@ -1,6 +1,6 @@
 import { Modal } from '@/components/Modal';
 
-export default function Page() {
+export default function DeleteListingModal() {
   return (
     <Modal>
       <h5>¿Estás seguro que querés eliminar esta publicación?</h5>

@@ -1,4 +1,4 @@
-export default function Page() {
+export default function DeleteListingPage() {
   return (
     <div className="modal-container">
       <h5>¿Estás seguro que querés eliminar esta publicación?</h5>

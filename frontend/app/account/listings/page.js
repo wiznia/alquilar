@@ -52,7 +52,7 @@ export default function Page() {
           </>
         ) : (
           <>
-            <h2>Inmuebles publicados</h2>
+            <h2>Mis inmuebles</h2>
             <div className="account__column-inner">
               <svg
                 xmlns="http://www.w3.org/2000/svg"

@@ -49,6 +49,18 @@ export const useFormValidation = (initialState, formType) => {
     setLocalidadesData([]);
   }, [selectedCity]);
 
+  useEffect(() => {
+    if (initialState?.provincia) {
+      setSelectedProvince(initialState.provincia);
+    }
+  }, [initialState?.provincia]);
+
+  useEffect(() => {
+    if (selectedProvince) {
+      setCityData(selectedProvince);
+    }
+  }, [selectedProvince]);
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 

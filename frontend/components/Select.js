@@ -1,4 +1,10 @@
-export default function Select({ name, placeholder, options, onChange }) {
+export default function Select({
+  name,
+  placeholder,
+  options,
+  onChange,
+  value,
+}) {
   return (
     <>
       <select
@@ -8,6 +14,7 @@ export default function Select({ name, placeholder, options, onChange }) {
         placeholder={placeholder}
         required
         onChange={onChange}
+        value={value}
       >
         <button>
           <selectedcontent></selectedcontent>
@@ -17,7 +24,11 @@ export default function Select({ name, placeholder, options, onChange }) {
           <span>{placeholder}</span>
         </option>
         {options?.length > 0 ? (
-          options.map((option, i) => <option key={i}>{option.nombre}</option>)
+          options.map((option, i) => (
+            <option key={i} value={option.nombre}>
+              {option.nombre}
+            </option>
+          ))
         ) : (
           <option>{placeholder}</option>
         )}

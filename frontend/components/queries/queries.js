@@ -107,11 +107,13 @@ export const SINGLE_LISTING_QUERY = gql`
         url
       }
       id
+      moneda
       precio
       provincia
       superficie_cubierta
       superficie_total
       tipo_de_alquiler
+      tipo_de_ambientes
       tipo_de_propiedad
       titulo
     }

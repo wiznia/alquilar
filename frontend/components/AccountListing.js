@@ -70,7 +70,12 @@ export default function Listing({ listing }) {
             </Link>
             <Link
               className="button button--secondary"
-              href={`/account/listings/updateListing`}
+              href={{
+                pathname: '/account/listings/updateListing',
+                query: {
+                  id: listing.id,
+                },
+              }}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
