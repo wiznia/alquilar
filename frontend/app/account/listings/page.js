@@ -45,7 +45,7 @@ export default function Page() {
               </Link>
             </div>
             <div className="account-listing-container">
-              {data?.getListings.listings.map((listing) => (
+              {data.getListings.listings.map((listing) => (
                 <AccountListing key={listing.id} listing={listing} />
               ))}
             </div>

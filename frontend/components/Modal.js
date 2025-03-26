@@ -27,7 +27,7 @@ export function Modal({ children }) {
   }, []);
 
   return (
-    <dialog ref={ref} closedby="any">
+    <dialog ref={ref} closedby="closerequest">
       <button
         className="close"
         onClick={() => {

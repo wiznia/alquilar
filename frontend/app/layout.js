@@ -17,7 +17,7 @@ export default function RootLayout({ children, auth, modal }) {
               <Page>
                 {children}
                 {auth}
-                {/*modal*/}
+                {modal}
               </Page>
             </AuthProvider>
           </AppProvider>
