@@ -156,7 +156,7 @@ const typeDefs = `
     dormitorios: Int
     estado: String!
     expensas: Float
-    fotos: [Upload]
+    fotos: [FileInput!]
     moneda: String!
     municipio: String
     precio: Float!
@@ -574,9 +574,20 @@ const resolvers = {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       const owner = decoded.userId;
 
+      const updatedFields = {
+        ...input,
+        fotos: input.fotos
+          ? input.fotos.map((file) => ({
+              id: file.id,
+              name: file.name,
+              url: file.url,
+            }))
+          : undefined,
+      };
+
       const updatedListing = await Listing.findOneAndUpdate(
         { _id: id, owner },
-        { ...input },
+        updatedFields,
         { new: true },
       );
 
@@ -612,7 +623,7 @@ const resolvers = {
           name: filename,
           url: uploadResult.secure_url,
         };
-
+        console.log(fileObject);
         return fileObject;
       });
 

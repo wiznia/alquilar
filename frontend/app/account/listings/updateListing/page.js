@@ -10,13 +10,17 @@ import { useMutation, useQuery } from '@apollo/client';
 import {
   SINGLE_LISTING_QUERY,
   UPDATE_LISTING,
+  UPLOAD_IMAGES,
 } from '@/components/queries/queries';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useAuth } from '@/components/AuthContext';
 
 function UpdateListingContent() {
   const router = useRouter();
+  const { user } = useAuth();
   const id = useSearchParams().get('id');
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingSave, setIsLoadingSave] = useState(false);
   const [inputFiles, setInputFiles] = useState([]);
   const [address, setAddress] = useState('Buenos Aires, Argentina');
   const { data, loading, error } = useQuery(SINGLE_LISTING_QUERY, {
@@ -36,21 +40,14 @@ function UpdateListingContent() {
     provinceData,
     cityData,
     localidadesData,
-  } = useFormValidation(data?.getListingById, 'createListing');
+  } = useFormValidation(data?.getListingById, 'updateListing');
   const [updateListing] = useMutation(UPDATE_LISTING);
+  const [uploadImage] = useMutation(UPLOAD_IMAGES);
 
   const handleUploadFile = (e) => {
     const files = [...e.target.files];
-    const filesData = files.map((file) => ({
-      name: file.name,
-      extension: file.type.split('/')[1],
-    }));
 
-    setInputFiles((prevFiles) => [...prevFiles, ...filesData]);
-    setForm((prevForm) => ({
-      ...prevForm,
-      fotos: [...prevForm.fotos, ...filesData],
-    }));
+    setInputFiles((prevFiles) => [...prevFiles, ...files]);
   };
 
   const handleRemoveFile = (e, indexToRemove) => {
@@ -64,6 +61,18 @@ function UpdateListingContent() {
     }));
   };
 
+  const uploadFilesToCloudinary = async (files, userId) => {
+    try {
+      const { data } = await uploadImage({
+        variables: { files, userId },
+      });
+
+      return data.uploadImage.map(({ id, name, url }) => ({ id, name, url }));
+    } catch (error) {
+      console.error('Error subiendo las imágenes a Cloudinary:', error);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -75,34 +84,48 @@ function UpdateListingContent() {
     const buttonType = e.target.name;
     let estadoValue = buttonType === 'save' ? 'Borrador' : 'Activo';
 
-    if (form.estado === 'Activo') {
-      estadoValue = 'Activo';
+    if (estadoValue === 'Borrador') {
+      setIsLoadingSave(true);
+    } else {
+      setIsLoading(true);
     }
 
     try {
-      setIsLoading(true);
+      let uploadedImageUrls = form.fotos || [];
+      if (inputFiles.length > 0) {
+        const newUrls = await uploadFilesToCloudinary(inputFiles, user.id);
 
-      const cleanedForm = JSON.parse(
-        JSON.stringify(form, (key, value) =>
-          key === '__typename' ? undefined : value,
-        ),
-      );
+        uploadedImageUrls = [...uploadedImageUrls, ...newUrls];
+        setForm((prevForm) => ({
+          ...prevForm,
+          fotos: uploadedImageUrls,
+        }));
+      }
 
+      const fileImages = { fotos: uploadedImageUrls };
+      const { __typename, ...sanitizedForm } = form;
       await updateListing({
         variables: {
           id,
-          input: { ...cleanedForm, estado: estadoValue, id },
+          input: {
+            ...sanitizedForm,
+            ...fileImages,
+            estado: estadoValue,
+            id,
+          },
         },
       });
 
       setIsLoading(false);
+      setIsLoadingSave(false);
 
-      if (buttonType === 'publish') {
+      if (estadoValue === 'Activo') {
         router.push('/account/listings');
       }
     } catch (error) {
       console.error('Listing error:', error);
       setIsLoading(false);
+      setIsLoadingSave(false);
     }
   };
 
@@ -121,6 +144,7 @@ function UpdateListingContent() {
         barrio: data.getListingById.barrio,
         municipio: data.getListingById.municipio,
       }));
+      setInputFiles(data.getListingById.fotos);
     }
   }, [data?.getListingById]);
 
@@ -705,7 +729,12 @@ function UpdateListingContent() {
                   : 'account__item-photo-upload'
               }
             >
-              <input type="file" multiple onChange={handleUploadFile} />
+              <input
+                type="file"
+                multiple
+                onChange={handleUploadFile}
+                filename={form?.fotos || ''}
+              />
               {inputFiles.length > 0 ? (
                 inputFiles.map((file, index) => (
                   <div key={index} className="account__item-photo-item">
@@ -748,9 +777,9 @@ function UpdateListingContent() {
               type="submit"
               name="save"
               className="button"
-              disabled={isLoading}
+              disabled={isLoadingSave}
             >
-              {isLoading ? (
+              {isLoadingSave ? (
                 <span className="loader"></span>
               ) : (
                 <span>Guardar cambios</span>
