@@ -334,3 +334,13 @@ export const UPDATE_LISTING = gql`
     }
   }
 `;
+
+export const UPLOAD_IMAGES = gql`
+  mutation uploadImage($files: [Upload!]!, $userId: ID!) {
+    uploadImage(files: $files, userId: $userId) {
+      id
+      name
+      url
+    }
+  }
+`;

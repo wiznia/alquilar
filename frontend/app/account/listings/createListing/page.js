@@ -7,12 +7,19 @@ import MapComponent from '@/components/Map';
 import Select from '@/components/Select';
 import { useFormValidation } from '@/app/hooks/useFormValidation';
 import { useMutation } from '@apollo/client';
-import { CREATE_LISTING, UPDATE_LISTING } from '@/components/queries/queries';
+import { useAuth } from '@/components/AuthContext';
+import {
+  CREATE_LISTING,
+  UPDATE_LISTING,
+  UPLOAD_IMAGES,
+} from '@/components/queries/queries';
 import { useRouter } from 'next/navigation';
 
 export default function Page() {
   const router = useRouter();
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingSave, setIsLoadingSave] = useState(false);
   const [inputFiles, setInputFiles] = useState([]);
   const [address, setAddress] = useState('Buenos Aires, Argentina');
   const [listingId, setListingId] = useState(null);
@@ -60,19 +67,12 @@ export default function Page() {
     },
   });
   const [updateListing] = useMutation(UPDATE_LISTING);
+  const [uploadImage] = useMutation(UPLOAD_IMAGES);
 
   const handleUploadFile = (e) => {
     const files = [...e.target.files];
-    const filesData = files.map((file) => ({
-      name: file.name,
-      extension: file.type.split('/')[1],
-    }));
 
-    setInputFiles((prevFiles) => [...prevFiles, ...filesData]);
-    setForm((prevForm) => ({
-      ...prevForm,
-      fotos: [...prevForm.fotos, ...filesData],
-    }));
+    setInputFiles((prevFiles) => [...prevFiles, ...files]);
   };
 
   const handleRemoveFile = (e, indexToRemove) => {
@@ -86,6 +86,18 @@ export default function Page() {
     }));
   };
 
+  const uploadFilesToCloudinary = async (files, userId) => {
+    try {
+      const { data } = await uploadImage({
+        variables: { files, userId },
+      });
+
+      return data.uploadImage.map(({ id, name, url }) => ({ id, name, url }));
+    } catch (error) {
+      console.error('Error subiendo las imágenes a Cloudinary:', error);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -97,29 +109,48 @@ export default function Page() {
     const buttonType = e.target.name;
     const estadoValue = buttonType === 'save' ? 'Borrador' : 'Activo';
 
-    try {
+    if (estadoValue === 'Borrador') {
+      setIsLoadingSave(true);
+    } else {
       setIsLoading(true);
+    }
+
+    try {
+      let uploadedImageUrls = form.fotos || [];
+      if (inputFiles.length > 0) {
+        const newUrls = await uploadFilesToCloudinary(inputFiles, user.id);
+
+        uploadedImageUrls = [...uploadedImageUrls, ...newUrls];
+        setForm((prevForm) => ({
+          ...prevForm,
+          fotos: uploadedImageUrls,
+        }));
+      }
+
+      const fileImages = { fotos: uploadedImageUrls };
 
       if (listingId) {
         await updateListing({
           variables: {
             id: listingId,
-            input: { ...form, estado: estadoValue, id: listingId },
+            input: {
+              ...form,
+              ...fileImages,
+              estado: estadoValue,
+              id: listingId,
+            },
           },
         });
       } else {
-        const { data } = await createListing({
+        await createListing({
           variables: {
-            input: { ...form, estado: estadoValue },
+            input: { ...form, ...fileImages, estado: estadoValue },
           },
         });
-
-        if (data?.createListing?.id) {
-          setListingId(data.createListing.id);
-        }
       }
 
       setIsLoading(false);
+      setIsLoadingSave(false);
 
       if (estadoValue === 'Activo') {
         router.push('/account/listings');
@@ -127,6 +158,7 @@ export default function Page() {
     } catch (error) {
       console.error('Listing error:', error);
       setIsLoading(false);
+      setIsLoadingSave(false);
     }
   };
 
@@ -141,7 +173,7 @@ export default function Page() {
       <AccountSidebar />
       <div className="account__info">
         <h2>Nueva publicación</h2>
-        <form>
+        <form encType="multipart/form-data">
           <fieldset>
             <p>Tipo de operación:</p>
             <div className="account__item">
@@ -353,6 +385,22 @@ export default function Page() {
               </div>
             </div>
           </fieldset>
+          {localidadesData?.length > 0 && (
+            <fieldset>
+              <div className="account__item">
+                <div className="account__item-inner account__item-inner--half">
+                  <p>Municipio:</p>
+                  <Select
+                    name="municipio"
+                    placeholder="Municipio"
+                    resource="localidades"
+                    onChange={handleChange}
+                    options={localidadesData ? localidadesData : []}
+                  />
+                </div>
+              </div>
+            </fieldset>
+          )}
           <fieldset>
             <div className="account__item">
               <div className="account__item-inner account__item-inner--half">
@@ -371,22 +419,6 @@ export default function Page() {
               </div>
             </div>
           </fieldset>
-          {localidadesData?.length > 0 && (
-            <fieldset>
-              <div className="account__item">
-                <div className="account__item-inner account__item-inner--half">
-                  <p>Municipio:</p>
-                  <Select
-                    name="municipio"
-                    placeholder="Municipio"
-                    resource="localidades"
-                    onChange={handleChange}
-                    options={localidadesData ? localidadesData : []}
-                  />
-                </div>
-              </div>
-            </fieldset>
-          )}
           <fieldset>
             <div className="account__item">
               <div className="account__item-inner account__item-inner--half">
@@ -684,7 +716,7 @@ export default function Page() {
                 inputFiles.map((file, index) => (
                   <div key={index} className="account__item-photo-item">
                     <span className="account__item-photo-extension">
-                      {file.extension}
+                      {file.type.split('/')[1]}
                     </span>
                     <span>{file.name}</span>
                     <button
@@ -721,11 +753,11 @@ export default function Page() {
               onClick={handleSubmit}
               type="submit"
               name="save"
-              className="button"
-              disabled={isLoading}
+              className="button button--secondary"
+              disabled={isLoadingSave}
             >
-              {isLoading ? (
-                <span className="loader"></span>
+              {isLoadingSave ? (
+                <span className="loader loader--variant"></span>
               ) : (
                 <span>Guardar cambios</span>
               )}

@@ -1,5 +1,5 @@
 import { ApolloServer } from '@apollo/server';
-import { startStandaloneServer } from '@apollo/server/standalone';
+import { expressMiddleware } from '@apollo/server/express4';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import Listing from './listingSchema.js';
@@ -8,10 +8,24 @@ import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
+import cloudinary from 'cloudinary';
+import { GraphQLUpload, graphqlUploadExpress } from 'graphql-upload';
+import express from 'express';
+import cors from 'cors';
+import bodyParser from 'body-parser';
 
 dotenv.config();
 
-mongoose.connect(process.env.DATABASE_URL, {});
+cloudinary.v2.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_KEY,
+  api_secret: process.env.CLOUDINARY_SECRET,
+});
+
+mongoose
+  .connect(process.env.DATABASE_URL, {})
+  .then(() => console.log('MongoDB connected'))
+  .catch((err) => console.error('MongoDB connection error:', err));
 
 const typeDefs = `
   type Query {
@@ -115,7 +129,7 @@ const typeDefs = `
     dormitorios: Int
     estado: String!
     expensas: Float
-    fotos: [Upload]
+    fotos: [FileInput!]
     moneda: String!
     municipio: String
     precio: Float!
@@ -158,6 +172,12 @@ const typeDefs = `
   }
 
   type File {
+    id: ID!
+    name: String
+    url: String
+  }
+
+  input FileInput {
     id: String
     name: String
     url: String
@@ -193,10 +213,12 @@ const typeDefs = `
     login(email: String!, password: String!): User
     resetPassword(token: String!, newPassword: String!): Boolean
     requestPasswordReset(email: String!): Boolean
+    uploadImage(files: [Upload]!, userId: ID!): [File]!
   }
 `;
 
 const resolvers = {
+  Upload: GraphQLUpload,
   Query: {
     user: async (_, __, context) => {
       if (!context.req || !context.req.headers) {
@@ -560,6 +582,44 @@ const resolvers = {
 
       return updatedListing;
     },
+    uploadImage: async (_, { files, userId }) => {
+      if (!files || files.length === 0) {
+        throw new Error('No files provided.');
+      }
+
+      const uploadPromises = files.map(async (file) => {
+        const { createReadStream, filename } = await file;
+
+        const stream = createReadStream();
+        console.log(userId);
+
+        const uploadResult = await new Promise((resolve, reject) => {
+          const cloudinaryStream = cloudinary.v2.uploader.upload_stream(
+            { folder: 'alquilar' },
+            (error, result) => {
+              if (error) {
+                reject(error);
+              }
+              resolve(result);
+            },
+          );
+
+          stream.pipe(cloudinaryStream);
+        });
+
+        const fileObject = {
+          id: uploadResult.public_id,
+          name: filename,
+          url: uploadResult.secure_url,
+        };
+
+        return fileObject;
+      });
+
+      const results = await Promise.all(uploadPromises);
+
+      return results;
+    },
   },
   Listing: {
     owner: async (listing) => {
@@ -568,14 +628,25 @@ const resolvers = {
   },
 };
 
-const server = new ApolloServer({ typeDefs, resolvers });
-const { url } = await startStandaloneServer(server, {
-  listen: {
-    port: 4000,
-  },
-  context: async ({ req }) => {
-    return { req };
-  },
+const app = express();
+app.use(cors());
+app.use(bodyParser.json());
+app.use(graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }));
+
+const server = new ApolloServer({
+  typeDefs,
+  resolvers,
 });
 
-console.log(`Server running at: ${url}`);
+await server.start();
+
+app.use(
+  expressMiddleware(server, {
+    context: async ({ req }) => ({ req }),
+  }),
+);
+
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => {
+  console.log(`🚀 Server ready at http://localhost:${PORT}`);
+});

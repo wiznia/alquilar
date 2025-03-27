@@ -766,7 +766,7 @@ function UpdateListingContent() {
               {isLoading ? (
                 <span className="loader"></span>
               ) : (
-                <span>Publicar</span>
+                <span>Actualizar</span>
               )}
             </button>
           </div>
