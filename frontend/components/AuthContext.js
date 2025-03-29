@@ -9,7 +9,17 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [isClient, setIsClient] = useState(false);
   const router = useRouter();
+
+  const getCookie = (name) => {
+    if (isClient) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+      return null;
+    }
+  };
 
   const setCookie = (name, value, days) => {
     let expires = '';
@@ -19,13 +29,6 @@ export const AuthProvider = ({ children }) => {
       expires = `; expires=${date.toUTCString()}`;
     }
     document.cookie = `${name}=${value}; path=/; Secure; SameSite=Strict${expires}`;
-  };
-
-  const getCookie = (name) => {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(';').shift();
-    return null;
   };
 
   const deleteCookie = (name) => {
@@ -41,6 +44,10 @@ export const AuthProvider = ({ children }) => {
       },
     },
   });
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
     if (data?.user) {

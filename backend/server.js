@@ -225,7 +225,6 @@ const resolvers = {
     user: async (_, __, context) => {
       if (!context.req || !context.req.headers) {
       }
-      console.log(context.req);
       const authHeader = context.req.headers.authorization;
       if (!authHeader) {
         throw new Error('No token provided');
@@ -640,7 +639,6 @@ const resolvers = {
           name: filename,
           url: uploadResult.secure_url,
         };
-        console.log(fileObject);
         return fileObject;
       });
 
