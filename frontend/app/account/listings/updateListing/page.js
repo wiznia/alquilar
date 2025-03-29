@@ -61,10 +61,10 @@ function UpdateListingContent() {
     }));
   };
 
-  const uploadFilesToCloudinary = async (files, userId) => {
+  const uploadFilesToCloudinary = async (files, userId, listingId) => {
     try {
       const { data } = await uploadImage({
-        variables: { files, userId },
+        variables: { files, userId, listingId },
       });
 
       return data.uploadImage.map(({ id, name, url }) => ({ id, name, url }));
@@ -82,9 +82,8 @@ function UpdateListingContent() {
     }
 
     const buttonType = e.target.name;
-    let estadoValue = buttonType === 'save' ? 'Borrador' : 'Activo';
 
-    if (estadoValue === 'Borrador') {
+    if (buttonType === 'save') {
       setIsLoadingSave(true);
     } else {
       setIsLoading(true);
@@ -93,7 +92,7 @@ function UpdateListingContent() {
     try {
       let uploadedImageUrls = form.fotos || [];
       if (inputFiles.length > 0) {
-        const newUrls = await uploadFilesToCloudinary(inputFiles, user.id);
+        const newUrls = await uploadFilesToCloudinary(inputFiles, user.id, id);
 
         uploadedImageUrls = [...uploadedImageUrls, ...newUrls];
         setForm((prevForm) => ({
@@ -110,7 +109,6 @@ function UpdateListingContent() {
           input: {
             ...sanitizedForm,
             ...fileImages,
-            estado: estadoValue,
             id,
           },
         },
@@ -119,7 +117,7 @@ function UpdateListingContent() {
       setIsLoading(false);
       setIsLoadingSave(false);
 
-      if (estadoValue === 'Activo') {
+      if (buttonType === 'publish') {
         router.push('/account/listings');
       }
     } catch (error) {
@@ -771,12 +769,44 @@ function UpdateListingContent() {
               )}
             </div>
           </fieldset>
+          <fieldset>
+            <div className="account__item">
+              <div className="account__item-inner account__item-inner--half">
+                <p>Cambiar estado de la publicación</p>
+                <select
+                  className="popover-button small"
+                  name="estado"
+                  id="estado"
+                  placeholder="Estado"
+                  required
+                  onChange={handleChange}
+                  value={form?.estado || ''}
+                >
+                  <button>
+                    <selectedcontent></selectedcontent>
+                    <span className="arrow"></span>
+                  </button>
+                  <option value="" hidden>
+                    <span>Estado</span>
+                  </option>
+                  <option>Activo</option>
+                  <option>Pausado</option>
+                  <option>Borrador</option>
+                </select>
+                {errors.tipo_de_propiedad && (
+                  <small className="error-message">
+                    {errors.tipo_de_propiedad}
+                  </small>
+                )}
+              </div>
+            </div>
+          </fieldset>
           <div className="button-container">
             <button
               onClick={handleSubmit}
               type="submit"
               name="save"
-              className="button"
+              className="button button--secondary"
               disabled={isLoadingSave}
             >
               {isLoadingSave ? (

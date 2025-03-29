@@ -11,7 +11,7 @@ import { useAuth } from '@/components/AuthContext';
 
 export default function Page() {
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, setCookie } = useAuth();
   const initialState = {
     email: '',
     password: '',
@@ -32,7 +32,7 @@ export default function Page() {
 
       if (data?.login?.token) {
         setIsLoading(false);
-        localStorage.setItem('token', data.login.token);
+        setCookie('authToken', data.login.token, 7);
         await login();
         router.push('/account');
       }

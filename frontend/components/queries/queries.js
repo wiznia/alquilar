@@ -336,8 +336,8 @@ export const UPDATE_LISTING = gql`
 `;
 
 export const UPLOAD_IMAGES = gql`
-  mutation uploadImage($files: [Upload!]!, $userId: ID!) {
-    uploadImage(files: $files, userId: $userId) {
+  mutation uploadImage($files: [Upload!]!, $userId: ID!, $listingId: ID!) {
+    uploadImage(files: $files, userId: $userId, listingId: $listingId) {
       id
       name
       url

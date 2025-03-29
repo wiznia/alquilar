@@ -31,7 +31,7 @@ export default function Nav() {
                   d="M12 11.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM18 17v.75a.75.75 0 0 1-.75.75H6.75a.75.75 0 0 1-.75-.75V17a4.5 4.5 0 0 1 4.5-4.5h3A4.5 4.5 0 0 1 18 17Z"
                 />
               </svg>
-              {user.nombre} {user.apellido.slice(0, 1)}.
+              {user?.nombre} {user?.apellido.slice(0, 1)}.
             </a>
           </button>
           <NavbarPopover id="account">

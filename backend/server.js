@@ -13,6 +13,7 @@ import { GraphQLUpload, graphqlUploadExpress } from 'graphql-upload';
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
+import cookieParser from 'cookie-parser';
 
 dotenv.config();
 
@@ -35,6 +36,7 @@ const typeDefs = `
       nombre: String
       token: String
     ): User
+    getUser: User
     getListings(
       ambientes: Int
       ammenities: [String]
@@ -211,6 +213,7 @@ const typeDefs = `
     createListing(input: CreateListingInput!): Listing
     updateListing(id: ID!, input: UpdateListingInput!): Listing
     login(email: String!, password: String!): User
+    logout: Boolean
     resetPassword(token: String!, newPassword: String!): Boolean
     requestPasswordReset(email: String!): Boolean
     uploadImage(files: [Upload]!, userId: ID!): [File]!
@@ -221,6 +224,7 @@ const resolvers = {
   Upload: GraphQLUpload,
   Query: {
     user: async (_, __, context) => {
+      console.log(context);
       if (!context.req || !context.req.headers) {
         throw new Error('Request headers not found');
       }
@@ -428,7 +432,7 @@ const resolvers = {
         usuario: newUser.usuario,
       };
     },
-    login: async (_, { email, password }) => {
+    login: async (_, { email, password }, { res }) => {
       const user = await User.findOne({ email });
       if (!user) {
         throw new Error('User not found');
@@ -441,7 +445,23 @@ const resolvers = {
         expiresIn: '24h',
       });
 
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'Strict',
+        maxAge: 24 * 60 * 60 * 1000,
+      });
+
       return { id: user.id, email: user.email, token };
+    },
+    logout: async (_, __, { res }) => {
+      res.clearCookie('token', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'Strict',
+      });
+
+      return { message: 'Logout exitoso' };
     },
     requestPasswordReset: async (_, { email }) => {
       const user = await User.findOne({ email });
@@ -639,9 +659,15 @@ const resolvers = {
   },
 };
 
+const corsOptions = {
+  origin: process.env.FRONTEND_URL,
+  credentials: true,
+};
+
 const app = express();
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
+app.use(cookieParser());
 app.use(graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }));
 
 const server = new ApolloServer({
@@ -653,7 +679,7 @@ await server.start();
 
 app.use(
   expressMiddleware(server, {
-    context: async ({ req }) => ({ req }),
+    context: async ({ req, res }) => ({ req, res }),
   }),
 );
 

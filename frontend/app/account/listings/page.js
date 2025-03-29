@@ -32,25 +32,19 @@ export default function Page() {
     }
   }, [userId]);
 
+  if (loading) {
+    return (
+      <div className="loading">
+        <h4>Cargando publicaciones...</h4>
+      </div>
+    );
+  }
+
   return (
     <div className="account">
       <AccountSidebar />
       <div className="account__column">
-        {data?.getListings?.listings.length > 0 ? (
-          <>
-            <div className="account__header">
-              <h2>Inmuebles publicados</h2>
-              <Link className="button" href="/account/listings/createListing">
-                Publicar nuevo inmueble +
-              </Link>
-            </div>
-            <div className="account-listing-container">
-              {data.getListings.listings.map((listing) => (
-                <AccountListing key={listing.id} listing={listing} />
-              ))}
-            </div>
-          </>
-        ) : (
+        {!loading && data?.getListings?.listings.length === 0 ? (
           <>
             <h2>Mis inmuebles</h2>
             <div className="account__column-inner">
@@ -67,6 +61,20 @@ export default function Page() {
               <Link className="button" href="/account/listings/createListing">
                 Publicar nuevo inmueble +
               </Link>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="account__header">
+              <h2>Inmuebles publicados</h2>
+              <Link className="button" href="/account/listings/createListing">
+                Publicar nuevo inmueble +
+              </Link>
+            </div>
+            <div className="account-listing-container">
+              {data?.getListings?.listings.map((listing) => (
+                <AccountListing key={listing.id} listing={listing} />
+              ))}
             </div>
           </>
         )}

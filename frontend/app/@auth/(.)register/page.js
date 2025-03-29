@@ -11,7 +11,7 @@ import { useState } from 'react';
 
 export default function Page() {
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const { handleRegister } = useAuth();
   const initialState = {
     tipo_de_cuenta: '',
     email: '',
@@ -30,7 +30,7 @@ export default function Page() {
   const [register] = useMutation(REGISTER);
   const router = useRouter();
 
-  const handleRegister = async () => {
+  const handleRegisterSubmit = async () => {
     if (!validateFormCheck()) return;
 
     try {
@@ -43,8 +43,7 @@ export default function Page() {
 
       if (data?.register?.token) {
         setIsLoading(false);
-        localStorage.setItem('token', data.register.token);
-        await login();
+        await handleRegister(data.register.token);
         router.push('/account');
       }
     } catch (error) {
@@ -255,7 +254,7 @@ export default function Page() {
           <small className="error-message">{errors.terms}</small>
         )}
       </fieldset>
-      <button onClick={handleRegister} className="button button--large">
+      <button onClick={handleRegisterSubmit} className="button button--large">
         {isLoading ? (
           <span className="loader"></span>
         ) : (
