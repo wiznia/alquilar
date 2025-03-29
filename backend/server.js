@@ -36,7 +36,6 @@ const typeDefs = `
       nombre: String
       token: String
     ): User
-    getUser: User
     getListings(
       ambientes: Int
       ammenities: [String]
@@ -216,7 +215,7 @@ const typeDefs = `
     logout: Boolean
     resetPassword(token: String!, newPassword: String!): Boolean
     requestPasswordReset(email: String!): Boolean
-    uploadImage(files: [Upload]!, userId: ID!): [File]!
+    uploadImage(files: [Upload]!, userId: ID!, listingId: ID!): [File]!
   }
 `;
 
@@ -224,11 +223,9 @@ const resolvers = {
   Upload: GraphQLUpload,
   Query: {
     user: async (_, __, context) => {
-      console.log(context);
       if (!context.req || !context.req.headers) {
-        throw new Error('Request headers not found');
       }
-
+      console.log(context.req);
       const authHeader = context.req.headers.authorization;
       if (!authHeader) {
         throw new Error('No token provided');
@@ -445,7 +442,7 @@ const resolvers = {
         expiresIn: '24h',
       });
 
-      res.cookie('token', token, {
+      res.cookie('authToken', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'Strict',
@@ -455,10 +452,11 @@ const resolvers = {
       return { id: user.id, email: user.email, token };
     },
     logout: async (_, __, { res }) => {
-      res.clearCookie('token', {
+      res.clearCookie('authToken', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'Strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
       });
 
       return { message: 'Logout exitoso' };
@@ -613,7 +611,7 @@ const resolvers = {
 
       return updatedListing;
     },
-    uploadImage: async (_, { files, userId }) => {
+    uploadImage: async (_, { files, userId, listingId }) => {
       if (!files || files.length === 0) {
         throw new Error('No files provided.');
       }
@@ -622,11 +620,10 @@ const resolvers = {
         const { createReadStream, filename } = await file;
 
         const stream = createReadStream();
-        console.log(userId);
 
         const uploadResult = await new Promise((resolve, reject) => {
           const cloudinaryStream = cloudinary.v2.uploader.upload_stream(
-            { folder: 'alquilar' },
+            { folder: `alquilar/${userId}/${listingId}` },
             (error, result) => {
               if (error) {
                 reject(error);
