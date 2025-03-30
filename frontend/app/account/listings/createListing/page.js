@@ -86,10 +86,10 @@ export default function Page() {
     }));
   };
 
-  const uploadFilesToCloudinary = async (files, userId) => {
+  const uploadFilesToCloudinary = async (files, userId, listingId) => {
     try {
       const { data } = await uploadImage({
-        variables: { files, userId },
+        variables: { files, userId, listingId },
       });
 
       return data.uploadImage.map(({ id, name, url }) => ({ id, name, url }));
@@ -118,13 +118,27 @@ export default function Page() {
     try {
       let uploadedImageUrls = form.fotos || [];
       if (inputFiles.length > 0) {
-        const newUrls = await uploadFilesToCloudinary(inputFiles, user.id);
+        if (!listingId) {
+          const { data } = await createListing({
+            variables: {
+              input: { ...form, estado: estadoValue },
+            },
+          });
 
-        uploadedImageUrls = [...uploadedImageUrls, ...newUrls];
-        setForm((prevForm) => ({
-          ...prevForm,
-          fotos: uploadedImageUrls,
-        }));
+          if (data) {
+            const listingId = data.createListing.id;
+            const newUrls = await uploadFilesToCloudinary(
+              inputFiles,
+              user.id,
+              listingId,
+            );
+            uploadedImageUrls = [...uploadedImageUrls, ...newUrls];
+            setForm((prevForm) => ({
+              ...prevForm,
+              fotos: uploadedImageUrls,
+            }));
+          }
+        }
       }
 
       const fileImages = { fotos: uploadedImageUrls };
@@ -139,12 +153,6 @@ export default function Page() {
               estado: estadoValue,
               id: listingId,
             },
-          },
-        });
-      } else {
-        await createListing({
-          variables: {
-            input: { ...form, ...fileImages, estado: estadoValue },
           },
         });
       }

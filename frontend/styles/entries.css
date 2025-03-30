@@ -83,6 +83,7 @@
   }
   .gallery__photos {
     flex: 0 0 100%;
+    object-fit: contain;
     cursor: pointer;
   }
   .gallery__nav {

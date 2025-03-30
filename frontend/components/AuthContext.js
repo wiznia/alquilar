@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const token = getCookie('authToken');
-  const { data, loading, error } = useQuery(GET_USER, {
+  const { data, loading, error, refetch } = useQuery(GET_USER, {
     fetchPolicy: 'no-cache',
     context: {
       headers: {
@@ -44,6 +44,13 @@ export const AuthProvider = ({ children }) => {
       },
     },
   });
+
+  const login = async () => {
+    const token = getCookie('authToken');
+    if (token) {
+      refetch();
+    }
+  };
 
   useEffect(() => {
     setIsClient(true);
@@ -73,6 +80,7 @@ export const AuthProvider = ({ children }) => {
         user,
         loading,
         error,
+        login,
         logout,
         handleRegister,
         setCookie,

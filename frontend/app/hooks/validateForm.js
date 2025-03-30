@@ -44,7 +44,7 @@ export const validateForm = (form, formType) => {
     if (!form.tipo_de_propiedad) {
       errors.tipo_de_propiedad = 'Debés seleccionar un tipo de propiedad.';
     }
-    if (!form.antiguedad_max) {
+    if (form.antiguedad_max === null) {
       errors.antiguedad_max = 'Debés seleccionar una antiguedad.';
     }
     if (!form.superficie_cubierta) {

@@ -3,7 +3,7 @@ import { formatText } from '../config';
 export default function ListItem({ listing }) {
   const [key, value] = listing;
 
-  if (value === null) {
+  if (value === null || (value === 0 && key !== 'antiguedad_max')) {
     return null;
   }
 
