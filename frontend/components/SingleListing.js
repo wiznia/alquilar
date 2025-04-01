@@ -7,6 +7,7 @@ import { SINGLE_LISTING_QUERY } from './queries/queries';
 import MapComponent from './Map';
 import Loading from './Loading';
 import { formatText } from '@/config';
+import ContactForm from '@/lib/ContactForm';
 
 export default function SingleListingPage({ id }) {
   const { data, loading, error } = useQuery(SINGLE_LISTING_QUERY, {
@@ -34,6 +35,7 @@ export default function SingleListingPage({ id }) {
     direccion,
     dormitorios,
     expensas,
+    owner,
     precio,
     provincia,
     superficie_cubierta,
@@ -75,8 +77,11 @@ export default function SingleListingPage({ id }) {
               <ListItem key={key} listing={[key, value]} />
             ))}
           </ul>
-          {tipo_de_ambientes || (ammenities && <h6>Características:</h6>)}
+          {(tipo_de_ambientes.length > 0 ||
+            ammenities.length > 0 ||
+            tipo_de_propiedad.length > 0) && <h6>Características:</h6>}
           <div className="entry__features">
+            <p>{formatText(tipo_de_propiedad)}</p>
             {tipo_de_ambientes.map((ambiente) => (
               <p key={ambiente}>{formatText(ambiente)}</p>
             ))}
@@ -87,7 +92,7 @@ export default function SingleListingPage({ id }) {
           <h5>{titulo}</h5>
           <h6 className="entry__description">{descripcion}</h6>
         </div>
-        <div className="entry__contact"></div>
+        <ContactForm contactCard="true" owner={owner} />
       </div>
       <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY}>
         <MapComponent address={`${direccion}, ${barrio}, ${provincia}`} />

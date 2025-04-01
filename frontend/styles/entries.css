@@ -10,6 +10,7 @@
   background-color: #fafafa;
   border-radius: var(--border-radius);
   display: flex;
+  position: relative;
   @container (max-width: 710px) {
     flex-direction: column;
   }
@@ -110,9 +111,9 @@
 .single-container {
   display: flex;
   gap: var(--margin);
+  padding: 32px 0;
   .entry__info {
     width: 63%;
-    padding: 32px 0;
   }
   .entry__contact {
     width: 37%;
@@ -169,4 +170,37 @@
   display: flex;
   gap: var(--margin);
   margin-block-end: 16px;
+}
+
+.entry__heart {
+  position: absolute;
+  top: 28px;
+  right: 33px;
+  cursor: pointer;
+}
+
+.entry__contact {
+  background-color: #fafafa;
+  border-radius: var(--border-radius);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 29px 35px;
+}
+
+.contact-card {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 24px 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.contact-card__info {
+  flex: 1;
+}
+.contact-card__phone {
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }

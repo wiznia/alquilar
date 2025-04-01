@@ -34,6 +34,22 @@ a {
 
 fieldset {
   border: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  > p {
+    margin-block-end: 12px;
+  }
+  &:has(input[required], select[required]) {
+    p,
+    label {
+      &::after {
+        content: '*';
+        color: var(--error);
+        margin-inline-start: 4px;
+      }
+    }
+  }
 }
 
 input,
@@ -63,6 +79,10 @@ form {
 /* End Reset */
 
 /* Utility classes */
+label {
+  color: var(--primary-text);
+}
+
 input,
 textarea {
   border: 1px solid hsl(0deg 0% 86.67%);
@@ -81,13 +101,18 @@ input[type='email'],
 input[type='tel'],
 input[type='number'],
 input[type='search'],
+input[type='password'],
 textarea {
   font-family: inherit;
   transition: all 250ms ease;
-  padding: 13px 25px;
+  padding: 17px 18px;
   &:focus {
     border-color: hsl(0deg 0% 75%);
   }
+}
+
+input[type='search'] {
+  padding: 13px 25px;
 }
 
 input[type='radio'] {

@@ -88,6 +88,7 @@ const typeDefs = `
     expensas: Float
     fotos: [File]
     id: ID!
+    likes: [User]
     moneda: String!
     owner: User!
     precio: Float!
@@ -158,6 +159,7 @@ const typeDefs = `
     estado: [String!]
     expensas: Float
     fotos: [FileInput!]
+    likes: [ID]
     moneda: String!
     municipio: String
     owner: ID
@@ -217,6 +219,7 @@ const typeDefs = `
     resetPassword(token: String!, newPassword: String!): Boolean
     requestPasswordReset(email: String!): Boolean
     uploadImage(files: [Upload]!, userId: ID!, listingId: ID!): [File]!
+    likeListing(listingId: ID!): Listing
   }
 `;
 
@@ -341,7 +344,9 @@ const resolvers = {
       };
     },
     getListingById: async (_, { id }) => {
-      const listing = await Listing.findById(id).populate('owner');
+      const listing = await Listing.findById(id)
+        .populate('owner')
+        .populate('likes');
       if (listing) {
         listing.viewCount += 1;
         await listing.save();
@@ -571,6 +576,7 @@ const resolvers = {
         expensas: expensasUpdated,
         fotos,
         id,
+        likes: [],
         moneda,
         municipio,
         owner,
@@ -651,8 +657,35 @@ const resolvers = {
 
       return results;
     },
+    likeListing: async (_, { listingId }, context) => {
+      const authHeader = context.req.headers.authorization;
+      if (!authHeader) {
+        throw new Error('No token provided');
+      }
+      const token = authHeader.replace('Bearer ', '');
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const userId = decoded.userId;
+
+      const listing = await Listing.findById(listingId);
+      if (!listing) {
+        throw new Error('Listing not found');
+      }
+
+      const likeIndex = listing.likes.indexOf(userId);
+      if (likeIndex === -1) {
+        listing.likes.push(userId);
+      } else {
+        listing.likes.splice(likeIndex, 1);
+      }
+
+      await listing.save();
+      return listing.populate('likes');
+    },
   },
   Listing: {
+    likes: async (listing) => {
+      return await User.find({ _id: { $in: listing.likes } });
+    },
     owner: async (listing) => {
       return await User.findById(listing.owner);
     },

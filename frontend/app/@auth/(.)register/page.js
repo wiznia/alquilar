@@ -100,7 +100,7 @@ export default function Page() {
         )}
       </fieldset>
       <fieldset>
-        <label htmlFor="email">Usuario:</label>
+        <label htmlFor="usuario">Usuario:</label>
         <input
           type="text"
           className="small"

@@ -1,8 +1,8 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect } from 'react';
-import { useQuery } from '@apollo/client';
-import { ALL_LISTINGS_QUERY } from './queries/queries';
+import { useMutation, useQuery } from '@apollo/client';
+import { ALL_LISTINGS_QUERY, LIKE_LISTING_MUTATION } from './queries/queries';
 import { perPage } from '../config';
 
 const AppContext = createContext();
@@ -20,6 +20,15 @@ export function AppProvider({ children }) {
       estado: ['Activo'],
     },
   });
+  const [likeListing] = useMutation(LIKE_LISTING_MUTATION);
+
+  const handleLike = async (listingId) => {
+    try {
+      await likeListing({ variables: { listingId } });
+    } catch (error) {
+      console.error('Error liking listing:', error);
+    }
+  };
 
   const updateListings = (newFilters, fieldName) => {
     setFilterVariables((prevFilters) => {
@@ -82,6 +91,7 @@ export function AppProvider({ children }) {
         error,
         page,
         setPage,
+        handleLike,
       }}
     >
       {children}

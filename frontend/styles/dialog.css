@@ -12,36 +12,12 @@ dialog {
   display: flex;
   flex-direction: column;
   gap: 23px;
-  input[type='text'],
-  input[type='email'],
-  input[type='tel'],
-  input[type='number'],
-  input[type='password'],
-  select {
-    padding: 17px 18px;
-  }
-
-  label {
-    color: var(--primary-text);
-  }
 
   fieldset {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
     .terms__inner {
       display: flex;
       gap: 12px;
       align-items: center;
-    }
-    &:has(input[required], select[required]) {
-      label {
-        &::after {
-          content: '*';
-          color: var(--error);
-          margin-inline-start: 4px;
-        }
-      }
     }
   }
 }

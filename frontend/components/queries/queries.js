@@ -75,6 +75,9 @@ export const ALL_LISTINGS_QUERY = gql`
           url
         }
         id
+        likes {
+          id
+        }
         moneda
         precio
         provincia
@@ -111,6 +114,10 @@ export const SINGLE_LISTING_QUERY = gql`
       moneda
       owner {
         id
+        nombre
+        apellido
+        telefono
+        celular
       }
       precio
       provincia
@@ -345,6 +352,17 @@ export const UPLOAD_IMAGES = gql`
       id
       name
       url
+    }
+  }
+`;
+
+export const LIKE_LISTING_MUTATION = gql`
+  mutation LikeListing($listingId: ID!) {
+    likeListing(listingId: $listingId) {
+      id
+      likes {
+        id
+      }
     }
   }
 `;

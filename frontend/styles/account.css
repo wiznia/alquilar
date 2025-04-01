@@ -27,18 +27,6 @@
   flex-direction: column;
   min-width: 520px;
   fieldset {
-    > p {
-      margin-block-end: 12px;
-    }
-    &:has(input[required], select[required]) {
-      p {
-        &::after {
-          content: '*';
-          color: var(--error);
-          margin-inline-start: 4px;
-        }
-      }
-    }
     input[type='text'],
     input[type='email'],
     input[type='tel'],
@@ -46,7 +34,6 @@
     input[type='search'],
     textarea,
     select {
-      padding: 17px 18px;
       width: 100%;
     }
     .account__item {
