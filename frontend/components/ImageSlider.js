@@ -19,7 +19,7 @@ export default function ImageSlider({ listing, thumbnails }) {
 
   return (
     <div className="gallery">
-      {thumbnails === 'yes' && (
+      {thumbnails === 'yes' && listing.fotos?.length > 1 && (
         <div className="gallery__thumbnails">
           {listing.fotos?.map((foto, i) => (
             <img

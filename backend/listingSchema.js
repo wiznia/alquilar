@@ -13,7 +13,7 @@ const listingSchema = new mongoose.Schema({
   descripcion: String,
   direccion: { type: String, required: true },
   dormitorios: Number,
-  estado: { type: String, required: true },
+  estado: { type: [String], required: true },
   expensas: { type: Number, required: true },
   fotos: [
     {

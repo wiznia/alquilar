@@ -10,7 +10,7 @@ export const ALL_LISTINGS_QUERY = gql`
     $descripcion: String
     $direccion: String
     $dormitorios: Int
-    $estado: String
+    $estado: [String]
     $expensas: Float
     $moneda: [String]
     $precio_max: Float
@@ -109,6 +109,9 @@ export const SINGLE_LISTING_QUERY = gql`
       }
       id
       moneda
+      owner {
+        id
+      }
       precio
       provincia
       superficie_cubierta
@@ -117,6 +120,7 @@ export const SINGLE_LISTING_QUERY = gql`
       tipo_de_ambientes
       tipo_de_propiedad
       titulo
+      toilettes
     }
   }
 `;

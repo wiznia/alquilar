@@ -61,10 +61,18 @@ function UpdateListingContent() {
     }));
   };
 
+  const sanitizeFiles = (files) => {
+    return files.map((file) => {
+      const { __typename, ...sanitizedFile } = file;
+      return sanitizedFile;
+    });
+  };
+
   const uploadFilesToCloudinary = async (files, userId, listingId) => {
+    const filesArray = files.filter((file) => file instanceof File);
     try {
       const { data } = await uploadImage({
-        variables: { files, userId, listingId },
+        variables: { files: filesArray, userId, listingId },
       });
 
       return data.uploadImage.map(({ id, name, url }) => ({ id, name, url }));
@@ -91,7 +99,8 @@ function UpdateListingContent() {
 
     try {
       let uploadedImageUrls = form.fotos || [];
-      if (inputFiles.length > 0) {
+
+      if (inputFiles.length > 0 && !areFilesSame(inputFiles, form.fotos)) {
         const newUrls = await uploadFilesToCloudinary(inputFiles, user.id, id);
 
         uploadedImageUrls = [...uploadedImageUrls, ...newUrls];
@@ -103,6 +112,11 @@ function UpdateListingContent() {
 
       const fileImages = { fotos: uploadedImageUrls };
       const { __typename, ...sanitizedForm } = form;
+
+      if (sanitizedForm.owner && typeof sanitizedForm.owner === 'object') {
+        sanitizedForm.owner = sanitizedForm.owner.id;
+      }
+
       await updateListing({
         variables: {
           id,
@@ -133,16 +147,29 @@ function UpdateListingContent() {
     }
   };
 
+  const areFilesSame = (files1, files2) => {
+    if (files1.length !== files2.length) return false;
+
+    for (let i = 0; i < files1.length; i++) {
+      if (files1[i].name !== files2[i].name) return false;
+    }
+    return true;
+  };
+
   useEffect(() => {
     if (data?.getListingById) {
+      const sanitizedListing = {
+        ...data.getListingById,
+        fotos: sanitizeFiles(data.getListingById.fotos),
+      };
       setForm((prevForm) => ({
         ...prevForm,
-        ...data.getListingById,
+        ...sanitizedListing,
         provincia: data.getListingById.provincia,
         barrio: data.getListingById.barrio,
         municipio: data.getListingById.municipio,
       }));
-      setInputFiles(data.getListingById.fotos);
+      setInputFiles(sanitizedListing.fotos);
     }
   }, [data?.getListingById]);
 

@@ -17,6 +17,7 @@ export function AppProvider({ children }) {
       first: perPage,
       sortBy,
       ...filterVariables,
+      estado: ['Activo'],
     },
   });
 
@@ -52,8 +53,6 @@ export function AppProvider({ children }) {
       return updatedFilters;
     });
   };
-
-  useEffect(() => {}, [data, loading, error]);
 
   useEffect(() => {
     refetch({

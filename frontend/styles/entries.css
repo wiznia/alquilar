@@ -89,6 +89,22 @@
   .gallery__nav {
     transform: scale(1.5);
   }
+  .list {
+    font-size: 16px;
+  }
+  .address {
+    margin-block-end: 12px;
+  }
+  .entry__list {
+    margin-block-end: 16px;
+  }
+  .entry__description {
+    color: var(--primary-text);
+  }
+  .pill {
+    margin-inline-end: auto;
+    margin-block-end: 10px;
+  }
 }
 
 .single-container {
@@ -117,6 +133,9 @@
 
 .address {
   margin-block-start: 6px;
+  h5 {
+    color: var(--primary-titles);
+  }
 }
 
 .entry__description {
@@ -144,4 +163,10 @@
 .entry__list-item span {
   font-weight: bold;
   color: var(--primary-titles);
+}
+
+.entry__features {
+  display: flex;
+  gap: var(--margin);
+  margin-block-end: 16px;
 }

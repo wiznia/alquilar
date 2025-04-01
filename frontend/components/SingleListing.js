@@ -5,6 +5,8 @@ import formatMoney from '../lib/formatMoney';
 import { APIProvider } from '@vis.gl/react-google-maps';
 import { SINGLE_LISTING_QUERY } from './queries/queries';
 import MapComponent from './Map';
+import Loading from './Loading';
+import { formatText } from '@/config';
 
 export default function SingleListingPage({ id }) {
   const { data, loading, error } = useQuery(SINGLE_LISTING_QUERY, {
@@ -13,7 +15,13 @@ export default function SingleListingPage({ id }) {
     },
   });
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) {
+    return (
+      <Loading>
+        <h4>Cargando publicación...</h4>
+      </Loading>
+    );
+  }
   if (error) return <p>Error: {error.message}</p>;
 
   const {
@@ -25,7 +33,6 @@ export default function SingleListingPage({ id }) {
     descripcion,
     direccion,
     dormitorios,
-    estado,
     expensas,
     precio,
     provincia,
@@ -44,6 +51,7 @@ export default function SingleListingPage({ id }) {
     superficie_total,
     superficie_cubierta,
     antiguedad_max,
+    toilettes,
   };
 
   return (
@@ -51,6 +59,9 @@ export default function SingleListingPage({ id }) {
       <ImageSlider listing={data.getListingById} thumbnails="yes" />
       <div className="single-container">
         <div className="entry__info">
+          {tipo_de_alquiler === 'Alquiler temporario' && (
+            <span className="pill">{tipo_de_alquiler}</span>
+          )}
           <h2>{formatMoney(precio)}</h2>
           <h5>{formatMoney(expensas)} Expensas</h5>
           <div className="address">
@@ -64,8 +75,17 @@ export default function SingleListingPage({ id }) {
               <ListItem key={key} listing={[key, value]} />
             ))}
           </ul>
+          {tipo_de_ambientes || (ammenities && <h6>Características:</h6>)}
+          <div className="entry__features">
+            {tipo_de_ambientes.map((ambiente) => (
+              <p key={ambiente}>{formatText(ambiente)}</p>
+            ))}
+            {ammenities.map((ammenity) => (
+              <p key={ammenity}>{formatText(ammenity)}</p>
+            ))}
+          </div>
           <h5>{titulo}</h5>
-          <p className="entry__description">{descripcion}</p>
+          <h6 className="entry__description">{descripcion}</h6>
         </div>
         <div className="entry__contact"></div>
       </div>

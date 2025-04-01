@@ -32,7 +32,7 @@ export const validateForm = (form, formType) => {
     if (!form.tipo_de_alquiler) {
       errors.tipo_de_alquiler = 'Debés seleccionar un tipo de operación.';
     }
-    if (!form.tipo_de_alquiler) {
+    if (!form.moneda) {
       errors.moneda = 'Debés seleccionar una moneda.';
     }
     if (!form.precio) {

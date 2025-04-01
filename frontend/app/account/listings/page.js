@@ -3,6 +3,7 @@
 import AccountSidebar from '@/components/AccountSidebar';
 import { useAuth } from '@/components/AuthContext';
 import AccountListing from '@/components/AccountListing';
+import Loading from '@/components/Loading';
 import { GET_LISTINGS_BY_OWNER } from '@/components/queries/queries';
 import { useQuery } from '@apollo/client';
 import Link from 'next/link';
@@ -34,9 +35,9 @@ export default function Page() {
 
   if (loading) {
     return (
-      <div className="loading">
+      <Loading>
         <h4>Cargando publicaciones...</h4>
-      </div>
+      </Loading>
     );
   }
 

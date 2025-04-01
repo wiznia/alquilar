@@ -292,6 +292,7 @@ small,
   font-size: 14px;
   font-weight: 600;
   margin-block-start: 5px;
+  background-color: var(--primary-bg);
   &.borrador {
     background-color: var(--primary-text);
   }

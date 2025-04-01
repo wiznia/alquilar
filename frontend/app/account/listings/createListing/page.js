@@ -137,24 +137,20 @@ export default function Page() {
               ...prevForm,
               fotos: uploadedImageUrls,
             }));
+
+            await updateListing({
+              variables: {
+                id: listingId,
+                input: {
+                  ...form,
+                  fotos: uploadedImageUrls,
+                  estado: estadoValue,
+                  id: listingId,
+                },
+              },
+            });
           }
         }
-      }
-
-      const fileImages = { fotos: uploadedImageUrls };
-
-      if (listingId) {
-        await updateListing({
-          variables: {
-            id: listingId,
-            input: {
-              ...form,
-              ...fileImages,
-              estado: estadoValue,
-              id: listingId,
-            },
-          },
-        });
       }
 
       setIsLoading(false);

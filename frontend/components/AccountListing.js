@@ -4,7 +4,7 @@ export default function Listing({ listing }) {
   const { direccion, provincia, barrio, estado } = listing;
 
   let pillColor = '';
-  switch (estado) {
+  switch (estado[0]) {
     case 'Borrador':
       pillColor = 'borrador';
       break;

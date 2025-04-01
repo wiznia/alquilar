@@ -45,7 +45,7 @@ const typeDefs = `
       descripcion: String
       direccion: String
       dormitorios: Int
-      estado: String
+      estado: [String]
       expensas: Float
       moneda: [String]
       owner: ID
@@ -84,7 +84,7 @@ const typeDefs = `
     descripcion: String
     direccion: String!
     dormitorios: Int
-    estado: String
+    estado: [String]
     expensas: Float
     fotos: [File]
     id: ID!
@@ -155,11 +155,12 @@ const typeDefs = `
     descripcion: String
     direccion: String!
     dormitorios: Int
-    estado: String!
+    estado: [String!]
     expensas: Float
     fotos: [FileInput!]
     moneda: String!
     municipio: String
+    owner: ID
     precio: Float!
     provincia: String!
     superficie_cubierta: Int
@@ -225,7 +226,6 @@ const resolvers = {
     user: async (_, __, context) => {
       if (!context.req || !context.req.headers) {
       }
-      console.log(context.req);
       const authHeader = context.req.headers.authorization;
       if (!authHeader) {
         throw new Error('No token provided');
@@ -311,6 +311,10 @@ const resolvers = {
 
       if (args.owner) {
         filter.owner = { $in: args.owner };
+      }
+
+      if (args.estado) {
+        filter.estado = { $in: args.estado };
       }
 
       const query = Listing.find(filter);
@@ -640,7 +644,6 @@ const resolvers = {
           name: filename,
           url: uploadResult.secure_url,
         };
-        console.log(fileObject);
         return fileObject;
       });
 

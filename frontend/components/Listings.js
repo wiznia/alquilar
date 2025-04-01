@@ -1,14 +1,15 @@
 import { useAppContext } from './AppContext';
 import Listing from './Listing';
+import Loading from './Loading';
 
 export default function Listings() {
   const { data, loading, error } = useAppContext();
 
   if (loading) {
     return (
-      <div className="loading">
+      <Loading>
         <h4>Cargando publicaciones...</h4>
-      </div>
+      </Loading>
     );
   }
   if (error) {

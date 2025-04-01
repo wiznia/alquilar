@@ -11,5 +11,5 @@ export default function formatMoney(amount = 0, moneda = 'Pesos') {
 
   const formatter = Intl.NumberFormat('es-AR', options);
 
-  return formatter.format(amount);
+  return formatter.format(amount / 100);
 }
