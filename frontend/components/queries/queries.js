@@ -224,6 +224,35 @@ export const GET_USER = gql`
       email
       id
       nombre
+      ratings {
+        user
+        rating
+        message
+        createdAt
+      }
+      telefono
+      tipo_de_cuenta
+      usuario
+    }
+  }
+`;
+
+export const GET_USER_BY_ID = gql`
+  query GET_USER_BY_ID($id: ID!) {
+    getUser(id: $id) {
+      apellido
+      celular
+      condicion_fiscal
+      dni
+      email
+      id
+      nombre
+      ratings {
+        user
+        rating
+        message
+        createdAt
+      }
       telefono
       tipo_de_cuenta
       usuario

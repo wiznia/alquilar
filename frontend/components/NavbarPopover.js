@@ -3,12 +3,12 @@ export default function NavbarPopover(props) {
   const positionAnchor = `--anchor-${id}`;
   return (
     <div
-      className="shadow nav-popover"
+      className="nav-popover"
       popover="auto"
       id={id}
       style={{ positionAnchor }}
     >
-      {children}
+      <div className="nav-popover__inner">{children}</div>
     </div>
   );
 }

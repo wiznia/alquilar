@@ -35,6 +35,7 @@ const typeDefs = `
       email: String
       nombre: String
       token: String
+      id: ID
     ): User
     getListings(
       ambientes: Int
@@ -68,6 +69,7 @@ const typeDefs = `
     ): ListingsResult
     getListingById(id: ID!): Listing
     count: Int
+    getUser(id: ID!): User
   }
 
   type ListingsResult {
@@ -112,10 +114,18 @@ const typeDefs = `
     email: String!
     id: ID!
     nombre: String!
+    ratings: [Rating]
     telefono: Int
     tipo_de_cuenta: String!
     token: String
     usuario: String!
+  }
+
+  type Rating {
+    user: ID!
+    rating: Int!
+    message: String
+    createdAt: String!
   }
 
   scalar Upload
@@ -220,6 +230,7 @@ const typeDefs = `
     requestPasswordReset(email: String!): Boolean
     uploadImage(files: [Upload]!, userId: ID!, listingId: ID!): [File]!
     likeListing(listingId: ID!): Listing
+    rateOwner(ownerId: ID!, rating: Int!, message: String): User
   }
 `;
 
@@ -242,6 +253,9 @@ const resolvers = {
       } catch (error) {
         throw new Error('Invalid token');
       }
+    },
+    getUser: async (_, { id }) => {
+      return await User.findById(id);
     },
     getListings: async (_, args) => {
       const filter = {};
@@ -392,6 +406,7 @@ const resolvers = {
         email,
         nombre,
         password: hashedPassword,
+        ratings,
         telefono,
         tipo_de_cuenta,
         usuario,
@@ -432,6 +447,7 @@ const resolvers = {
         email: newUser.email,
         id: newUser.id,
         nombre: newUser.nombre,
+        ratings: newUser.ratings,
         telefono: newUser.telefono,
         tipo_de_cuenta: newUser.tipo_de_cuenta,
         token,
@@ -680,6 +696,34 @@ const resolvers = {
 
       await listing.save();
       return listing.populate('likes');
+    },
+    rateOwner: async (_, { ownerId, rating, message }, context) => {
+      const authHeader = context.req.headers.authorization;
+      if (!authHeader) {
+        throw new Error('No token provided');
+      }
+      const token = authHeader.replace('Bearer ', '');
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const userId = decoded.userId;
+
+      const owner = await User.findById(ownerId);
+      if (!owner) {
+        throw new Error('Owner not found');
+      }
+
+      if (rating < 1 || rating > 5) {
+        throw new Error('Rating must be between 1 and 5 stars');
+      }
+
+      const ratingObject = {
+        user: userId,
+        rating,
+        message,
+      };
+
+      owner.ratings.push(ratingObject);
+      await owner.save();
+      return owner;
     },
   },
   Listing: {

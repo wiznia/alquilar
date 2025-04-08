@@ -186,6 +186,9 @@
   flex-direction: column;
   gap: 20px;
   padding: 29px 35px;
+  h5 {
+    font-weight: 700;
+  }
 }
 
 .contact-card {
@@ -203,4 +206,30 @@
   display: flex;
   align-items: center;
   gap: 5px;
+}
+
+.related {
+  margin-block-start: 64px;
+  h4 {
+    margin-block-end: var(--margin);
+  }
+}
+.related-listings {
+  display: flex;
+  gap: 40px;
+  overflow: auto;
+  scroll-snap-type: x mandatory;
+  .entry {
+    flex-direction: column;
+    min-width: 370px;
+    &:nth-child(3n - 2) {
+      scroll-snap-align: start;
+    }
+    .gallery {
+      height: 280px;
+    }
+    .entry__heart {
+      top: 308px;
+    }
+  }
 }

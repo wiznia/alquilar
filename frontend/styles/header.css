@@ -1,5 +1,5 @@
 .header {
-  padding: 29px 0;
+  padding: 25px 0;
 }
 
 .header__container {
@@ -17,7 +17,6 @@
 
 nav {
   display: flex;
-  align-items: center;
   gap: var(--margin);
 
   a {
@@ -40,7 +39,7 @@ nav {
   color: #fff;
   position: absolute;
   right: -8px;
-  top: -8px;
+  top: 0;
   width: 16px;
   height: 16px;
   display: flex;
@@ -49,8 +48,65 @@ nav {
 }
 
 .nav-popover {
-  position-area: bottom center;
+  background-color: transparent;
+  position-area: bottom right;
   border: 0;
+  min-width: 220px;
+  transform: translateX(-100%);
+  a {
+    padding: 8px 0;
+    cursor: pointer;
+  }
+  &::before,
+  &::after {
+    content: '';
+    border: outset rgba(0, 0, 0, 0);
+    border-width: 10px;
+    border-bottom-style: solid;
+    position: absolute;
+    top: -10px;
+    right: 4px;
+  }
+  &::before {
+    border-bottom-color: #ededed;
+  }
+  &::after {
+    border-bottom-color: #fff;
+    top: -9px;
+  }
+}
+
+.nav-popover__inner {
+  background-color: #fff;
   padding: 15px;
-  margin-block-start: 20px;
+  margin-block-start: 10px;
+  border: 1px solid #ededed;
+}
+
+#notifications {
+  .nav-popover__inner {
+    padding: 0 15px;
+  }
+}
+.notification {
+  display: flex;
+  align-items: center;
+  color: var(--primary-text);
+  gap: 10px;
+  padding: 17px 0;
+  + .notification {
+    border-top: 1px solid #ebebeb;
+  }
+}
+.notification__pic {
+  display: flex;
+}
+.notification__info {
+  width: max-content;
+  a {
+    text-decoration: underline;
+    color: inherit;
+    padding: 0;
+    display: inline;
+  }
 }

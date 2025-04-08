@@ -3,6 +3,7 @@ import Link from 'next/link';
 export default function ContactForm({ contactCard, owner }) {
   return (
     <div className="entry__contact shadow">
+      <h5>Contactá con el anunciante:</h5>
       {contactCard && (
         <div className="contact-card shadow">
           <div className="contact-card__profile-pic">

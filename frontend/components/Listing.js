@@ -27,7 +27,9 @@ export default function Listing({ listing }) {
     antiguedad_max,
   };
 
-  const isLiked = likes[0]?.id?.includes(user?.id);
+  const isLiked = likes?.filter((like) => {
+    return like?.id?.includes(user?.id);
+  });
 
   return (
     <div className="entry shadow">
@@ -51,7 +53,7 @@ export default function Listing({ listing }) {
         </div>
       </Link>
       {user &&
-        (isLiked ? (
+        (isLiked?.length > 0 ? (
           <svg
             width="25"
             height="25"

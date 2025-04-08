@@ -271,7 +271,7 @@ small,
 .button {
   border-radius: var(--border-radius);
   background-color: var(--primary-bg);
-  padding: 14px 16px;
+  padding: 12px 16px;
   font-size: 14px;
   font-weight: bold;
   color: #fff;
@@ -332,6 +332,14 @@ small,
   }
 }
 
+.badge {
+  background-color: #000;
+  border-radius: 8px;
+  padding: 7px 10px;
+  font-weight: 700;
+  color: var(--primary-bg);
+}
+
 /* End Utility classes */
 @import url('./popover.css');
 @import url('./entries.css');
@@ -340,6 +348,7 @@ small,
 @import url('./footer.css');
 @import url('./dialog.css');
 @import url('./account.css');
+@import url('./profile.css');
 
 #__next {
   container-type: inline-size;

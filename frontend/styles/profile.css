@@ -1,0 +1,62 @@
+.user-profile-header {
+  display: flex;
+  gap: var(--margin);
+}
+
+.user-profile-header__info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.user-profile-header__info-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: var(--primary-text);
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+}
+
+.user-profile-content {
+  margin-block-start: calc(var(--margin) * 2);
+}
+
+.user-profile-content__left {
+  width: 40%;
+}
+
+.rating-container {
+  display: flex;
+  flex-direction: column;
+  flex-flow: column-reverse;
+  gap: 24px;
+  margin-block-end: 56px;
+}
+.rating {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  small {
+    width: 30px;
+    &:first-child {
+      width: 65px;
+      text-align: right;
+    }
+  }
+  progress {
+    background-color: transparent;
+    flex: 1;
+    &::-webkit-progress-bar {
+      border-radius: var(--border-radius);
+      background-color: #ccc;
+    }
+    &::-webkit-progress-value {
+      border-radius: var(--border-radius);
+      background-color: var(--primary-bg);
+    }
+  }
+}
