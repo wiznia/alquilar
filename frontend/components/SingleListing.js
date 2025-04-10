@@ -1,16 +1,14 @@
 import { useQuery } from '@apollo/client';
-import { useAuth } from '@/components/AuthContext';
 import ImageSlider from './ImageSlider';
 import ListItem from './ListItem';
 import formatMoney from '../lib/formatMoney';
 import { APIProvider } from '@vis.gl/react-google-maps';
-import { SINGLE_LISTING_QUERY, GET_LISTINGS_BY_OWNER } from './queries/queries';
+import { SINGLE_LISTING_QUERY } from './queries/queries';
 import MapComponent from './Map';
 import Loading from './Loading';
 import { formatText } from '@/config';
 import ContactForm from '@/lib/ContactForm';
-import { useEffect, useState } from 'react';
-import Listing from './Listing';
+import Related from './Related';
 
 export default function SingleListingPage({ id }) {
   const { data, loading, error } = useQuery(SINGLE_LISTING_QUERY, {
@@ -18,29 +16,6 @@ export default function SingleListingPage({ id }) {
       id,
     },
   });
-  const { user } = useAuth();
-  const [userId, setUserId] = useState(null);
-  const {
-    data: dataRelated,
-    loading: loadingRelated,
-    error: errorRelated,
-    refetch,
-  } = useQuery(GET_LISTINGS_BY_OWNER, {
-    variables: {
-      id: userId,
-    },
-    skip: !userId,
-  });
-
-  useEffect(() => {
-    if (user?.id) {
-      setUserId(user.id);
-    }
-  }, [user]);
-
-  const dataRelatedFiltered = dataRelated?.getListings?.listings.filter(
-    (listing) => listing.id !== id,
-  );
 
   if (loading) {
     return (
@@ -118,21 +93,17 @@ export default function SingleListingPage({ id }) {
           <h5>{titulo}</h5>
           <h6 className="entry__description">{descripcion}</h6>
         </div>
-        <ContactForm contactCard="true" owner={owner} />
+        <ContactForm
+          contactCard="true"
+          owner={owner}
+          tipoDeCuenta={owner?.tipo_de_cuenta}
+          id={id}
+        />
       </div>
       <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY}>
         <MapComponent address={`${direccion}, ${barrio}, ${provincia}`} />
       </APIProvider>
-      {dataRelatedFiltered?.length > 0 && (
-        <div className="related">
-          <h4>Otras publicaciones de este anunciante:</h4>
-          <div className="related-listings">
-            {dataRelatedFiltered?.map((listing) => (
-              <Listing key={listing.id} listing={listing} />
-            ))}
-          </div>
-        </div>
-      )}
+      <Related owner={owner} />
     </div>
   );
 }

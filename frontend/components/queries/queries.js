@@ -118,6 +118,7 @@ export const SINGLE_LISTING_QUERY = gql`
         apellido
         telefono
         celular
+        tipo_de_cuenta
       }
       precio
       provincia
@@ -392,6 +393,38 @@ export const LIKE_LISTING_MUTATION = gql`
       likes {
         id
       }
+    }
+  }
+`;
+
+export const SEND_MESSAGE = gql`
+  mutation sendMessage(
+    $senderId: ID
+    $receiverId: ID!
+    $asunto: String!
+    $nombre: String
+    $apellido: String
+    $email: String
+  ) {
+    sendMessage(
+      senderId: $senderId
+      receiverId: $receiverId
+      asunto: $asunto
+      nombre: $nombre
+      apellido: $apellido
+      email: $email
+    ) {
+      id
+      sender {
+        nombre
+        apellido
+        email
+      }
+      nombre
+      apellido
+      email
+      asunto
+      createdAt
     }
   }
 `;

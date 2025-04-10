@@ -1,9 +1,46 @@
 import Link from 'next/link';
+import { useMutation } from '@apollo/client';
+import { useFormValidation } from '@/app/hooks/useFormValidation';
+import { SEND_MESSAGE } from '../components/queries/queries';
+import { useAuth } from '../components/AuthContext';
+import { useState } from 'react';
 
-export default function ContactForm({ contactCard, owner }) {
+export default function ContactForm({ contactCard, owner, tipoDeCuenta, id }) {
+  const accountType = `${tipoDeCuenta.charAt(0).toLowerCase()}${tipoDeCuenta.slice(1)}`;
+  const { user } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const [sendMessage] = useMutation(SEND_MESSAGE);
+  const initialState = {
+    nombre: '',
+    apellido: '',
+    email: '',
+    asunto: '',
+  };
+  const { form, errors, handleChange, validateFormCheck, setErrors } =
+    useFormValidation(initialState, 'sendMessage');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateFormCheck()) return;
+
+    const receiverId = id;
+    const senderId = user?.id;
+
+    try {
+      const message = await sendMessage({
+        variables: { ...form, receiverId, senderId },
+      });
+      setIsLoading(true);
+      console.log(message);
+    } catch (error) {
+      setIsLoading(false);
+      console.error('Error sending message:', error);
+    }
+  };
+
   return (
     <div className="entry__contact shadow">
-      <h5>Contactá con el anunciante:</h5>
+      <h5>Contactá con el {accountType}:</h5>
       {contactCard && (
         <div className="contact-card shadow">
           <div className="contact-card__profile-pic">
@@ -53,28 +90,69 @@ export default function ContactForm({ contactCard, owner }) {
           </Link>
         </div>
       )}
-      <fieldset>
-        <label htmlFor="nombre">Nombre</label>
-        <input type="text" placeholder="Nombre" required id="nombre" />
-      </fieldset>
-      <fieldset>
-        <label htmlFor="apellido">Apellido</label>
-        <input type="text" placeholder="Apellido" required id="apellido" />
-      </fieldset>
-      <fieldset>
-        <label htmlFor="email">Email</label>
-        <input type="email" placeholder="Email" required id="email" />
-      </fieldset>
-      <fieldset>
-        <label htmlFor="asunto">Asunto</label>
-        <textarea placeholder="Asunto" id="asunto" required></textarea>
-      </fieldset>
-      <div className="button-container">
-        <button className="button button--secondary">
-          Ver disponibilidad horaria
-        </button>
-        <button className="button">Enviar</button>
-      </div>
+      <form onSubmit={handleSubmit}>
+        <>
+          {!user && (
+            <>
+              <fieldset>
+                <label htmlFor="nombre">Nombre</label>
+                <input
+                  type="text"
+                  placeholder="Nombre"
+                  required
+                  id="nombre"
+                  name="nombre"
+                  onChange={handleChange}
+                />
+              </fieldset>
+              <fieldset>
+                <label htmlFor="apellido">Apellido</label>
+                <input
+                  type="text"
+                  placeholder="Apellido"
+                  required
+                  id="apellido"
+                  name="apellido"
+                  onChange={handleChange}
+                />
+              </fieldset>
+              <fieldset>
+                <label htmlFor="email">Email</label>
+                <input
+                  type="email"
+                  placeholder="Email"
+                  required
+                  id="email"
+                  name="email"
+                  onChange={handleChange}
+                />
+              </fieldset>
+            </>
+          )}
+          <fieldset>
+            <label htmlFor="asunto">Asunto</label>
+            <textarea
+              placeholder="Asunto"
+              id="asunto"
+              name="asunto"
+              required
+              onChange={handleChange}
+            ></textarea>
+          </fieldset>
+          <div className="button-container">
+            <button className="button button--secondary">
+              Ver disponibilidad horaria
+            </button>
+            <button className="button">
+              {isLoading ? (
+                <span className="loader"></span>
+              ) : (
+                <span>Enviar</span>
+              )}
+            </button>
+          </div>
+        </>
+      </form>
     </div>
   );
 }

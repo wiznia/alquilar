@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import Listing from './listingSchema.js';
 import User from './userSchema.js';
+import Message from './messageSchema.js';
 import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
 import bcrypt from 'bcrypt';
@@ -70,6 +71,7 @@ const typeDefs = `
     getListingById(id: ID!): Listing
     count: Int
     getUser(id: ID!): User
+    getMessages(receiverId: ID!): [Message]
   }
 
   type ListingsResult {
@@ -119,6 +121,16 @@ const typeDefs = `
     tipo_de_cuenta: String!
     token: String
     usuario: String!
+  }
+  
+  type Message {
+    id: ID!
+    sender: User
+    nombre: String
+    apellido: String
+    email: String
+    asunto: String!
+    createdAt: String!
   }
 
   type Rating {
@@ -231,6 +243,7 @@ const typeDefs = `
     uploadImage(files: [Upload]!, userId: ID!, listingId: ID!): [File]!
     likeListing(listingId: ID!): Listing
     rateOwner(ownerId: ID!, rating: Int!, message: String): User
+    sendMessage(senderId: ID, receiverId: ID!, asunto: String!, nombre: String, apellido: String, email: String): Message
   }
 `;
 
@@ -370,6 +383,9 @@ const resolvers = {
     count: async () => {
       const count = await Listing.countDocuments();
       return { count };
+    },
+    getMessages: async (_, { receiverId }) => {
+      return await Message.find({ receiver: receiverId }).populate('sender');
     },
   },
   Mutation: {
@@ -724,6 +740,48 @@ const resolvers = {
       owner.ratings.push(ratingObject);
       await owner.save();
       return owner;
+    },
+    sendMessage: async (
+      _,
+      { senderId, receiverId, asunto, nombre, apellido, email },
+      context,
+    ) => {
+      const messageId = crypto.randomUUID();
+
+      if (senderId) {
+        const authHeader = context.req.headers.authorization;
+        const token = authHeader.replace('Bearer ', '');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const senderId = decoded.userId;
+
+        if (!authHeader) {
+          throw new Error('No token provided');
+        }
+
+        const newMessage = new Message({
+          messageId,
+          sender: senderId,
+          receiver: receiverId,
+          asunto,
+          createdAt: new Date(),
+        });
+
+        await newMessage.save();
+        return newMessage.populate('sender receiver');
+      } else {
+        const newMessage = new Message({
+          messageId,
+          nombre,
+          apellido,
+          email,
+          receiver: receiverId,
+          asunto,
+          createdAt: new Date(),
+        });
+
+        await newMessage.save();
+        return newMessage.populate('receiver');
+      }
     },
   },
   Listing: {
