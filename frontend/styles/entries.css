@@ -188,6 +188,7 @@
   padding: 29px 35px;
   h5 {
     font-weight: 700;
+    color: var(--primary-titles);
   }
 }
 

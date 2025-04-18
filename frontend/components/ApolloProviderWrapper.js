@@ -29,7 +29,16 @@ const authLink = setContext((_, prevContext) => {
 
 const client = new ApolloClient({
   link: authLink.concat(uploadLink),
-  cache: new InMemoryCache(),
+  cache: new InMemoryCache({
+    typePolicies: {
+      SingleMessage: {
+        keyFields: ['messageId'],
+      },
+      Message: {
+        keyFields: ['conversationId'],
+      },
+    },
+  }),
 });
 
 export default function ApolloProviderWrapper({ children }) {

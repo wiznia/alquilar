@@ -262,8 +262,8 @@ export const GET_USER_BY_ID = gql`
 `;
 
 export const GET_LISTINGS_BY_OWNER = gql`
-  query GET_LISTINGS_BY_OWNER($id: ID!) {
-    getListings(owner: $id) {
+  query GET_LISTINGS_BY_OWNER($id: ID!, $estado: [String]) {
+    getListings(owner: $id, estado: $estado) {
       count
       listings {
         id
@@ -296,6 +296,37 @@ export const GET_LISTINGS_BY_OWNER = gql`
         }
         viewCount
       }
+    }
+  }
+`;
+
+export const GET_MESSAGES_BY_USER = gql`
+  query getMessages($receiverId: ID!) {
+    getMessages(receiverId: $receiverId) {
+      nombre
+      apellido
+      email
+      sender {
+        nombre
+        apellido
+        email
+        id
+      }
+      conversationId
+      messages {
+        asunto
+        createdAt
+        isUnread
+        messageId
+      }
+    }
+  }
+`;
+
+export const MARK_MESSAGES_AS_READ = gql`
+  mutation MarkMessagesAsRead($messageIds: [ID!]!) {
+    markMessagesAsRead(messageIds: $messageIds) {
+      isUnread
     }
   }
 `;
@@ -414,7 +445,6 @@ export const SEND_MESSAGE = gql`
       apellido: $apellido
       email: $email
     ) {
-      id
       sender {
         nombre
         apellido
@@ -423,8 +453,13 @@ export const SEND_MESSAGE = gql`
       nombre
       apellido
       email
-      asunto
-      createdAt
+      conversationId
+      messages {
+        messageId
+        asunto
+        createdAt
+        isUnread
+      }
     }
   }
 `;

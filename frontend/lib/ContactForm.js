@@ -10,6 +10,7 @@ export default function ContactForm({ contactCard, owner, tipoDeCuenta, id }) {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [sendMessage] = useMutation(SEND_MESSAGE);
+  const [isSentForm, setIsSentForm] = useState(false);
   const initialState = {
     nombre: '',
     apellido: '',
@@ -27,11 +28,16 @@ export default function ContactForm({ contactCard, owner, tipoDeCuenta, id }) {
     const senderId = user?.id;
 
     try {
-      const message = await sendMessage({
+      const { data } = await sendMessage({
         variables: { ...form, receiverId, senderId },
       });
       setIsLoading(true);
-      console.log(message);
+
+      if (data?.sendMessage) {
+        setIsSentForm(true);
+        setIsLoading(false);
+        document.querySelector('form').reset();
+      }
     } catch (error) {
       setIsLoading(false);
       console.error('Error sending message:', error);
@@ -130,7 +136,7 @@ export default function ContactForm({ contactCard, owner, tipoDeCuenta, id }) {
             </>
           )}
           <fieldset>
-            <label htmlFor="asunto">Asunto</label>
+            <label htmlFor="asunto">Asunto:</label>
             <textarea
               placeholder="Asunto"
               id="asunto"
@@ -139,6 +145,9 @@ export default function ContactForm({ contactCard, owner, tipoDeCuenta, id }) {
               onChange={handleChange}
             ></textarea>
           </fieldset>
+          {isSentForm && (
+            <p className="success-message">Mensaje enviado con éxito!</p>
+          )}
           <div className="button-container">
             <button className="button button--secondary">
               Ver disponibilidad horaria

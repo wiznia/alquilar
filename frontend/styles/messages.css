@@ -1,0 +1,87 @@
+.messages {
+  display: flex;
+  flex: 1;
+}
+
+.messages__inbox {
+  width: 45%;
+}
+
+.messages__item {
+  cursor: pointer;
+  border-bottom: 1px solid #ccc;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 16px;
+  transition: background-color 250ms ease;
+  &:hover,
+  &.messages__item--active {
+    background-color: #fef1df;
+  }
+  &.messages__item--unread {
+    p,
+    small {
+      font-weight: 700;
+    }
+  }
+  h6 {
+    font-weight: 700;
+  }
+  p {
+    width: 100%;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  small {
+    flex: 1 0 auto;
+    text-align: right;
+    color: var(--primary-text);
+  }
+}
+.messages__item-info {
+  width: 68%;
+  flex: 0 0 auto;
+}
+
+.messages__area {
+  width: 55%;
+  display: flex;
+  flex-direction: column;
+  .send-message {
+    width: auto;
+    padding: 24px 20px;
+    input[type='text'] {
+      padding: 13px 25px;
+    }
+  }
+}
+
+.messages__conversation {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex: 1;
+  gap: 16px;
+  padding: 20px;
+}
+.messages__conversation-container {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.messages__bubble {
+  border-radius: var(--border-radius);
+  padding: 16px;
+  flex: 1;
+  p {
+    color: #000;
+  }
+  small {
+    display: block;
+    text-align: right;
+    color: var(--primary-text);
+  }
+}

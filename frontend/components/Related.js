@@ -1,6 +1,7 @@
 import { useQuery } from '@apollo/client';
 import { GET_LISTINGS_BY_OWNER } from './queries/queries';
 import Listing from './Listing';
+import Loading from './Loading';
 
 export default function Related({ owner }) {
   const {
@@ -10,6 +11,7 @@ export default function Related({ owner }) {
   } = useQuery(GET_LISTINGS_BY_OWNER, {
     variables: {
       id: owner?.id,
+      estado: 'Activo',
     },
     skip: !owner?.id,
   });
@@ -17,6 +19,16 @@ export default function Related({ owner }) {
   const dataRelatedFiltered = dataRelated?.getListings?.listings.filter(
     (listing) => listing.id !== owner?.id,
   );
+
+  if (loadingRelated) {
+    return (
+      <Loading>
+        <h4>Cargando publicación...</h4>
+      </Loading>
+    );
+  }
+
+  if (errorRelated) return <p>Error: {errorRelated.message}</p>;
 
   return (
     <>

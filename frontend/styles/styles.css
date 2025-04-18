@@ -7,6 +7,7 @@
   --primary-bg: hsl(35.06deg 100% 50%);
   --secondary-bg: #f9f9f9;
   --error: #bd0000;
+  --success: #2dc071;
   --margin: 32px;
   interpolate-size: allow-keywords;
 }
@@ -40,7 +41,7 @@ fieldset {
   > p {
     margin-block-end: 12px;
   }
-  &:has(input[required], select[required]) {
+  &:has(input[required], select[required], textarea[required]) {
     p,
     label {
       &::after {
@@ -106,6 +107,7 @@ textarea {
   font-family: inherit;
   transition: all 250ms ease;
   padding: 17px 18px;
+  outline: none;
   &:focus {
     border-color: hsl(0deg 0% 75%);
   }
@@ -341,6 +343,7 @@ small,
 }
 
 /* End Utility classes */
+
 @import url('./popover.css');
 @import url('./entries.css');
 @import url('./header.css');
@@ -349,6 +352,7 @@ small,
 @import url('./dialog.css');
 @import url('./account.css');
 @import url('./profile.css');
+@import url('./messages.css');
 
 #__next {
   container-type: inline-size;
@@ -363,6 +367,10 @@ small,
   @container (max-width: 1204px) {
     padding: 0 20px;
   }
+}
+
+main {
+  min-height: calc(100vh - 286px);
 }
 
 .search-filters {
@@ -391,7 +399,8 @@ small,
   }
 }
 
-.search {
+.search,
+.send-message {
   display: flex;
   position: relative;
   width: 400px;
@@ -454,6 +463,10 @@ small,
 .error-message {
   color: var(--error);
   margin-block-start: -5px;
+}
+
+.success-message {
+  color: var(--success);
 }
 
 .loading {

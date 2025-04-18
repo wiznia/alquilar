@@ -124,13 +124,19 @@ const typeDefs = `
   }
   
   type Message {
-    id: ID!
     sender: User
     nombre: String
     apellido: String
     email: String
+    conversationId: String!
+    messages: [SingleMessage!]!
+  }
+
+  type SingleMessage {
     asunto: String!
     createdAt: String!
+    isUnread: Boolean
+    messageId: ID!
   }
 
   type Rating {
@@ -244,6 +250,7 @@ const typeDefs = `
     likeListing(listingId: ID!): Listing
     rateOwner(ownerId: ID!, rating: Int!, message: String): User
     sendMessage(senderId: ID, receiverId: ID!, asunto: String!, nombre: String, apellido: String, email: String): Message
+    markMessagesAsRead(messageIds: [ID!]!): [SingleMessage!]!
   }
 `;
 
@@ -747,41 +754,96 @@ const resolvers = {
       context,
     ) => {
       const messageId = crypto.randomUUID();
+      const messageData = {
+        asunto,
+        createdAt: new Date(),
+        isUnread: true,
+        messageId,
+      };
 
       if (senderId) {
         const authHeader = context.req.headers.authorization;
         const token = authHeader.replace('Bearer ', '');
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        const senderId = decoded.userId;
+        const actualSenderId = decoded.userId;
+        let existingThread = await Message.findOne({
+          sender: actualSenderId,
+          receiver: receiverId,
+        });
 
         if (!authHeader) {
           throw new Error('No token provided');
         }
 
-        const newMessage = new Message({
-          messageId,
-          sender: senderId,
-          receiver: receiverId,
-          asunto,
-          createdAt: new Date(),
-        });
+        if (existingThread) {
+          existingThread.messages.push(messageData);
+          await existingThread.save();
+          return existingThread.populate('sender receiver');
+        } else {
+          const newThread = new Message({
+            conversationId: messageId,
+            sender: actualSenderId,
+            receiver: receiverId,
+            messages: [messageData],
+          });
 
-        await newMessage.save();
-        return newMessage.populate('sender receiver');
+          await newThread.save();
+          return newThread.populate('sender receiver');
+        }
       } else {
-        const newMessage = new Message({
-          messageId,
-          nombre,
-          apellido,
+        let existingThread = await Message.findOne({
           email,
           receiver: receiverId,
-          asunto,
-          createdAt: new Date(),
         });
 
-        await newMessage.save();
-        return newMessage.populate('receiver');
+        if (existingThread) {
+          existingThread.messages.push(messageData);
+          await existingThread.save();
+          return existingThread.populate('receiver');
+        } else {
+          const newThread = new Message({
+            nombre,
+            apellido,
+            email,
+            receiver: receiverId,
+            conversationId: messageId,
+            messages: [messageData],
+          });
+          await newThread.save();
+          return newThread.populate('receiver');
+        }
       }
+    },
+    markMessagesAsRead: async (_, { messageIds }, context) => {
+      const authHeader = context.req.headers.authorization;
+      if (!authHeader) {
+        throw new Error('No token provided');
+      }
+      const token = authHeader.replace('Bearer ', '');
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const userId = decoded.userId;
+
+      await Message.updateMany(
+        {
+          receiver: userId,
+          'messages.messageId': { $in: messageIds },
+        },
+        {
+          $set: {
+            'messages.$[elem].isUnread': false,
+          },
+        },
+        {
+          arrayFilters: [{ 'elem.messageId': { $in: messageIds } }],
+        },
+      );
+
+      const updatedThreads = await Message.find({
+        receiver: userId,
+        'messages.messageId': { $in: messageIds },
+      }).populate('sender receiver');
+
+      return updatedThreads;
     },
   },
   Listing: {

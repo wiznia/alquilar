@@ -97,7 +97,7 @@ export default function SingleListingPage({ id }) {
           contactCard="true"
           owner={owner}
           tipoDeCuenta={owner?.tipo_de_cuenta}
-          id={id}
+          id={owner.id}
         />
       </div>
       <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY}>

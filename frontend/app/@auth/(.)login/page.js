@@ -35,7 +35,7 @@ export default function Page() {
         setIsLoading(false);
         setCookie('authToken', data.login.token, 7);
         await login();
-        router.push('/account');
+        router.push('/account/settings');
       }
     } catch (error) {
       console.error('Login error:', error);
