@@ -71,7 +71,7 @@ const typeDefs = `
     getListingById(id: ID!): Listing
     count: Int
     getUser(id: ID!): User
-    getMessages(receiverId: ID!): [Message]
+    getMessages(userId: ID!): [Message]
   }
 
   type ListingsResult {
@@ -125,9 +125,7 @@ const typeDefs = `
   
   type Message {
     sender: User
-    nombre: String
-    apellido: String
-    email: String
+    receiver: User
     conversationId: String!
     messages: [SingleMessage!]!
   }
@@ -135,8 +133,9 @@ const typeDefs = `
   type SingleMessage {
     asunto: String!
     createdAt: String!
-    isUnread: Boolean
+    readBy: [String]
     messageId: ID!
+    senderId: ID!
   }
 
   type Rating {
@@ -249,7 +248,7 @@ const typeDefs = `
     uploadImage(files: [Upload]!, userId: ID!, listingId: ID!): [File]!
     likeListing(listingId: ID!): Listing
     rateOwner(ownerId: ID!, rating: Int!, message: String): User
-    sendMessage(senderId: ID, receiverId: ID!, asunto: String!, nombre: String, apellido: String, email: String): Message
+    sendMessage(senderId: ID, receiverId: ID!, asunto: String!, nombre: String, apellido: String, email: String, conversationId: String): Message
     markMessagesAsRead(messageIds: [ID!]!): [SingleMessage!]!
   }
 `;
@@ -391,8 +390,12 @@ const resolvers = {
       const count = await Listing.countDocuments();
       return { count };
     },
-    getMessages: async (_, { receiverId }) => {
-      return await Message.find({ receiver: receiverId }).populate('sender');
+    getMessages: async (_, { userId }) => {
+      const conversations = await Message.find({
+        $or: [{ sender: userId }, { receiver: userId }],
+      }).populate('sender receiver');
+
+      return conversations;
     },
   },
   Mutation: {
@@ -750,68 +753,48 @@ const resolvers = {
     },
     sendMessage: async (
       _,
-      { senderId, receiverId, asunto, nombre, apellido, email },
+      { senderId, receiverId, asunto, conversationId },
       context,
     ) => {
-      const messageId = crypto.randomUUID();
+      const authHeader = context.req.headers.authorization;
+      if (!authHeader) {
+        throw new Error('No token provided');
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const actualSenderId = decoded.userId;
+      const readBy = senderId === actualSenderId ? [actualSenderId] : [];
       const messageData = {
         asunto,
         createdAt: new Date(),
-        isUnread: true,
-        messageId,
+        messageId: crypto.randomUUID(),
+        senderId,
+        readBy,
       };
 
-      if (senderId) {
-        const authHeader = context.req.headers.authorization;
-        const token = authHeader.replace('Bearer ', '');
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        const actualSenderId = decoded.userId;
-        let existingThread = await Message.findOne({
-          sender: actualSenderId,
-          receiver: receiverId,
-        });
+      let existingThread = await Message.findOne({
+        $or: [
+          { sender: actualSenderId, receiver: receiverId },
+          { sender: receiverId, receiver: actualSenderId },
+        ],
+      });
 
-        if (!authHeader) {
-          throw new Error('No token provided');
-        }
+      if (existingThread) {
+        existingThread.messages.push(messageData);
+        await existingThread.save();
 
-        if (existingThread) {
-          existingThread.messages.push(messageData);
-          await existingThread.save();
-          return existingThread.populate('sender receiver');
-        } else {
-          const newThread = new Message({
-            conversationId: messageId,
-            sender: actualSenderId,
-            receiver: receiverId,
-            messages: [messageData],
-          });
-
-          await newThread.save();
-          return newThread.populate('sender receiver');
-        }
+        return existingThread.populate('sender receiver');
       } else {
-        let existingThread = await Message.findOne({
-          email,
+        const newConversation = new Message({
+          sender: senderId,
           receiver: receiverId,
+          conversationId: crypto.randomUUID(),
+          messages: [messageData],
         });
+        await newConversation.save();
 
-        if (existingThread) {
-          existingThread.messages.push(messageData);
-          await existingThread.save();
-          return existingThread.populate('receiver');
-        } else {
-          const newThread = new Message({
-            nombre,
-            apellido,
-            email,
-            receiver: receiverId,
-            conversationId: messageId,
-            messages: [messageData],
-          });
-          await newThread.save();
-          return newThread.populate('receiver');
-        }
+        return newConversation.populate('sender receiver');
       }
     },
     markMessagesAsRead: async (_, { messageIds }, context) => {
@@ -825,25 +808,39 @@ const resolvers = {
 
       await Message.updateMany(
         {
-          receiver: userId,
           'messages.messageId': { $in: messageIds },
         },
         {
-          $set: {
-            'messages.$[elem].isUnread': false,
-          },
+          $addToSet: { 'messages.$[elem].readBy': userId },
         },
         {
-          arrayFilters: [{ 'elem.messageId': { $in: messageIds } }],
+          arrayFilters: [
+            {
+              'elem.messageId': { $in: messageIds },
+              'elem.readBy': { $ne: userId },
+            },
+          ],
         },
       );
 
       const updatedThreads = await Message.find({
-        receiver: userId,
         'messages.messageId': { $in: messageIds },
-      }).populate('sender receiver');
+      });
 
-      return updatedThreads;
+      const updatedMessages = updatedThreads.flatMap((thread) =>
+        thread.messages
+          .filter((msg) => messageIds.includes(msg.messageId))
+          .map((msg) => ({
+            asunto: msg.asunto,
+            createdAt: msg.createdAt.toISOString(),
+            readBy: msg.readBy,
+            messageId: msg.messageId,
+            senderId: thread.sender.toString(),
+          })),
+      );
+
+      console.log(updatedMessages);
+      return updatedMessages;
     },
   },
   Listing: {

@@ -10,17 +10,18 @@ import { useMutation, useQuery } from '@apollo/client';
 import { useFormValidation } from '@/app/hooks/useFormValidation';
 import Loading from './Loading';
 import { useState, useRef } from 'react';
+import formatDateTime from '@/lib/formatDateTime';
 
 export default function Messages() {
   const { user } = useAuth();
   const inputRef = useRef(null);
   const { data, loading, error, refetch } = useQuery(GET_MESSAGES_BY_USER, {
     variables: {
-      receiverId: user?.id,
+      userId: user?.id,
     },
     skip: !user?.id,
   });
-  const [openMessage, setOpenMessage] = useState(null);
+  const [openConversation, setOpenConversation] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [sendMessage] = useMutation(SEND_MESSAGE);
   const [markMessagesAsRead] = useMutation(MARK_MESSAGES_AS_READ);
@@ -30,18 +31,42 @@ export default function Messages() {
   const { form, errors, handleChange, validateFormCheck, setErrors } =
     useFormValidation(initialState, 'sendMessage');
 
-  const handleSubmit = async (e) => {
+  const handleOpenMessage = (conversation) => {
+    setOpenConversation(conversation);
+
+    const unreadMessageIds = conversation.messages
+      .filter(
+        (msg) => !msg.readBy.includes(user.id) && msg.senderId !== user.id,
+      )
+      .map((msg) => msg.messageId);
+
+    if (unreadMessageIds.length > 0) {
+      markMessagesAsRead({
+        variables: { messageIds: unreadMessageIds },
+      });
+    }
+  };
+
+  const handleReply = async (e, conversation) => {
     e.preventDefault();
     if (!validateFormCheck()) return;
 
-    const receiverId = openMessage?.sender?.id;
+    const receiverId =
+      conversation?.sender?.id === user?.id
+        ? conversation?.receiver?.id
+        : conversation?.sender?.id;
     const senderId = user?.id;
 
     try {
       setIsLoading(true);
 
       const { data } = await sendMessage({
-        variables: { ...form, receiverId, senderId },
+        variables: {
+          ...form,
+          receiverId,
+          senderId,
+          conversationId: conversation.conversationId,
+        },
       });
 
       if (data?.sendMessage) {
@@ -49,69 +74,12 @@ export default function Messages() {
         if (inputRef.current) inputRef.current.value = '';
 
         await refetch();
-
-        const updatedConversation = data?.getMessages.find(
-          (conv) => conv.conversationId === openMessage.conversationId,
-        );
-
-        if (updatedConversation) {
-          setOpenMessage(updatedConversation);
-        }
       }
       setIsLoading(false);
       await refetch();
     } catch (error) {
       setIsLoading(false);
       console.error('Error sending message:', error);
-    }
-  };
-
-  function formatDateTime(dateString) {
-    if (!dateString) return '';
-    const date = new Date(parseInt(dateString));
-    if (isNaN(date.getTime())) return '';
-
-    const now = new Date();
-    const isToday = date.toDateString() === now.toDateString();
-
-    const yesterday = new Date();
-    yesterday.setDate(now.getDate() - 1);
-    const isYesterday = date.toDateString() === yesterday.toDateString();
-
-    if (isToday) {
-      return date.toLocaleTimeString('es-AR', {
-        hour: '2-digit',
-        hour12: false,
-        minute: '2-digit',
-      });
-    } else if (isYesterday) {
-      return 'Ayer';
-    } else {
-      return date.toLocaleDateString('es-AR', {
-        day: '2-digit',
-        month: '2-digit',
-      });
-    }
-  }
-
-  const openConversation = (messageSender) => {
-    setOpenMessage(messageSender);
-
-    const unreadMessageIds = messageSender.messages
-      .filter((msg) => msg.isUnread)
-      .map((msg) => msg.messageId);
-
-    if (unreadMessageIds.length > 0) {
-      markMessagesAsRead({
-        variables: { messageIds: unreadMessageIds },
-        optimisticResponse: {
-          markMessagesAsRead: unreadMessageIds.map((messageId) => ({
-            messageId,
-            isUnread: false,
-            __typename: 'SingleMessage',
-          })),
-        },
-      });
     }
   };
 
@@ -128,18 +96,18 @@ export default function Messages() {
   return (
     <div className="messages shadow">
       <div className="messages__inbox">
-        {data?.getMessages.map((messageSender) => {
-          const lastMessage = messageSender.messages.at(-1);
-          const isUnread = messageSender.messages.some(
-            (msg) => msg.isUnread === true,
+        {data?.getMessages.map((conversation) => {
+          const lastMessage = conversation.messages.at(-1);
+          const isUnread = conversation.messages.some(
+            (msg) => !msg.readBy.includes(user.id) && msg.senderId !== user.id,
           );
           const isActive =
-            openMessage?.conversationId === messageSender.conversationId;
+            openConversation?.conversationId === conversation.conversationId;
 
           return (
             <div
-              key={messageSender.conversationId}
-              onClick={() => openConversation(messageSender)}
+              key={conversation.conversationId}
+              onClick={() => handleOpenMessage(conversation)}
               className={`messages__item ${isUnread ? 'messages__item--unread' : ''} ${isActive ? 'messages__item--active' : ''}`}
             >
               <div className="messages__item-profile-pic">
@@ -164,9 +132,9 @@ export default function Messages() {
               </div>
               <div className="messages__item-info">
                 <h6>
-                  {messageSender.sender
-                    ? `${messageSender.sender.nombre} ${messageSender.sender.apellido}`
-                    : `${messageSender.nombre} ${messageSender.apellido}`}
+                  {conversation.sender.id === user?.id
+                    ? `${conversation.receiver.nombre} ${conversation.receiver.apellido}`
+                    : `${conversation.sender.nombre} ${conversation.sender.apellido}`}
                 </h6>
                 <p>{lastMessage?.asunto}</p>
               </div>
@@ -176,7 +144,7 @@ export default function Messages() {
         })}
       </div>
       <div className="messages__area shadow">
-        {openMessage ? (
+        {openConversation ? (
           <>
             <div className="messages__item">
               <div className="messages__item-profile-pic">
@@ -200,17 +168,17 @@ export default function Messages() {
                 </svg>
               </div>
               <div className="messages__item-info">
-                {openMessage.sender
-                  ? `${openMessage.sender.nombre} ${openMessage.sender.apellido}`
-                  : `${openMessage.nombre} ${openMessage.apellido}`}
+                {openConversation.sender.id === user?.id
+                  ? `${openConversation.receiver.nombre} ${openConversation.receiver.apellido}`
+                  : `${openConversation.sender.nombre} ${openConversation.sender.apellido}`}
                 <p>Online</p>
               </div>
             </div>
             <div className="messages__conversation">
-              {openMessage.messages.map((msg) => (
+              {openConversation.messages.map((msg) => (
                 <div
                   key={msg.messageId}
-                  className="messages__conversation-container"
+                  className={`messages__conversation-container ${msg.senderId === user?.id ? 'messages__conversation-owner' : ''}`}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -233,9 +201,10 @@ export default function Messages() {
             </div>
             <div className="messages__footer">
               <form
-                onSubmit={handleSubmit}
                 type="submit"
                 className="send-message"
+                onSubmit={(e) => handleReply(e, openConversation)}
+                action=""
               >
                 <div className="search-container">
                   <input

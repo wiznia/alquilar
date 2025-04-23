@@ -1,6 +1,7 @@
 .messages {
   display: flex;
   flex: 1;
+  max-height: calc(100vh - 286px);
 }
 
 .messages__inbox {
@@ -65,11 +66,27 @@
   flex: 1;
   gap: 16px;
   padding: 20px;
+  overflow: auto;
 }
 .messages__conversation-container {
   display: flex;
   align-items: flex-end;
   gap: 6px;
+  &.messages__conversation-owner {
+    margin-inline-start: auto;
+    svg {
+      order: 1;
+    }
+    .messages__bubble {
+      background-color: #3b82f6;
+      p {
+        color: #fff;
+      }
+      small {
+        color: #ccc;
+      }
+    }
+  }
 }
 
 .messages__bubble {

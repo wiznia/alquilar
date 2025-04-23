@@ -301,12 +301,15 @@ export const GET_LISTINGS_BY_OWNER = gql`
 `;
 
 export const GET_MESSAGES_BY_USER = gql`
-  query getMessages($receiverId: ID!) {
-    getMessages(receiverId: $receiverId) {
-      nombre
-      apellido
-      email
+  query getMessages($userId: ID!) {
+    getMessages(userId: $userId) {
       sender {
+        nombre
+        apellido
+        email
+        id
+      }
+      receiver {
         nombre
         apellido
         email
@@ -316,8 +319,9 @@ export const GET_MESSAGES_BY_USER = gql`
       messages {
         asunto
         createdAt
-        isUnread
+        readBy
         messageId
+        senderId
       }
     }
   }
@@ -326,7 +330,7 @@ export const GET_MESSAGES_BY_USER = gql`
 export const MARK_MESSAGES_AS_READ = gql`
   mutation MarkMessagesAsRead($messageIds: [ID!]!) {
     markMessagesAsRead(messageIds: $messageIds) {
-      isUnread
+      messageId
     }
   }
 `;
@@ -432,34 +436,45 @@ export const SEND_MESSAGE = gql`
   mutation sendMessage(
     $senderId: ID
     $receiverId: ID!
+    $conversationId: String
     $asunto: String!
-    $nombre: String
-    $apellido: String
-    $email: String
   ) {
     sendMessage(
       senderId: $senderId
       receiverId: $receiverId
+      conversationId: $conversationId
       asunto: $asunto
-      nombre: $nombre
-      apellido: $apellido
-      email: $email
     ) {
       sender {
         nombre
         apellido
         email
+        id
       }
-      nombre
-      apellido
-      email
+      receiver {
+        nombre
+        apellido
+        email
+        id
+      }
       conversationId
       messages {
         messageId
         asunto
         createdAt
-        isUnread
+        senderId
       }
+    }
+  }
+`;
+
+export const NEW_MESSAGE_SUBSCRIPTION = gql`
+  subscription newMessage($conversationId: String!) {
+    newMessage(conversationId: $conversationId) {
+      messageId
+      asunto
+      createdAt
+      senderId
     }
   }
 `;
