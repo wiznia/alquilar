@@ -9,12 +9,13 @@ import { useAuth } from '@/components/AuthContext';
 import { useMutation, useQuery } from '@apollo/client';
 import { useFormValidation } from '@/app/hooks/useFormValidation';
 import Loading from './Loading';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import formatDateTime from '@/lib/formatDateTime';
 
 export default function Messages() {
   const { user } = useAuth();
   const inputRef = useRef(null);
+  const messagesEndRef = useRef(null);
   const { data, loading, error, refetch } = useQuery(GET_MESSAGES_BY_USER, {
     variables: {
       userId: user?.id,
@@ -43,6 +44,9 @@ export default function Messages() {
     if (unreadMessageIds.length > 0) {
       markMessagesAsRead({
         variables: { messageIds: unreadMessageIds },
+        onCompleted: () => {
+          refetch();
+        },
       });
     }
   };
@@ -73,7 +77,19 @@ export default function Messages() {
         form.asunto = '';
         if (inputRef.current) inputRef.current.value = '';
 
-        await refetch();
+        setOpenConversation((prevConversation) => ({
+          ...prevConversation,
+          messages: [
+            ...prevConversation.messages,
+            ...data.sendMessage.messages.map((msg) => ({
+              messageId: msg.messageId,
+              senderId: msg.senderId,
+              asunto: msg.asunto,
+              createdAt: msg.createdAt,
+              readBy: msg.readBy || [],
+            })),
+          ],
+        }));
       }
       setIsLoading(false);
       await refetch();
@@ -82,6 +98,12 @@ export default function Messages() {
       console.error('Error sending message:', error);
     }
   };
+
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollTop = messagesEndRef.current.scrollHeight;
+    }
+  }, [openConversation]);
 
   if (loading) {
     return (
@@ -98,9 +120,9 @@ export default function Messages() {
       <div className="messages__inbox">
         {data?.getMessages.map((conversation) => {
           const lastMessage = conversation.messages.at(-1);
-          const isUnread = conversation.messages.some(
-            (msg) => !msg.readBy.includes(user.id) && msg.senderId !== user.id,
-          );
+          const isUnread = conversation.messages.some((msg) => {
+            return !msg.readBy.includes(user.id) && msg.senderId !== user.id;
+          });
           const isActive =
             openConversation?.conversationId === conversation.conversationId;
 
@@ -174,10 +196,10 @@ export default function Messages() {
                 <p>Online</p>
               </div>
             </div>
-            <div className="messages__conversation">
-              {openConversation.messages.map((msg) => (
+            <div className="messages__conversation" ref={messagesEndRef}>
+              {openConversation.messages.map((msg, index) => (
                 <div
-                  key={msg.messageId}
+                  key={`${msg.messageId}-${index}`}
                   className={`messages__conversation-container ${msg.senderId === user?.id ? 'messages__conversation-owner' : ''}`}
                 >
                   <svg
