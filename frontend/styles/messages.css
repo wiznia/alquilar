@@ -70,14 +70,13 @@
 }
 .messages__conversation-container {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-end;
   gap: 6px;
   &.messages__conversation-owner {
     margin-inline-start: auto;
-    svg {
-      order: 1;
-    }
     .messages__bubble {
+      order: -1;
       background-color: #3b82f6;
       p {
         color: #fff;
@@ -85,6 +84,9 @@
       small {
         color: #ccc;
       }
+    }
+    > small {
+      flex: 1 1 100%;
     }
   }
 }

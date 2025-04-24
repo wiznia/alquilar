@@ -467,14 +467,3 @@ export const SEND_MESSAGE = gql`
     }
   }
 `;
-
-export const NEW_MESSAGE_SUBSCRIPTION = gql`
-  subscription newMessage($conversationId: String!) {
-    newMessage(conversationId: $conversationId) {
-      messageId
-      asunto
-      createdAt
-      senderId
-    }
-  }
-`;

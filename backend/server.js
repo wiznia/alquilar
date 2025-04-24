@@ -751,11 +751,7 @@ const resolvers = {
       await owner.save();
       return owner;
     },
-    sendMessage: async (
-      _,
-      { senderId, receiverId, asunto, conversationId },
-      context,
-    ) => {
+    sendMessage: async (_, { senderId, receiverId, asunto }, context) => {
       const authHeader = context.req.headers.authorization;
       if (!authHeader) {
         throw new Error('No token provided');
