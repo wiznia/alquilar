@@ -68,3 +68,18 @@
     }
   }
 }
+
+.rating-item {
+  display: flex;
+  gap: 16px;
+}
+.rating-item__info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.rating-stars {
+  display: flex;
+  gap: 2px;
+}

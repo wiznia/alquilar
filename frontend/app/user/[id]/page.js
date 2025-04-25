@@ -29,6 +29,42 @@ export default function Id() {
     id,
   };
 
+  const buildStars = (rating) => {
+    return (
+      <div className="rating-stars">
+        {Array.from({ length: 5 }, (_, index) =>
+          index < rating ? (
+            <svg
+              key={index}
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              fill="none"
+            >
+              <path
+                fill="#F1C40F"
+                d="m4.802 4.632-4.39.486a.42.42 0 0 0-.35.286c-.053.161 0 .329.116.434C1.483 7.03 3.444 8.813 3.444 8.813c-.002 0-.538 2.594-.895 4.324a.414.414 0 0 0 .612.445c1.536-.873 3.838-2.186 3.838-2.186l3.837 2.187a.42.42 0 0 0 .45-.024.417.417 0 0 0 .163-.42l-.893-4.326 3.266-2.972a.416.416 0 0 0-.233-.72c-1.757-.198-4.39-.49-4.39-.49S8.105 2.218 7.378.608a.416.416 0 0 0-.758 0L4.802 4.632Z"
+              />
+            </svg>
+          ) : (
+            <svg
+              key={index}
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              fill="none"
+            >
+              <path
+                fill="#BEBEBE"
+                d="m4.802 4.632-4.39.486a.42.42 0 0 0-.35.286c-.053.161 0 .329.116.434C1.483 7.03 3.444 8.813 3.444 8.813c-.002 0-.538 2.594-.895 4.324a.414.414 0 0 0 .612.445c1.536-.873 3.838-2.186 3.838-2.186l3.837 2.187a.42.42 0 0 0 .45-.024.417.417 0 0 0 .163-.42l-.893-4.326 3.266-2.972a.416.416 0 0 0-.233-.72c-1.757-.198-4.39-.49-4.39-.49S8.105 2.218 7.378.608a.416.416 0 0 0-.758 0L4.802 4.632Z"
+              />
+            </svg>
+          ),
+        )}
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <Loading>
@@ -103,7 +139,7 @@ export default function Id() {
       </div>
       <div className="user-profile-content">
         <div className="user-profile-content__left">
-          <Rating ratings={ratings} />
+          {ratings.length > 0 && <Rating ratings={ratings} />}
           <ContactForm tipoDeCuenta={tipo_de_cuenta} id={id} />
         </div>
         <div className="user-profile-content__right">
@@ -126,7 +162,11 @@ export default function Id() {
                     </svg>
                   </div>
                   <div className="rating-item__info">
-                    <h6>{rating.user}</h6>
+                    <h6>
+                      {rating.user.nombre} {rating.user.apellido}
+                    </h6>
+                    {buildStars(rating.rating)}
+                    <p>{rating.message}</p>
                   </div>
                 </div>
               );

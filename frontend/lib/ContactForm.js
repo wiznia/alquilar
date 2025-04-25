@@ -3,9 +3,10 @@ import { useMutation } from '@apollo/client';
 import { useFormValidation } from '@/app/hooks/useFormValidation';
 import { SEND_MESSAGE } from '../components/queries/queries';
 import { useAuth } from '../components/AuthContext';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 export default function ContactForm({ contactCard, owner, tipoDeCuenta, id }) {
+  const formRef = useRef(null);
   const accountType = `${tipoDeCuenta.charAt(0).toLowerCase()}${tipoDeCuenta.slice(1)}`;
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
@@ -36,7 +37,8 @@ export default function ContactForm({ contactCard, owner, tipoDeCuenta, id }) {
       if (data?.sendMessage) {
         setIsSentForm(true);
         setIsLoading(false);
-        document.querySelector('form').reset();
+        formRef.current.reset();
+        if (formRef.current) formRef.current.value = '';
       }
     } catch (error) {
       setIsLoading(false);
@@ -96,7 +98,7 @@ export default function ContactForm({ contactCard, owner, tipoDeCuenta, id }) {
           </Link>
         </div>
       )}
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} ref={formRef}>
         <>
           {!user && (
             <>

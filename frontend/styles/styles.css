@@ -490,6 +490,16 @@ main {
   }
 }
 
+.breadcrumb {
+  display: flex;
+  gap: 10px;
+  color: var(--primary-text);
+  font-weight: 700;
+  a {
+    text-decoration: none;
+  }
+}
+
 @keyframes spinner {
   0%,
   100% {

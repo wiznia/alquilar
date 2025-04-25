@@ -49,6 +49,7 @@ const typeDefs = `
       dormitorios: Int
       estado: [String]
       expensas: Float
+      likes: [String]
       moneda: [String]
       owner: ID
       precio_max: Float
@@ -139,7 +140,7 @@ const typeDefs = `
   }
 
   type Rating {
-    user: ID!
+    user: User
     rating: Int!
     message: String
     createdAt: String!
@@ -274,7 +275,10 @@ const resolvers = {
       }
     },
     getUser: async (_, { id }) => {
-      return await User.findById(id);
+      return await User.findById(id).populate({
+        path: 'ratings.user',
+        select: 'nombre apellido',
+      });
     },
     getListings: async (_, args) => {
       const filter = {};
@@ -297,6 +301,9 @@ const resolvers = {
       }
       if (args.tipo_de_propiedad) {
         filter.tipo_de_propiedad = { $in: args.tipo_de_propiedad };
+      }
+      if (args.likes) {
+        filter.likes = { $in: args.likes };
       }
       if (args.precio_min !== undefined || args.precio_max !== undefined) {
         filter.precio = {};
@@ -723,16 +730,13 @@ const resolvers = {
       await listing.save();
       return listing.populate('likes');
     },
-    rateOwner: async (_, { ownerId, rating, message }, context) => {
-      const authHeader = context.req.headers.authorization;
-      if (!authHeader) {
-        throw new Error('No token provided');
-      }
-      const token = authHeader.replace('Bearer ', '');
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const userId = decoded.userId;
-
+    rateOwner: async (_, { ownerId, rating, message }) => {
       const owner = await User.findById(ownerId);
+      const user = {
+        nombre: 'Pepito',
+        apellido: 'Perez',
+      };
+
       if (!owner) {
         throw new Error('Owner not found');
       }
@@ -742,7 +746,7 @@ const resolvers = {
       }
 
       const ratingObject = {
-        user: userId,
+        user,
         rating,
         message,
       };

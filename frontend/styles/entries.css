@@ -83,7 +83,7 @@
     }
     .gallery__photos {
       flex: 0 0 100%;
-      object-fit: contain;
+      object-fit: cover;
       cursor: pointer;
     }
     .gallery__nav {
@@ -125,8 +125,10 @@
   grid-template-columns: 1fr 1fr;
   grid-auto-rows: 86px;
   gap: 25px;
+  min-width: 197px;
   max-width: 270px;
   .gallery__photos {
+    width: 100%;
     height: 100%;
     object-fit: cover;
   }

@@ -14,6 +14,7 @@ import {
 } from '@/components/queries/queries';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/components/AuthContext';
+import Loading from '@/components/Loading';
 
 function UpdateListingContent() {
   const router = useRouter();
@@ -177,7 +178,13 @@ function UpdateListingContent() {
     setAddress(`${form?.direccion}, ${form?.barrio}, ${form?.provincia}`);
   }, [form?.provincia, form?.barrio, form?.direccion]);
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) {
+    return (
+      <Loading>
+        <h4>Cargando publicaciones...</h4>
+      </Loading>
+    );
+  }
 
   return (
     <div className="account">

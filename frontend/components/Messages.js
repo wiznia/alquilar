@@ -190,43 +190,51 @@ export default function Messages() {
                 </svg>
               </div>
               <div className="messages__item-info">
-                {openConversation.sender.id === user?.id
-                  ? `${openConversation.receiver.nombre} ${openConversation.receiver.apellido}`
-                  : `${openConversation.sender.nombre} ${openConversation.sender.apellido}`}
+                <h6>
+                  {openConversation.sender.id === user?.id
+                    ? `${openConversation.receiver.nombre} ${openConversation.receiver.apellido}`
+                    : `${openConversation.sender.nombre} ${openConversation.sender.apellido}`}
+                </h6>
                 <p>Online</p>
               </div>
             </div>
             <div className="messages__conversation" ref={messagesEndRef}>
               {openConversation.messages.map((msg, index) => (
-                <>
-                  <div
-                    key={`${msg.messageId}-${index}`}
-                    className={`messages__conversation-container ${msg.senderId === user?.id ? 'messages__conversation-owner' : ''}`}
+                <div
+                  key={`${msg.messageId}-${index}`}
+                  className={`messages__conversation-container ${msg.senderId === user?.id ? 'messages__conversation-owner' : ''}`}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="34"
+                    height="34"
+                    fill="none"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="34"
-                      height="34"
-                      fill="none"
-                    >
-                      <rect width="34" height="34" fill="#FF9500" rx="17" />
-                      <path
-                        fill="#FAFAFA"
-                        d="M17 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM26 24v1c0 .265-.119.52-.33.707a1.2 1.2 0 0 1-.795.293H9.125a1.2 1.2 0 0 1-.795-.293A.947.947 0 0 1 8 25v-1c0-1.591.711-3.117 1.977-4.243C11.243 18.632 12.96 18 14.75 18h4.5c1.79 0 3.507.632 4.773 1.757C25.289 20.883 26 22.41 26 24Z"
-                      />
-                    </svg>
-                    <div className="messages__bubble shadow">
-                      <p>{msg.asunto}</p>
-                      <small>{formatDateTime(msg.createdAt)}</small>
-                    </div>
-                    <small>
-                      {msg.readBy.includes(openConversation.sender.id) &&
-                      msg.senderId === user.id
-                        ? 'Leído'
-                        : ''}
-                    </small>
+                    <rect width="34" height="34" fill="#FF9500" rx="17" />
+                    <path
+                      fill="#FAFAFA"
+                      d="M17 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM26 24v1c0 .265-.119.52-.33.707a1.2 1.2 0 0 1-.795.293H9.125a1.2 1.2 0 0 1-.795-.293A.947.947 0 0 1 8 25v-1c0-1.591.711-3.117 1.977-4.243C11.243 18.632 12.96 18 14.75 18h4.5c1.79 0 3.507.632 4.773 1.757C25.289 20.883 26 22.41 26 24Z"
+                    />
+                  </svg>
+                  <div className="messages__bubble shadow">
+                    <p>{msg.asunto}</p>
+                    <small>{formatDateTime(msg.createdAt)}</small>
                   </div>
-                </>
+                  <small>
+                    {msg.readBy.includes(openConversation.sender.id) &&
+                      msg.senderId === user.id && (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          width="16"
+                          fill="#3b82f6"
+                        >
+                          <path d="M5.528 10.33a.501.501 0 0 0-.057.705l7.082 8.314a.504.504 0 0 0 .381.176h.016a.502.502 0 0 0 .384-.199L23.899 5.275a.5.5 0 1 0-.799-.601L12.91 18.226l-6.677-7.839a.5.5 0 0 0-.705-.057z" />
+                          <path d="m12.028 13.945 6.519-8.67a.5.5 0 1 0-.799-.601l-6.519 8.67a.5.5 0 1 0 .799.601zM.176 10.33a.501.501 0 0 0-.057.705l7.082 8.314a.504.504 0 0 0 .381.176h.016a.502.502 0 0 0 .384-.199l.967-1.285a.5.5 0 1 0-.799-.601l-.592.786-6.677-7.839a.5.5 0 0 0-.705-.057z" />
+                        </svg>
+                      )}
+                  </small>
+                </div>
               ))}
             </div>
             <div className="messages__footer">
@@ -270,7 +278,12 @@ export default function Messages() {
             </div>
           </>
         ) : (
-          <div>Dale</div>
+          <div className="messages__area--default">
+            <p>
+              Esta es tu área de mensajes. Clickeá en el que quieras para abrir
+              la conversación.
+            </p>
+          </div>
         )}
       </div>
     </div>

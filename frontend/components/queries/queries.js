@@ -12,6 +12,7 @@ export const ALL_LISTINGS_QUERY = gql`
     $dormitorios: Int
     $estado: [String]
     $expensas: Float
+    $likes: [String]
     $moneda: [String]
     $precio_max: Float
     $precio_min: Float
@@ -40,6 +41,7 @@ export const ALL_LISTINGS_QUERY = gql`
       dormitorios: $dormitorios
       estado: $estado
       expensas: $expensas
+      likes: $likes
       moneda: $moneda
       precio_max: $precio_max
       precio_min: $precio_min
@@ -226,7 +228,6 @@ export const GET_USER = gql`
       id
       nombre
       ratings {
-        user
         rating
         message
         createdAt
@@ -249,7 +250,10 @@ export const GET_USER_BY_ID = gql`
       id
       nombre
       ratings {
-        user
+        user {
+          nombre
+          apellido
+        }
         rating
         message
         createdAt

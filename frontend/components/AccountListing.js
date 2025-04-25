@@ -29,8 +29,16 @@ export default function Listing({ listing }) {
         <span className={`pill ${pillColor}`}>{estado}</span>
       </div>
       <div className="account-listing__buttons">
-        {estado === 'Alquilado' ? (
-          <Link className="button" href={`/account/listings/configListing`}>
+        {estado[0] === 'Alquilado' ? (
+          <Link
+            className="button"
+            href={{
+              pathname: '/account/listings/configListing',
+              query: {
+                id: listing.id,
+              },
+            }}
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="20"
