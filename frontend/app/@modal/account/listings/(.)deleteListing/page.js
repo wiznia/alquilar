@@ -4,8 +4,9 @@ import { Modal } from '@/components/Modal';
 import { DELETE_LISTING } from '@/components/queries/queries';
 import { useMutation } from '@apollo/client';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 
-export default function DeleteListingModal() {
+function DeleteListingModal() {
   const router = useRouter();
   const id = useSearchParams().get('id');
   const [deleteListing] = useMutation(DELETE_LISTING);
@@ -39,5 +40,13 @@ export default function DeleteListingModal() {
         </button>
       </div>
     </Modal>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<p>Loading...</p>}>
+      <DeleteListingModal />
+    </Suspense>
   );
 }

@@ -7,8 +7,9 @@ import { useSearchParams } from 'next/navigation';
 import { useQuery } from '@apollo/client';
 import { useAuth } from '@/components/AuthContext';
 import Loading from '@/components/Loading';
+import { Suspense } from 'react';
 
-export default function ConfigListing() {
+function ConfigListing() {
   const { user } = useAuth();
   const id = useSearchParams().get('id');
   const { data, loading, error } = useQuery(SINGLE_LISTING_QUERY, {
@@ -36,5 +37,13 @@ export default function ConfigListing() {
         <h2>Configuración del inmueble</h2>
       </div>
     </div>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<p>Loading...</p>}>
+      <ConfigListing />
+    </Suspense>
   );
 }
