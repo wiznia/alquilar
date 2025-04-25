@@ -14,6 +14,12 @@ export default function Listing({ listing }) {
     case 'Pausado':
       pillColor = 'pausado';
       break;
+    case 'En negociación':
+      pillColor = 'negociacion';
+      break;
+    case 'Reservado':
+      pillColor = 'reservado';
+      break;
     case 'Alquilado':
       pillColor = 'alquilado';
       break;
@@ -29,7 +35,9 @@ export default function Listing({ listing }) {
         <span className={`pill ${pillColor}`}>{estado}</span>
       </div>
       <div className="account-listing__buttons">
-        {estado[0] === 'Alquilado' ? (
+        {estado[0] === 'Alquilado' ||
+        estado[0] === 'Reservado' ||
+        estado[0] === 'En negociación' ? (
           <Link
             className="button"
             href={{
@@ -58,7 +66,12 @@ export default function Listing({ listing }) {
           <>
             <Link
               className="button button--danger"
-              href={`/account/listings/deleteListing`}
+              href={{
+                pathname: `/account/listings/deleteListing`,
+                query: {
+                  id: listing.id,
+                },
+              }}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"

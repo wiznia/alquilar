@@ -58,6 +58,7 @@ const typeDefs = `
       sortBy: SortOrder
       superficie_total_max: Int
       superficie_total_min: Int
+      tenant: ID
       tipo_de_alquiler: [String]
       tipo_de_ambientes: [String]
       tipo_de_propiedad: [String]
@@ -242,6 +243,7 @@ const typeDefs = `
     ): User
     createListing(input: CreateListingInput!): Listing
     updateListing(id: ID!, input: UpdateListingInput!): Listing
+    deleteListing(id: ID!): Boolean
     login(email: String!, password: String!): User
     logout: Boolean
     resetPassword(token: String!, newPassword: String!): Boolean
@@ -669,6 +671,11 @@ const resolvers = {
       );
 
       return updatedListing;
+    },
+    deleteListing: async (_, { id }) => {
+      await Listing.deleteOne({ _id: id });
+
+      return true;
     },
     uploadImage: async (_, { files, userId, listingId }) => {
       if (!files || files.length === 0) {

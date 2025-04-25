@@ -227,7 +227,7 @@ h3 {
 h4 {
   font-size: 28px;
   font-weight: bold;
-  line-height: 1;
+  line-height: 1.2;
   color: var(--primary-titles);
 }
 
@@ -324,10 +324,14 @@ small,
     background-color: var(--primary-text);
   }
   &.activo {
-    background-color: #5dc81c;
+    background-color: #3d8112;
   }
   &.pausado {
-    background-color: #007aff;
+    background-color: #006fe6;
+  }
+  &.reservado,
+  &.negociacion {
+    background-color: #d64000;
   }
   &.alquilado {
     background-color: #000;

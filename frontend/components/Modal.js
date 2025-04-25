@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 
-export function Modal({ children }) {
+export function Modal({ children, className }) {
   const router = useRouter();
   const ref = useRef();
 
@@ -27,7 +27,7 @@ export function Modal({ children }) {
   }, []);
 
   return (
-    <dialog ref={ref} closedby="closerequest">
+    <dialog ref={ref} closedby="closerequest" className={className}>
       <button
         className="close"
         onClick={() => {

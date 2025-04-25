@@ -5,6 +5,9 @@ dialog {
   &::backdrop {
     background-color: rgba(0, 0, 0, 0.55);
   }
+  &.dialog--small {
+    width: min(450px, 90vw);
+  }
 }
 
 .modal-container {

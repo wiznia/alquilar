@@ -304,6 +304,49 @@ export const GET_LISTINGS_BY_OWNER = gql`
   }
 `;
 
+export const GET_LISTINGS_BY_TENANT = gql`
+  query GET_LISTINGS_BY_TENANT($id: ID!, $estado: [String]) {
+    getListings(tenant: $id, estado: $estado) {
+      count
+      listings {
+        ambientes
+        ammenities
+        antiguedad_max
+        banos
+        barrio
+        descripcion
+        direccion
+        dormitorios
+        estado
+        expensas
+        fotos {
+          id
+          name
+          url
+        }
+        id
+        moneda
+        owner {
+          nombre
+          apellido
+        }
+        precio
+        provincia
+        superficie_cubierta
+        superficie_total
+        tenant {
+          nombre
+          apellido
+        }
+        tipo_de_alquiler
+        tipo_de_propiedad
+        titulo
+        viewCount
+      }
+    }
+  }
+`;
+
 export const GET_MESSAGES_BY_USER = gql`
   query getMessages($userId: ID!) {
     getMessages(userId: $userId) {
@@ -412,6 +455,12 @@ export const UPDATE_LISTING = gql`
       titulo
       toilettes
     }
+  }
+`;
+
+export const DELETE_LISTING = gql`
+  mutation DeleteListing($id: ID!) {
+    deleteListing(id: $id)
   }
 `;
 

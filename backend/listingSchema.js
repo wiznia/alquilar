@@ -29,6 +29,7 @@ const listingSchema = new mongoose.Schema({
   provincia: { type: String, required: true },
   superficie_cubierta: { type: Number, required: true },
   superficie_total: { type: Number, required: true },
+  tenant: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   tipo_de_alquiler: { type: String, required: true },
   tipo_de_ambientes: { type: [String] },
   tipo_de_propiedad: { type: String, required: true },
