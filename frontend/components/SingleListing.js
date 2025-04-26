@@ -90,7 +90,7 @@ export default function SingleListingPage({ id }) {
               <p key={ammenity}>{formatText(ammenity)}</p>
             ))}
           </div>
-          <h5>{titulo}</h5>
+          <h5 className="entry__title">{titulo}</h5>
           <h6 className="entry__description">{descripcion}</h6>
         </div>
         <ContactForm
