@@ -8,6 +8,7 @@ import { useQuery } from '@apollo/client';
 import { useAuth } from '@/components/AuthContext';
 import Loading from '@/components/Loading';
 import { Suspense } from 'react';
+import InlineNav from '@/components/InlineNav';
 
 function ConfigListing() {
   const { user } = useAuth();
@@ -35,6 +36,7 @@ function ConfigListing() {
           title={user?.tipo_de_cuenta === 'Dueño' ? 'inmuebles' : 'alquileres'}
         />
         <h2>Configuración del inmueble</h2>
+        <InlineNav />
       </div>
     </div>
   );

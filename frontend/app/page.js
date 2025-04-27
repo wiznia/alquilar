@@ -8,6 +8,7 @@ import Listings from '../components/Listings';
 import Pagination from '../components/Pagination';
 import SortBar from '../components/SortBar';
 import SearchFilters from '../components/SearchFilters';
+import Hero from '@/components/Hero';
 
 function PageContent() {
   const { setPage } = useAppContext();
@@ -20,6 +21,7 @@ function PageContent() {
 
   return (
     <>
+      <Hero />
       <SearchFilters />
       <SortBar />
       <Listings />

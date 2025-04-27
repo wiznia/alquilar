@@ -148,7 +148,7 @@ export default function SearchFilters() {
   ];
 
   return (
-    <div className="search-filters">
+    <div className="search-filters shadow">
       <Search />
       {listingFields.map((field) => (
         <Popover key={field.name} props={field} />

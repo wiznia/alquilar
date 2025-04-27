@@ -240,7 +240,7 @@ h5 {
 h6 {
   font-size: 19px;
   font-weight: 500;
-  line-height: 1.2;
+  line-height: 1.6;
   color: var(--primary-titles);
 }
 
@@ -351,6 +351,7 @@ small,
 @import url('./popover.css');
 @import url('./entries.css');
 @import url('./header.css');
+@import url('./hero.css');
 @import url('./pagination.css');
 @import url('./footer.css');
 @import url('./dialog.css');
@@ -378,27 +379,43 @@ main {
 }
 
 .search-filters {
+  background-color: #fff;
   display: flex;
+  flex-wrap: wrap;
   gap: 16px;
   margin-block-end: var(--margin);
+  padding: 30px;
+  border-radius: var(--border-radius);
   container-type: inline-size;
-  @container (max-width: 1204px) {
-    flex-wrap: wrap;
-    .search {
-      flex: 0 0 100%;
-    }
-    .popover-container {
-      width: calc(25% - 12px);
-    }
+  .popover-container {
+    width: 100%;
   }
-  @container (max-width: 966px) {
+  @container (min-width: 633px) {
     .popover-container {
       width: calc(50% - 8px);
     }
   }
-  @container (max-width: 710px) {
+  @container (min-width: 889px) {
     .popover-container {
-      width: 100%;
+      width: calc(25% - 12px);
+    }
+  }
+  @container (min-width: 1145px) {
+    .popover-container {
+      &.mas-filtros {
+        width: 110px;
+      }
+    }
+  }
+  @container (min-width: 1205px) {
+    flex-wrap: nowrap;
+    .popover-container {
+      width: min(50vw, 270px);
+    }
+  }
+  @container (max-width: 1144px) {
+    .search {
+      flex: 0 0 100%;
     }
   }
 }
