@@ -205,7 +205,8 @@ select::picker-icon {
 }
 
 h1 {
-  font-size: 48px;
+  font-size: clamp(24px, 5vw, 48px);
+  max-width: 30ch;
   font-weight: bold;
   line-height: 1.2;
   color: var(--primary-titles);
@@ -238,7 +239,8 @@ h5 {
 }
 
 h6 {
-  font-size: 19px;
+  font-size: clamp(14px, 2.4vw, 19px);
+  max-width: 75ch;
   font-weight: 500;
   line-height: 1.6;
   color: var(--primary-titles);
@@ -384,38 +386,31 @@ main {
   flex-wrap: wrap;
   gap: 16px;
   margin-block-end: var(--margin);
-  padding: 30px;
   border-radius: var(--border-radius);
-  container-type: inline-size;
   .popover-container {
     width: 100%;
   }
-  @container (min-width: 633px) {
+  @media screen and (max-width: 1023px) {
+    box-shadow: none;
+  }
+  @media screen and (min-width: 768px) {
     .popover-container {
       width: calc(50% - 8px);
     }
   }
-  @container (min-width: 889px) {
+  @media screen and (min-width: 1024px) {
+    padding: 30px;
     .popover-container {
       width: calc(25% - 12px);
     }
   }
-  @container (min-width: 1145px) {
-    .popover-container {
-      &.mas-filtros {
-        width: 110px;
-      }
-    }
-  }
-  @container (min-width: 1205px) {
+  @media screen and (min-width: 1280px) {
     flex-wrap: nowrap;
     .popover-container {
       width: min(50vw, 270px);
-    }
-  }
-  @container (max-width: 1144px) {
-    .search {
-      flex: 0 0 100%;
+      &.mas-filtros {
+        width: 110px;
+      }
     }
   }
 }
@@ -424,7 +419,7 @@ main {
 .send-message {
   display: flex;
   position: relative;
-  width: 400px;
+  width: 100%;
   input {
     border-radius: var(--border-radius) 0 0 var(--border-radius);
     flex-grow: 1;
@@ -436,6 +431,9 @@ main {
     width: 60px;
     background: var(--primary-bg);
     border-radius: 0 var(--border-radius) var(--border-radius) 0;
+  }
+  @media screen and (min-width: 1280px) {
+    width: 400px;
   }
 }
 

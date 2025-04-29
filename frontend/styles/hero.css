@@ -19,7 +19,7 @@
   h6 {
     text-wrap: balance;
   }
-  h6 {
-    max-width: 75ch;
+  a {
+    margin-right: auto;
   }
 }

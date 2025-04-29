@@ -49,10 +49,9 @@ nav {
 
 .nav-popover {
   background-color: transparent;
-  position-area: bottom right;
+  position-area: bottom span-left;
   border: 0;
   min-width: 220px;
-  transform: translateX(-100%);
   a {
     padding: 8px 0;
     cursor: pointer;

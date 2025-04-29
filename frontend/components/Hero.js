@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export default function Hero() {
   return (
     <div className="hero">
@@ -7,6 +9,9 @@ export default function Hero() {
         Con Alquil.AR podés buscar tu hogar ideal y gestionar todo lo
         relacionado con tu alquiler sin moverte de tu casa!
       </h6>
+      <Link className="button" href="/faqs">
+        Seguís con dudas?
+      </Link>
     </div>
   );
 }
