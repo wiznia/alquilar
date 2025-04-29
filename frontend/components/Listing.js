@@ -3,11 +3,11 @@ import formatMoney from '../lib/formatMoney';
 import ListItem from './ListItem';
 import ImageSlider from './ImageSlider';
 import { useAuth } from './AuthContext';
-import { useAppContext } from './AppContext';
+import { useMutation } from '@apollo/client';
+import { LIKE_LISTING_MUTATION } from './queries/queries';
 
 export default function Listing({ listing }) {
   const { user } = useAuth();
-  const { handleLike } = useAppContext();
   const {
     ambientes,
     antiguedad_max,
@@ -25,6 +25,15 @@ export default function Listing({ listing }) {
     superficie_total,
     superficie_cubierta,
     antiguedad_max,
+  };
+  const [likeListing] = useMutation(LIKE_LISTING_MUTATION);
+
+  const handleLike = async (listingId) => {
+    try {
+      await likeListing({ variables: { listingId } });
+    } catch (error) {
+      console.error('Error liking listing:', error);
+    }
   };
 
   const isLiked = likes?.filter((like) => {

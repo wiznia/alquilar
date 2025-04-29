@@ -1,9 +1,9 @@
-import { useAppContext } from './AppContext';
+import { useListingsContext } from './ListingsContext';
 import Listing from './Listing';
 import Loading from './Loading';
 
 export default function Listings() {
-  const { data, loading, error } = useAppContext();
+  const { data, loading, error } = useListingsContext();
 
   if (loading) {
     return (

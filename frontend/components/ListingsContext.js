@@ -1,13 +1,13 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect } from 'react';
-import { useMutation, useQuery } from '@apollo/client';
-import { ALL_LISTINGS_QUERY, LIKE_LISTING_MUTATION } from './queries/queries';
+import { useQuery } from '@apollo/client';
+import { ALL_LISTINGS_QUERY } from './queries/queries';
 import { perPage } from '../config';
 
-const AppContext = createContext();
+const ListingsContext = createContext();
 
-export function AppProvider({ children }) {
+export function ListingsProvider({ children }) {
   const [filterVariables, setFilterVariables] = useState({});
   const [sortBy, setSortBy] = useState(null);
   const [page, setPage] = useState(1);
@@ -20,15 +20,6 @@ export function AppProvider({ children }) {
       estado: ['Activo'],
     },
   });
-  const [likeListing] = useMutation(LIKE_LISTING_MUTATION);
-
-  const handleLike = async (listingId) => {
-    try {
-      await likeListing({ variables: { listingId } });
-    } catch (error) {
-      console.error('Error liking listing:', error);
-    }
-  };
 
   const updateListings = (newFilters, fieldName) => {
     setFilterVariables((prevFilters) => {
@@ -80,25 +71,25 @@ export function AppProvider({ children }) {
   }, [filterVariables, page, sortBy]);
 
   return (
-    <AppContext.Provider
+    <ListingsContext.Provider
       value={{
+        data,
+        loading,
+        error,
+        refetch,
         updateListings,
         filterVariables,
         setSortBy,
         sortBy,
-        data,
-        loading,
-        error,
         page,
         setPage,
-        handleLike,
       }}
     >
       {children}
-    </AppContext.Provider>
+    </ListingsContext.Provider>
   );
 }
 
-export function useAppContext() {
-  return useContext(AppContext);
+export function useListingsContext() {
+  return useContext(ListingsContext);
 }

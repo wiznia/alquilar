@@ -1,10 +1,10 @@
 import Link from 'next/link';
 import Head from 'next/head';
 import { perPage } from '../config';
-import { useAppContext } from './AppContext';
+import { useListingsContext } from './ListingsContext';
 
 export default function Pagination() {
-  const { page, setPage, data } = useAppContext();
+  const { page, setPage, data } = useListingsContext();
   const count = data?.getListings?.count || 0;
   const pagesPerPage = Math.ceil(count / perPage);
 

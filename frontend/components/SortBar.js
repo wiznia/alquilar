@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useAppContext } from './AppContext';
 import Popover from './Popover';
 import { useGeocoding } from '@/app/hooks/useGeocoding';
+import { useListingsContext } from './ListingsContext';
 
 export default function SortBar({ count: searchCount }) {
-  const { data } = useAppContext();
+  const { data } = useListingsContext();
   const [userCoords, setUserCoords] = useState({});
   const [locationCity, setLocationCity] = useState('');
   const count = data?.getListings?.count || 0;

@@ -1,7 +1,6 @@
 import '../styles/styles.css';
 import ApolloProviderWrapper from '../components/ApolloProviderWrapper';
 import Page from '../components/Page';
-import { AppProvider } from '../components/AppContext';
 import { AuthProvider } from '../components/AuthContext';
 
 export default function RootLayout({ children, auth, modal }) {
@@ -12,15 +11,13 @@ export default function RootLayout({ children, auth, modal }) {
       </head>
       <body>
         <ApolloProviderWrapper>
-          <AppProvider>
-            <AuthProvider>
-              <Page>
-                {children}
-                {auth}
-                {modal}
-              </Page>
-            </AuthProvider>
-          </AppProvider>
+          <AuthProvider>
+            <Page>
+              {children}
+              {auth}
+              {modal}
+            </Page>
+          </AuthProvider>
         </ApolloProviderWrapper>
       </body>
     </html>
