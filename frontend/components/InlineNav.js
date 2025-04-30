@@ -4,15 +4,25 @@ export default function InlineNav() {
   return (
     <nav className="inline-nav">
       <ul>
-        <li className="inline-nav__item--active">Configuración</li>
-        <li>
-          <Link href="/configListing/notifications">Notificaciones</Link>
+        <li className="inline-nav__item--active">
+          <Link href="/configListing/config">
+            <h6>Configuración</h6>
+          </Link>
         </li>
-        <li>
-          <Link href="/configListing/documentation">Documentación</Link>
+        <li className="inline-nav__item">
+          <Link href="/configListing/notifications">
+            <h6>Notificaciones</h6>
+          </Link>
         </li>
-        <li>
-          <Link href="/configListing/payments">Pagos</Link>
+        <li className="inline-nav__item">
+          <Link href="/configListing/documentation">
+            <h6>Documentación</h6>
+          </Link>
+        </li>
+        <li className="inline-nav__item">
+          <Link href="/configListing/payments">
+            <h6>Pagos</h6>
+          </Link>
         </li>
       </ul>
     </nav>

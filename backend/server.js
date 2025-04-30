@@ -251,7 +251,8 @@ const typeDefs = `
     uploadImage(files: [Upload]!, userId: ID!, listingId: ID!): [File]!
     likeListing(listingId: ID!): Listing
     rateOwner(ownerId: ID!, rating: Int!, message: String): User
-    sendMessage(senderId: ID, receiverId: ID!, asunto: String!, nombre: String, apellido: String, email: String, conversationId: String): Message
+    sendMessage(senderId: ID, receiverId: ID!, asunto: String!, conversationId: String): Message
+    sendEmail(nombre: String!, apellido: String!, email: String!, asunto: String!, receiverEmail: String!, listingId: String!): Boolean
     markMessagesAsRead(messageIds: [ID!]!): [SingleMessage!]!
   }
 `;
@@ -408,6 +409,36 @@ const resolvers = {
     },
   },
   Mutation: {
+    sendEmail: async (
+      _,
+      { nombre, apellido, email, asunto, receiverEmail, listingId },
+    ) => {
+      try {
+        const transporter = nodemailer.createTransport({
+          service: 'Gmail',
+          auth: {
+            user: process.env.GOOGLE_ACCOUNT_USER,
+            pass: process.env.GOOGLE_ACCOUNT_PASS,
+          },
+        });
+
+        await transporter.sendMail({
+          to: receiverEmail,
+          from: 'no-reply@alquilar.com',
+          replyTo: email,
+          subject: `Nuevo mensaje desde Alquil.AR`,
+          html: `
+            <h2>Hola!</h2>
+            <p>${nombre} ${apellido} te envió un mensaje por tu <a href=${process.env.FRONTEND_URL}/listing/${listingId}>publicación</a> en Alquil.AR:</p>
+            <p>${asunto}</p>
+    `,
+        });
+        console.log('Email enviado correctamente');
+        return true;
+      } catch (error) {
+        console.error('Error enviando email:', error);
+      }
+    },
     register: async (
       _,
       {

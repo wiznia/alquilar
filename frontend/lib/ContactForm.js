@@ -1,16 +1,24 @@
 import Link from 'next/link';
 import { useMutation } from '@apollo/client';
 import { useFormValidation } from '@/app/hooks/useFormValidation';
-import { SEND_MESSAGE } from '../components/queries/queries';
+import { SEND_EMAIL, SEND_MESSAGE } from '../components/queries/queries';
 import { useAuth } from '../components/AuthContext';
 import { useRef, useState } from 'react';
 
-export default function ContactForm({ contactCard, owner, tipoDeCuenta, id }) {
+export default function ContactForm({
+  contactCard,
+  owner,
+  tipoDeCuenta,
+  id,
+  email,
+  listingId,
+}) {
   const formRef = useRef(null);
   const accountType = `${tipoDeCuenta.charAt(0).toLowerCase()}${tipoDeCuenta.slice(1)}`;
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [sendMessage] = useMutation(SEND_MESSAGE);
+  const [sendEmail] = useMutation(SEND_EMAIL);
   const [isSentForm, setIsSentForm] = useState(false);
   const initialState = {
     nombre: '',
@@ -18,31 +26,55 @@ export default function ContactForm({ contactCard, owner, tipoDeCuenta, id }) {
     email: '',
     asunto: '',
   };
-  const { form, errors, handleChange, validateFormCheck, setErrors } =
-    useFormValidation(initialState, 'sendMessage');
+  const { form, errors, handleChange, validateFormCheck } = useFormValidation(
+    initialState,
+    'sendMessage',
+  );
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateFormCheck()) return;
 
     const receiverId = id;
-    const senderId = user?.id;
 
-    try {
-      const { data } = await sendMessage({
-        variables: { ...form, receiverId, senderId },
-      });
-      setIsLoading(true);
+    if (user) {
+      const senderId = user.id;
 
-      if (data?.sendMessage) {
-        setIsSentForm(true);
+      try {
+        const { data } = await sendMessage({
+          variables: { ...form, receiverId, senderId },
+        });
+        setIsLoading(true);
+
+        if (data?.sendMessage) {
+          setIsSentForm(true);
+          setIsLoading(false);
+          formRef.current.reset();
+          if (formRef.current) formRef.current.value = '';
+        }
+      } catch (error) {
         setIsLoading(false);
-        formRef.current.reset();
-        if (formRef.current) formRef.current.value = '';
+        console.error('Error sending message:', error);
       }
-    } catch (error) {
-      setIsLoading(false);
-      console.error('Error sending message:', error);
+    } else {
+      const receiverEmail = email;
+
+      try {
+        const { data } = await sendEmail({
+          variables: { ...form, receiverEmail, listingId },
+        });
+        setIsLoading(true);
+
+        if (data?.sendEmail) {
+          setIsSentForm(true);
+          setIsLoading(false);
+          formRef.current.reset();
+          if (formRef.current) formRef.current.value = '';
+        }
+      } catch (error) {
+        setIsLoading(false);
+        console.error('Error sending message:', error);
+      }
     }
   };
 
@@ -147,6 +179,9 @@ export default function ContactForm({ contactCard, owner, tipoDeCuenta, id }) {
               onChange={handleChange}
             ></textarea>
           </fieldset>
+          {errors.asunto && (
+            <small className="error-message">{errors.asunto}</small>
+          )}
           {isSentForm && (
             <p className="success-message">Mensaje enviado con éxito!</p>
           )}

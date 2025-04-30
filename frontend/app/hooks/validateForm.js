@@ -67,5 +67,11 @@ export const validateForm = (form, formType) => {
     }
   }
 
+  if (formType === 'sendMessage') {
+    if (!form.asunto) {
+      errors.titulo = 'Debés completar el asunto.';
+    }
+  }
+
   return errors;
 };

@@ -2,15 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import Listing from '@/components/Listing';
-import SearchFilters from '@/components/SearchFilters';
-import SortBar from '@/components/SortBar';
 import { useRouter } from 'next/navigation';
 
 export default function ResultsPage() {
   const router = useRouter();
   const [listings, setListings] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [count, setCount] = useState('');
 
   useEffect(() => {
     const storedResults = sessionStorage.getItem('searchResults');
@@ -19,7 +16,6 @@ export default function ResultsPage() {
     if (storedResults && storedSearchTerm) {
       setListings(JSON.parse(storedResults));
       setSearchTerm(storedSearchTerm);
-      setCount(JSON.parse(storedResults).length);
     } else {
       router.push('/');
     }
@@ -27,8 +23,6 @@ export default function ResultsPage() {
 
   return (
     <div>
-      <SearchFilters />
-      <SortBar count={count} />
       <h2>
         {listings.length} resultado
         {listings.length > 1 || listings.length === 0 ? 's' : ''} para la

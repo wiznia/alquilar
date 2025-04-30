@@ -118,6 +118,7 @@ export const SINGLE_LISTING_QUERY = gql`
         id
         nombre
         apellido
+        email
         telefono
         celular
         tipo_de_cuenta
@@ -270,34 +271,37 @@ export const GET_LISTINGS_BY_OWNER = gql`
     getListings(owner: $id, estado: $estado) {
       count
       listings {
-        id
-        titulo
-        tipo_de_alquiler
-        tipo_de_propiedad
-        direccion
-        provincia
-        barrio
-        descripcion
-        estado
-        precio
-        moneda
-        owner {
-          nombre
-          apellido
-        }
-        expensas
         ambientes
-        dormitorios
-        banos
-        superficie_cubierta
-        superficie_total
         ammenities
         antiguedad_max
+        banos
+        barrio
+        descripcion
+        direccion
+        dormitorios
+        estado
+        expensas
         fotos {
           id
           name
           url
         }
+        id
+        likes {
+          id
+        }
+        moneda
+        owner {
+          nombre
+          apellido
+        }
+        precio
+        provincia
+        tipo_de_alquiler
+        tipo_de_propiedad
+        titulo
+        superficie_cubierta
+        superficie_total
         viewCount
       }
     }
@@ -518,5 +522,25 @@ export const SEND_MESSAGE = gql`
         senderId
       }
     }
+  }
+`;
+
+export const SEND_EMAIL = gql`
+  mutation sendEmail(
+    $nombre: String!
+    $apellido: String!
+    $email: String!
+    $asunto: String!
+    $receiverEmail: String!
+    $listingId: String!
+  ) {
+    sendEmail(
+      nombre: $nombre
+      apellido: $apellido
+      email: $email
+      asunto: $asunto
+      receiverEmail: $receiverEmail
+      listingId: $listingId
+    )
   }
 `;
