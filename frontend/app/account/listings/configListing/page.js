@@ -36,7 +36,7 @@ function ConfigListing() {
           title={user?.tipo_de_cuenta === 'Dueño' ? 'inmuebles' : 'alquileres'}
         />
         <h2>Configuración del inmueble</h2>
-        <InlineNav />
+        <InlineNav id={id} />
       </div>
     </div>
   );
