@@ -1,6 +1,7 @@
 export default function NavbarPopover(props) {
   const { children, id } = props;
   const positionAnchor = `--anchor-${id}`;
+
   return (
     <div
       className="nav-popover"

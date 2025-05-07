@@ -21,6 +21,14 @@ const userSchema = new mongoose.Schema({
   ratings: [ratingSchema],
   resetToken: { type: String },
   resetTokenExpiration: { type: Date },
+  mercadoPago: {
+    userId: { type: String },
+    accessToken: { type: String },
+    refreshToken: { type: String },
+    tokenExpiresAt: { type: Date },
+  },
+  mpPaymentLink: { type: String },
+  sena: { type: Number },
 });
 
 const User = mongoose.model('User', userSchema);

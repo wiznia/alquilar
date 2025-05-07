@@ -36,6 +36,7 @@
 nav {
   display: flex;
   gap: var(--margin);
+  flex-shrink: 0;
 
   a {
     font-weight: bold;
@@ -107,5 +108,11 @@ nav {
     color: inherit;
     padding: 0;
     display: inline;
+  }
+  small {
+    font-size: 11px;
+    display: flex;
+    justify-self: flex-end;
+    margin-block-start: 3px;
   }
 }

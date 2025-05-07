@@ -227,12 +227,16 @@ export const GET_USER = gql`
       dni
       email
       id
+      mercadoPago {
+        userId
+      }
       nombre
       ratings {
         rating
         message
         createdAt
       }
+      sena
       telefono
       tipo_de_cuenta
       usuario
@@ -374,6 +378,26 @@ export const GET_MESSAGES_BY_USER = gql`
         messageId
         senderId
       }
+    }
+  }
+`;
+
+export const GET_NOTIFICATIONS = gql`
+  query GET_NOTIFICATIONS($userId: ID!) {
+    getNotifications(userId: $userId) {
+      content
+      createdAt
+      read
+    }
+  }
+`;
+
+export const GET_TENANT_USER = gql`
+  query GET_TENANT_USER($usuario: String!, $tipo_de_cuenta: String!) {
+    getTenantUser(usuario: $usuario, tipo_de_cuenta: $tipo_de_cuenta) {
+      id
+      nombre
+      apellido
     }
   }
 `;
@@ -542,5 +566,29 @@ export const SEND_EMAIL = gql`
       receiverEmail: $receiverEmail
       listingId: $listingId
     )
+  }
+`;
+
+export const CONNECT_MERCADO_PAGO = gql`
+  mutation ConnectMercadoPago($userId: ID!) {
+    connectMercadoPago(userId: $userId)
+  }
+`;
+
+export const DISCONNECT_MERCADO_PAGO = gql`
+  mutation DisconnectMercadoPago($userId: ID!) {
+    disconnectMercadoPago(userId: $userId)
+  }
+`;
+
+export const CREATE_PAYMENT_LINK = gql`
+  mutation CreatePaymentLink($userId: ID!, $value: Float!) {
+    createPaymentLink(userId: $userId, value: $value)
+  }
+`;
+
+export const ADD_POTENTIAL_TENANT = gql`
+  mutation ADD_POTENTIAL_TENANT($userId: ID!, $listingId: ID!) {
+    addPotentialTenant(userId: $userId, listingId: $listingId)
   }
 `;

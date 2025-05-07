@@ -14,12 +14,12 @@ export default function Listings() {
   }
   if (error) {
     return (
-      <div className="loading">
+      <Loading>
         <p>
           Hubo un problema al cargar el listado de publicaciones:
           {error.message}
         </p>
-      </div>
+      </Loading>
     );
   }
 

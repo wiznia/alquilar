@@ -73,5 +73,11 @@ export const validateForm = (form, formType) => {
     }
   }
 
+  if (formType === 'sendSena') {
+    if (!form.sena) {
+      errors.sena = 'Debés ingresar un valor en pesos argentinos mayor a cero.';
+    }
+  }
+
   return errors;
 };

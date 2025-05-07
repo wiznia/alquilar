@@ -26,6 +26,7 @@
   gap: 32px;
   flex-direction: column;
   min-width: 520px;
+  max-width: 660px;
   fieldset {
     input[type='text'],
     input[type='email'],
@@ -127,6 +128,23 @@
       flex: 0 0 auto;
     }
   }
+  h6 {
+    font-weight: bold;
+    color: var(--primary-text);
+  }
+}
+.account__info-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  &:has(.input-suggestion__container) {
+    input[type='text'] {
+      border-bottom-right-radius: 0;
+      border-bottom-left-radius: 0;
+      border-bottom: 0;
+    }
+  }
 }
 
 .account-map {
@@ -187,6 +205,7 @@
     padding: 5px 25px;
   }
   h6 {
+    font-weight: 400;
     color: var(--primary-text);
   }
 }
@@ -198,5 +217,31 @@
   h6 {
     font-weight: 700;
     color: var(--primary-bg);
+  }
+}
+
+.input-suggestion {
+  position: relative;
+  width: 100%;
+  input[type='text'] {
+    width: 100%;
+  }
+}
+.input-suggestion__container {
+  position: absolute;
+  width: 100%;
+}
+.input-suggestion__item {
+  background-color: #fff;
+  border: 1px solid #e6e6e6;
+  border-top: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--primary-text);
+  padding: 8px 18px;
+  small {
+    font-weight: bold;
   }
 }

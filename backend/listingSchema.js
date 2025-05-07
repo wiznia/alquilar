@@ -25,6 +25,7 @@ const listingSchema = new mongoose.Schema({
   likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   moneda: { type: String, required: true },
   owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  potentialTenant: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   precio: { type: Number, required: true },
   provincia: { type: String, required: true },
   superficie_cubierta: { type: Number, required: true },

@@ -3,11 +3,14 @@
 import Link from 'next/link';
 import { useAuth } from './AuthContext';
 import NavbarPopover from './NavbarPopover';
+import Notifications from './Notifications';
+import { useState } from 'react';
 
 export default function Nav() {
   const { user, logout } = useAuth();
   const notificationsAnchorName = `--anchor-notifications`;
   const accountAnchorName = `--anchor-account`;
+  const [notificationCount, setNotificationCount] = useState(0);
 
   return (
     <nav>
@@ -54,61 +57,15 @@ export default function Nav() {
                 d="M13.7 20h-3.5c-.7 0-1.3.8-.9 1.5.6.9 1.6 1.5 2.7 1.5s2.1-.6 2.6-1.5c.4-.7-.1-1.5-.9-1.5ZM21.8 16.7l-.4-.5C19.8 14.1 19 11.6 19 9v-.7c0-3.6-2.6-6.8-6.2-7.2C8.6.6 5 3.9 5 8v1c0 2.6-.8 5.1-2.4 7.2l-.4.5c-.2.2-.3.6-.2.8.3.9 1.1 1.5 2 1.5h16c.9 0 1.7-.6 1.9-1.5.1-.3 0-.6-.1-.8Z"
               />
             </svg>
-            <span className="notifications__count">1</span>
+            {notificationCount !== 0 && (
+              <span className="notifications__count">{notificationCount}</span>
+            )}
           </button>
           <NavbarPopover id="notifications">
-            <div className="notification">
-              <div className="notification__pic">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="31"
-                  height="31"
-                  fill="none"
-                >
-                  <rect
-                    width="30"
-                    height="29"
-                    fill="#FF9500"
-                    rx="14.5"
-                    transform="matrix(.99998 -.00315 -.00173 1.00002 .084 1.055)"
-                  />
-                  <path
-                    fill="#FAFAFA"
-                    d="M15.061 14.008a3.48 3.48 0 0 1-3.494-3.49 3.52 3.52 0 0 1 3.506-3.51 3.48 3.48 0 0 1 3.494 3.489 3.52 3.52 0 0 1-3.506 3.51ZM8.047 22.28l-.002.875a.87.87 0 0 0 .874.872l12.25-.038a.88.88 0 0 0 .876-.878l.002-.875a5.225 5.225 0 0 0-1.532-3.708 5.224 5.224 0 0 0-3.71-1.526l-3.5.011a5.275 5.275 0 0 0-3.714 1.55 5.276 5.276 0 0 0-1.544 3.717Z"
-                  />
-                </svg>
-              </div>
-              <div className="notification__info small">
-                <a href="/user/">Ariel Wiznia</a> subió documentos a su perfil
-                de usuario.
-              </div>
-            </div>
-            <div className="notification">
-              <div className="notification__pic">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="31"
-                  height="31"
-                  fill="none"
-                >
-                  <rect
-                    width="30"
-                    height="29"
-                    fill="#FF9500"
-                    rx="14.5"
-                    transform="matrix(.99998 -.00315 -.00173 1.00002 .084 1.055)"
-                  />
-                  <path
-                    fill="#FAFAFA"
-                    d="M15.061 14.008a3.48 3.48 0 0 1-3.494-3.49 3.52 3.52 0 0 1 3.506-3.51 3.48 3.48 0 0 1 3.494 3.489 3.52 3.52 0 0 1-3.506 3.51ZM8.047 22.28l-.002.875a.87.87 0 0 0 .874.872l12.25-.038a.88.88 0 0 0 .876-.878l.002-.875a5.225 5.225 0 0 0-1.532-3.708 5.224 5.224 0 0 0-3.71-1.526l-3.5.011a5.275 5.275 0 0 0-3.714 1.55 5.276 5.276 0 0 0-1.544 3.717Z"
-                  />
-                </svg>
-              </div>
-              <div className="notification__info small">
-                <a href="/user/">Ariel Wiznia</a> está interesado en tu{' '}
-                <a href="/listings/listing">publicación</a>
-              </div>
-            </div>
+            <Notifications
+              userId={user?.id}
+              setNotificationCount={setNotificationCount}
+            />
           </NavbarPopover>
           {user?.tipo_de_cuenta === 'Dueño' && (
             <Link className="button" href="/account/listings/createListing">
