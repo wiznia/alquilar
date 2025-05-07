@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 
 export default function Failure() {
   const router = useRouter();
@@ -10,7 +10,7 @@ export default function Failure() {
   useEffect(() => {
     setTimeout(() => {
       window.close();
-    }, 5000);
+    }, 3000);
   }, [error]);
 
   return (

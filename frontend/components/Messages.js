@@ -222,7 +222,7 @@ export default function Messages() {
                   </div>
                   <small>
                     {msg.readBy.includes(openConversation.sender.id) &&
-                      msg.senderId === user.id && (
+                      msg.senderId === user?.id && (
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           viewBox="0 0 24 24"

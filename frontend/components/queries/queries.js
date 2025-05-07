@@ -113,6 +113,9 @@ export const SINGLE_LISTING_QUERY = gql`
         url
       }
       id
+      mercadoPago {
+        userId
+      }
       moneda
       owner {
         id
@@ -125,6 +128,7 @@ export const SINGLE_LISTING_QUERY = gql`
       }
       precio
       provincia
+      sena
       superficie_cubierta
       superficie_total
       tipo_de_alquiler
@@ -168,56 +172,6 @@ export const SEARCH_LISTINGS_QUERY = gql`
   }
 `;
 
-export const REGISTER = gql`
-  mutation Register(
-    $apellido: String!
-    $celular: Int
-    $condicion_fiscal: String!
-    $dni: Int!
-    $email: String!
-    $nombre: String!
-    $password: String!
-    $telefono: Int
-    $tipo_de_cuenta: String!
-    $usuario: String!
-  ) {
-    register(
-      apellido: $apellido
-      celular: $celular
-      condicion_fiscal: $condicion_fiscal
-      dni: $dni
-      email: $email
-      nombre: $nombre
-      password: $password
-      telefono: $telefono
-      tipo_de_cuenta: $tipo_de_cuenta
-      usuario: $usuario
-    ) {
-      apellido
-      celular
-      condicion_fiscal
-      dni
-      email
-      id
-      nombre
-      telefono
-      tipo_de_cuenta
-      token
-      usuario
-    }
-  }
-`;
-
-export const LOGIN = gql`
-  mutation Login($email: String!, $password: String!) {
-    login(email: $email, password: $password) {
-      id
-      email
-      token
-    }
-  }
-`;
-
 export const GET_USER = gql`
   query {
     user {
@@ -227,16 +181,12 @@ export const GET_USER = gql`
       dni
       email
       id
-      mercadoPago {
-        userId
-      }
       nombre
       ratings {
         rating
         message
         createdAt
       }
-      sena
       telefono
       tipo_de_cuenta
       usuario
@@ -313,8 +263,8 @@ export const GET_LISTINGS_BY_OWNER = gql`
 `;
 
 export const GET_LISTINGS_BY_TENANT = gql`
-  query GET_LISTINGS_BY_TENANT($id: ID!, $estado: [String]) {
-    getListings(tenant: $id, estado: $estado) {
+  query GET_LISTINGS_BY_TENANT($potential_tenant: [ID!]!, $estado: [String]) {
+    getListings(potential_tenant: $potential_tenant, estado: $estado) {
       count
       listings {
         ambientes
@@ -338,6 +288,7 @@ export const GET_LISTINGS_BY_TENANT = gql`
           nombre
           apellido
         }
+        potential_tenant
         precio
         provincia
         superficie_cubierta
@@ -392,12 +343,82 @@ export const GET_NOTIFICATIONS = gql`
   }
 `;
 
+export const GET_USER_LISTING_NOTIFICATIONS = gql`
+  query GET_USER_LISTING_NOTIFICATIONS($userId: ID!, $listingId: ID!) {
+    getUserListingNotifications(userId: $userId, listingId: $listingId) {
+      content
+      createdAt
+      read
+    }
+  }
+`;
+
 export const GET_TENANT_USER = gql`
-  query GET_TENANT_USER($usuario: String!, $tipo_de_cuenta: String!) {
-    getTenantUser(usuario: $usuario, tipo_de_cuenta: $tipo_de_cuenta) {
+  query GET_TENANT_USER(
+    $nombre: String!
+    $apellido: String!
+    $tipo_de_cuenta: String!
+    $potential_tenant: [String!]!
+  ) {
+    getTenantUser(
+      nombre: $nombre
+      apellido: $apellido
+      tipo_de_cuenta: $tipo_de_cuenta
+      potential_tenant: $potential_tenant
+    ) {
       id
       nombre
       apellido
+    }
+  }
+`;
+
+export const REGISTER = gql`
+  mutation Register(
+    $apellido: String!
+    $celular: Int
+    $condicion_fiscal: String!
+    $dni: Int!
+    $email: String!
+    $nombre: String!
+    $password: String!
+    $telefono: Int
+    $tipo_de_cuenta: String!
+    $usuario: String!
+  ) {
+    register(
+      apellido: $apellido
+      celular: $celular
+      condicion_fiscal: $condicion_fiscal
+      dni: $dni
+      email: $email
+      nombre: $nombre
+      password: $password
+      telefono: $telefono
+      tipo_de_cuenta: $tipo_de_cuenta
+      usuario: $usuario
+    ) {
+      apellido
+      celular
+      condicion_fiscal
+      dni
+      email
+      id
+      nombre
+      telefono
+      tipo_de_cuenta
+      token
+      usuario
+    }
+  }
+`;
+
+export const LOGIN = gql`
+  mutation Login($email: String!, $password: String!) {
+    login(email: $email, password: $password) {
+      id
+      email
+      token
     }
   }
 `;
@@ -502,7 +523,7 @@ export const UPLOAD_IMAGES = gql`
   }
 `;
 
-export const LIKE_LISTING_MUTATION = gql`
+export const LIKE_LISTING = gql`
   mutation LikeListing($listingId: ID!) {
     likeListing(listingId: $listingId) {
       id
@@ -570,25 +591,37 @@ export const SEND_EMAIL = gql`
 `;
 
 export const CONNECT_MERCADO_PAGO = gql`
-  mutation ConnectMercadoPago($userId: ID!) {
-    connectMercadoPago(userId: $userId)
+  mutation ConnectMercadoPago($listingId: ID!) {
+    connectMercadoPago(listingId: $listingId)
   }
 `;
 
 export const DISCONNECT_MERCADO_PAGO = gql`
-  mutation DisconnectMercadoPago($userId: ID!) {
-    disconnectMercadoPago(userId: $userId)
+  mutation DisconnectMercadoPago($listingId: ID!) {
+    disconnectMercadoPago(listingId: $listingId)
   }
 `;
 
 export const CREATE_PAYMENT_LINK = gql`
-  mutation CreatePaymentLink($userId: ID!, $value: Float!) {
-    createPaymentLink(userId: $userId, value: $value)
+  mutation CreatePaymentLink($userId: ID!, $value: Float!, $listingId: ID!) {
+    createPaymentLink(userId: $userId, value: $value, listingId: $listingId)
   }
 `;
 
 export const ADD_POTENTIAL_TENANT = gql`
-  mutation ADD_POTENTIAL_TENANT($userId: ID!, $listingId: ID!) {
-    addPotentialTenant(userId: $userId, listingId: $listingId)
+  mutation ADD_POTENTIAL_TENANT(
+    $tenantId: ID!
+    $listingId: ID!
+    $senderId: ID!
+    $receiverId: ID!
+    $type: String!
+  ) {
+    addPotentialTenant(
+      tenantId: $tenantId
+      listingId: $listingId
+      senderId: $senderId
+      receiverId: $receiverId
+      type: $type
+    )
   }
 `;

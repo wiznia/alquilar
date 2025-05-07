@@ -52,17 +52,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const refetchUser = async () => {
-    try {
-      const { data: updatedData } = await refetch();
-      if (updatedData?.user) {
-        setUser(updatedData.user);
-      }
-    } catch (err) {
-      console.error('Error refetching user:', err);
-    }
-  };
-
   useEffect(() => {
     setIsClient(true);
   }, []);
@@ -97,7 +86,6 @@ export const AuthProvider = ({ children }) => {
         setCookie,
         getCookie,
         deleteCookie,
-        refetchUser,
       }}
     >
       {children}

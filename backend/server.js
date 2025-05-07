@@ -16,6 +16,7 @@ import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
+import { handleNotification } from './helpers.js';
 
 dotenv.config();
 
@@ -55,9 +56,11 @@ const typeDefs = `
       likes: [String]
       moneda: [String]
       owner: ID
+      potential_tenant: [ID]
       precio_max: Float
       precio_min: Float
       provincia: String
+      sena: Float
       sortBy: SortOrder
       superficie_total_max: Int
       superficie_total_min: Int
@@ -77,7 +80,8 @@ const typeDefs = `
     getUser(id: ID!): User
     getMessages(userId: ID!): [Message]
     getNotifications(userId: ID!): [Notification]
-    getTenantUser(usuario: String!, tipo_de_cuenta: String!): [User]
+    getTenantUser(nombre: String!, apellido: String!, tipo_de_cuenta: String!, potential_tenant: [String!]!): [User]
+    getUserListingNotifications(userId: ID!, listingId: ID!): [Notification]
   }
 
   type ListingsResult {
@@ -104,11 +108,13 @@ const typeDefs = `
     fotos: [File]
     id: ID!
     likes: [User]
+    mercadoPago: MercadoPagoData
     moneda: String!
     owner: User!
-    potentialTenant: [ID]
+    potential_tenant: [ID]
     precio: Float!
     provincia: String!
+    sena: Float
     superficie_cubierta: Int
     superficie_total: Int
     tenant: [ID]
@@ -128,10 +134,8 @@ const typeDefs = `
     dni: Int!
     email: String!
     id: ID!
-    mercadoPago: MercadoPagoData
     nombre: String!
     ratings: [Rating]
-    sena: Int
     telefono: Int
     tipo_de_cuenta: String!
     token: String
@@ -154,12 +158,14 @@ const typeDefs = `
   }
 
   type Notification {
-    id: ID!
-    sender: User
-    receiver: User
     content: String!
     createdAt: String!
+    id: ID!
+    listingId: [Listing!]
     read: Boolean!
+    receiver: User
+    sender: User
+    type: String!
   }
 
   type Rating {
@@ -277,10 +283,10 @@ const typeDefs = `
     sendEmail(nombre: String!, apellido: String!, email: String!, asunto: String!, receiverEmail: String!, listingId: String!): Boolean
     markMessagesAsRead(messageIds: [ID!]!): [SingleMessage!]!
     markNotificationAsRead(notificationId: ID!): Notification
-    connectMercadoPago(userId: ID!): String
-    disconnectMercadoPago(userId: ID!): String
-    createPaymentLink(userId: ID!, value: Float!): String
-    addPotentialTenant(userId: ID!, listingId: ID!): Boolean
+    connectMercadoPago(listingId: ID!): String
+    disconnectMercadoPago(listingId: ID!): String
+    createPaymentLink(userId: ID!, value: Float!, listingId: ID!): String
+    addPotentialTenant(tenantId: ID!, listingId: ID!, senderId: ID!, receiverId: ID!, type: String!): Boolean
   }
 `;
 
@@ -310,10 +316,17 @@ const resolvers = {
         select: 'nombre apellido',
       });
     },
-    getTenantUser: async (_, { usuario, tipo_de_cuenta }) => {
+    getTenantUser: async (
+      _,
+      { nombre, apellido, tipo_de_cuenta, potential_tenant },
+    ) => {
       return await User.find({
-        usuario: { $regex: '^' + usuario, $options: 'i' },
         tipo_de_cuenta,
+        $or: [
+          { nombre: { $regex: '^' + nombre, $options: 'i' } },
+          { apellido: { $regex: '^' + apellido, $options: 'i' } },
+        ],
+        potential_tenant: { $nin: [potential_tenant] },
       });
     },
     getListings: async (_, args) => {
@@ -392,6 +405,10 @@ const resolvers = {
         filter.owner = { $in: args.owner };
       }
 
+      if (args.potential_tenant) {
+        filter.potential_tenant = { $in: args.potential_tenant };
+      }
+
       if (args.estado) {
         filter.estado = { $in: args.estado };
       }
@@ -442,6 +459,12 @@ const resolvers = {
     },
     getNotifications: async (_, { userId }) => {
       return await Notification.find({ receiver: userId });
+    },
+    getUserListingNotifications: async (_, { userId, listingId }) => {
+      return await Notification.find({
+        receiver: userId,
+        listingId: listingId,
+      });
     },
   },
   Mutation: {
@@ -855,12 +878,9 @@ const resolvers = {
 
       const sender =
         await User.findById(actualSenderId).select('nombre apellido');
-      const notification = new Notification({
-        sender: senderId,
-        receiver: receiverId,
-        content: `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> te envió un mensaje.`,
-      });
-      await notification.save();
+      const content = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> te envió un <a href=${process.env.FRONTEND_URL}/account/messages>mensaje</a>.`;
+
+      handleNotification(senderId, receiverId, content, 'message');
 
       if (existingThread) {
         existingThread.messages.push(messageData);
@@ -931,29 +951,28 @@ const resolvers = {
       );
       return notification;
     },
-    connectMercadoPago: async (_, { userId }) => {
-      const user = await User.findById(userId);
-      if (!user) throw new Error('User not found');
+    connectMercadoPago: async (_, { listingId }) => {
+      const listing = await Listing.findById(listingId);
+      if (!listing) throw new Error('Listing not found');
 
-      const authUrl = `https://auth.mercadopago.com.ar/authorization?client_id=${process.env.MERCADO_PAGO_CLIENT_ID}&response_type=code&platform_id=mp&redirect_uri=${process.env.MERCADO_PAGO_REDIRECT_URI}&state=${userId}`;
+      const authUrl = `https://auth.mercadopago.com.ar/authorization?client_id=${process.env.MERCADO_PAGO_CLIENT_ID}&response_type=code&platform_id=mp&redirect_uri=${process.env.MERCADO_PAGO_REDIRECT_URI}&state=${listingId}`;
 
       return authUrl;
     },
-    disconnectMercadoPago: async (_, { userId }) => {
-      const user = await User.findById(userId);
-      if (!user) {
-        throw new Error('User not found');
-      }
-
-      await User.findByIdAndUpdate(userId, {
+    disconnectMercadoPago: async (_, { listingId }) => {
+      await Listing.findByIdAndUpdate(listingId, {
         $unset: { mercadoPago: '', mpPaymentLink: '', sena: null },
       });
 
       return true;
     },
-    createPaymentLink: async (_, { userId, value }) => {
-      const user = await User.findById(userId);
-      if (!user || !user.mercadoPago || !user.mercadoPago.accessToken) {
+    createPaymentLink: async (_, { value, listingId }) => {
+      const listing = await Listing.findById(listingId);
+      if (
+        !listing ||
+        !listing.mercadoPago ||
+        !listing.mercadoPago.accessToken
+      ) {
         throw new Error('Mercado Pago account not connected');
       }
 
@@ -962,7 +981,7 @@ const resolvers = {
         {
           method: 'POST',
           headers: {
-            Authorization: `Bearer ${user.mercadoPago.accessToken}`,
+            Authorization: `Bearer ${listing.mercadoPago.accessToken}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
@@ -985,17 +1004,30 @@ const resolvers = {
 
       const data = await response.json();
 
-      await User.findByIdAndUpdate(userId, {
+      await Listing.findByIdAndUpdate(listingId, {
         mpPaymentLink: data.init_point,
         sena: value,
       });
 
       return data.init_point;
     },
-    addPotentialTenant: async (_, { userId, listingId }) => {
+    addPotentialTenant: async (
+      _,
+      { tenantId, listingId, senderId, receiverId, type },
+    ) => {
       await Listing.findByIdAndUpdate(listingId, {
-        potentialTenant: [userId],
+        potential_tenant: [tenantId],
       });
+
+      await User.findByIdAndUpdate(receiverId, {
+        potential_tenant: [listingId],
+      });
+
+      const sender = await User.findById(senderId).select('nombre apellido');
+
+      const content = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> te dio acceso como potencial inquilino en su <a href=${process.env.FRONTEND_URL}/listing/${listingId}>inmueble</a>.`;
+
+      await handleNotification(senderId, receiverId, content, type, listingId);
 
       return true;
     },
@@ -1052,7 +1084,7 @@ app.get('/api/mercado-pago/callback', async (req, res) => {
       await response.json();
     const tokenExpiresAt = new Date(Date.now() + expires_in * 1000);
 
-    await User.findByIdAndUpdate(state, {
+    await Listing.findByIdAndUpdate(state, {
       mercadoPago: {
         userId: user_id,
         accessToken: access_token,

@@ -14,19 +14,21 @@ import { useSearchParams } from 'next/navigation';
 import { useQuery, useMutation, useLazyQuery } from '@apollo/client';
 import { useAuth } from '@/components/AuthContext';
 import Loading from '@/components/Loading';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useCallback, useEffect, useState } from 'react';
 import InlineNav from '@/components/InlineNav';
 import { useFormValidation } from '@/app/hooks/useFormValidation';
+import throttle from '@/lib/throttle';
 
 function ConfigListing() {
-  const { user, refetchUser } = useAuth();
+  const { user } = useAuth();
   const id = useSearchParams().get('id');
-  const { data, loading, error } = useQuery(SINGLE_LISTING_QUERY, {
+  const { data, loading, error, refetch } = useQuery(SINGLE_LISTING_QUERY, {
     variables: {
       id,
     },
   });
   const [paymentLink, setPaymentLink] = useState('');
+  const [searchIsActive, setSearchIsActive] = useState(false);
   const [connectMercadoPago] = useMutation(CONNECT_MERCADO_PAGO);
   const [disconnectMercadoPago] = useMutation(DISCONNECT_MERCADO_PAGO);
   const [addPotentialTenant] = useMutation(ADD_POTENTIAL_TENANT);
@@ -38,10 +40,17 @@ function ConfigListing() {
     { data: tenantData, loading: tenantLoading, error: tenantError },
   ] = useLazyQuery(GET_TENANT_USER);
 
+  const throttledFindTenants = useCallback(
+    throttle((variables) => {
+      findTenants({ variables });
+    }, 2000),
+    [findTenants],
+  );
+
   const handleConnectMercadoPago = async () => {
     try {
       const { data } = await connectMercadoPago({
-        variables: { userId: user?.id },
+        variables: { listingId: id },
       });
       const mercadoPagoUrl = data.connectMercadoPago;
 
@@ -55,7 +64,7 @@ function ConfigListing() {
         const popupInterval = setInterval(async () => {
           if (popup && popup.closed) {
             clearInterval(popupInterval);
-            await refetchUser();
+            await refetch();
           }
         }, 500);
       }
@@ -68,10 +77,10 @@ function ConfigListing() {
     try {
       await disconnectMercadoPago({
         variables: {
-          userId: user?.id,
+          listingId: id,
         },
       });
-      await refetchUser();
+      await refetch();
     } catch (error) {
       console.error('Error deleting listing:', error);
     }
@@ -83,22 +92,34 @@ function ConfigListing() {
     }
     try {
       const { data } = await createPaymentLink({
-        variables: { userId: user?.id, value: parseFloat(form.sena) },
+        variables: {
+          userId: user?.id,
+          value: parseFloat(form.sena),
+          listingId: id,
+        },
       });
       setPaymentLink(data.createPaymentLink);
-      await refetchUser();
+      await refetch();
     } catch (error) {
       console.error('Error creating payment link:', error.message);
     }
   };
 
-  const handleAddPotentialTenant = async (userId) => {
+  const handleAddPotentialTenant = async (tenantId) => {
     try {
-      const { data } = await addPotentialTenant({
-        variables: { userId: userId, listingId: id },
+      await addPotentialTenant({
+        variables: {
+          tenantId,
+          listingId: id,
+          senderId: user?.id,
+          receiverId: tenantId,
+          type: 'listing',
+        },
       });
+      setSearchIsActive(false);
     } catch (error) {
       console.error('Error agregando potencial inquilino:', error.message);
+      setSearchIsActive(false);
     }
   };
 
@@ -106,7 +127,7 @@ function ConfigListing() {
     if (user) {
       setForm((prevForm) => ({
         ...prevForm,
-        sena: user.sena,
+        sena: data?.getListingById?.sena,
       }));
     }
   }, [user]);
@@ -155,16 +176,17 @@ function ConfigListing() {
               value={form?.inquilino || ''}
               onChange={(e) => {
                 handleChange(e);
-                findTenants({
-                  variables: {
-                    usuario: e.target.value,
-                    tipo_de_cuenta: 'Inquilino',
-                  },
+                setSearchIsActive(true);
+                throttledFindTenants({
+                  nombre: e.target.value,
+                  apellido: e.target.value,
+                  tipo_de_cuenta: 'Inquilino',
+                  potential_tenant: [id],
                 });
               }}
-              placeholder="Ingresá el nombre del usuario para agregarlo como potencial inquilino"
+              placeholder="Ingresá el nombre o apellido del usuario para agregarlo como potencial inquilino"
             />
-            {tenantData?.getTenantUser?.length > 0 && (
+            {tenantData?.getTenantUser?.length > 0 && searchIsActive && (
               <div className="input-suggestion__container">
                 {tenantData?.getTenantUser.map((tenant, i) => (
                   <div key={i} className="input-suggestion__item">
@@ -184,7 +206,8 @@ function ConfigListing() {
           </div>
         </div>
         <div className="account__info-inner">
-          {user?.mercadoPago?.userId === null || user?.sena === null ? (
+          {!data?.getListingById?.mercadoPago?.userId ||
+          data?.getListingById?.sena === null ? (
             <>
               <h6>Configurar valor de seña:</h6>
               <p>
@@ -192,26 +215,27 @@ function ConfigListing() {
                 tu cuenta de Mercado Pago. Clickeá en "Conectar cuenta" e
                 ingresá el valor de la seña en pesos argentinos.
               </p>
-              <input
-                type="number"
-                name="sena"
-                value={form?.sena || ''}
-                onChange={handleChange}
-                placeholder="Ingresá el monto de la seña en pesos argentinos"
-              />
+              {data?.getListingById?.mercadoPago?.userId && (
+                <input
+                  type="number"
+                  name="sena"
+                  value={form?.sena || ''}
+                  onChange={handleChange}
+                  placeholder="Ingresá el monto de la seña en pesos argentinos"
+                />
+              )}
+              {errors.sena && (
+                <small className="error-message">{errors.sena}</small>
+              )}
             </>
           ) : (
             <>
               <h6>Seña:</h6>
               <p>Este es el valor de tu seña en pesos argentinos.</p>
-            </>
-          )}
-          {user?.mercadoPago.userId !== null && (
-            <>
               <input
                 type="number"
                 name="sena"
-                value={form?.sena || ''}
+                value={data?.getListingById.sena || ''}
                 onChange={handleChange}
                 placeholder="Ingresá el monto de la seña en pesos argentinos"
               />
@@ -222,12 +246,12 @@ function ConfigListing() {
           )}
         </div>
         <div className="button-container">
-          {user?.mercadoPago.userId !== null && (
+          {data?.getListingById?.mercadoPago?.userId && (
             <button className="button" onClick={handleCreatePaymentLink}>
-              Guardar
+              Actualizar seña
             </button>
           )}
-          {user?.mercadoPago?.userId === null ? (
+          {!data?.getListingById?.mercadoPago?.userId ? (
             <button className="button" onClick={handleConnectMercadoPago}>
               Conectar cuenta
             </button>

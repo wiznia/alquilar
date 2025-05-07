@@ -8,27 +8,20 @@ const ratingSchema = new mongoose.Schema({
 });
 
 const userSchema = new mongoose.Schema({
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  tipo_de_cuenta: { type: String, required: true },
-  nombre: { type: String, required: true },
   apellido: { type: String, required: true },
-  usuario: { type: String, required: true, unique: true },
+  celular: { type: Number },
   condicion_fiscal: { type: String, required: true },
   dni: { type: Number, required: true },
-  telefono: { type: Number },
-  celular: { type: Number },
+  email: { type: String, required: true, unique: true },
+  nombre: { type: String, required: true },
+  password: { type: String, required: true },
+  potential_tenant: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   ratings: [ratingSchema],
   resetToken: { type: String },
   resetTokenExpiration: { type: Date },
-  mercadoPago: {
-    userId: { type: String },
-    accessToken: { type: String },
-    refreshToken: { type: String },
-    tokenExpiresAt: { type: Date },
-  },
-  mpPaymentLink: { type: String },
-  sena: { type: Number },
+  telefono: { type: Number },
+  tipo_de_cuenta: { type: String, required: true },
+  usuario: { type: String, required: true, unique: true },
 });
 
 const User = mongoose.model('User', userSchema);

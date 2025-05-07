@@ -25,7 +25,7 @@ const listingSchema = new mongoose.Schema({
   likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   moneda: { type: String, required: true },
   owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  potentialTenant: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  potential_tenant: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   precio: { type: Number, required: true },
   provincia: { type: String, required: true },
   superficie_cubierta: { type: Number, required: true },
@@ -40,6 +40,14 @@ const listingSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  mercadoPago: {
+    userId: { type: String },
+    accessToken: { type: String },
+    refreshToken: { type: String },
+    tokenExpiresAt: { type: Date },
+  },
+  mpPaymentLink: { type: String },
+  sena: { type: Number },
 });
 
 const Listing = mongoose.model('Listing', listingSchema);

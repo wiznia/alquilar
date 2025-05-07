@@ -4,7 +4,7 @@ import ListItem from './ListItem';
 import ImageSlider from './ImageSlider';
 import { useAuth } from './AuthContext';
 import { useMutation } from '@apollo/client';
-import { LIKE_LISTING_MUTATION } from './queries/queries';
+import { LIKE_LISTING } from './queries/queries';
 
 export default function Listing({ listing }) {
   const { user } = useAuth();
@@ -26,7 +26,7 @@ export default function Listing({ listing }) {
     superficie_cubierta,
     antiguedad_max,
   };
-  const [likeListing] = useMutation(LIKE_LISTING_MUTATION);
+  const [likeListing] = useMutation(LIKE_LISTING);
 
   const handleLike = async (listingId) => {
     try {
