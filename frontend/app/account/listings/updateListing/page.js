@@ -6,6 +6,7 @@ import AccountSidebar from '@/components/AccountSidebar';
 import MapComponent from '@/components/Map';
 import Select from '@/components/Select';
 import { useFormValidation } from '@/app/hooks/useFormValidation';
+import { useLocationData } from '@/app/hooks/useLocationData';
 import { useMutation, useQuery } from '@apollo/client';
 import {
   SINGLE_LISTING_QUERY,
@@ -31,6 +32,15 @@ function UpdateListingContent() {
   });
 
   const {
+    provinceData,
+    cityData,
+    localidadesData,
+    setSelectedProvince,
+    setSelectedCity,
+    setSelectedLocalidad,
+  } = useLocationData();
+
+  const {
     form,
     setForm,
     errors,
@@ -38,10 +48,11 @@ function UpdateListingContent() {
     validateFormCheck,
     handleIncrement,
     handleDecrement,
-    provinceData,
-    cityData,
-    localidadesData,
-  } = useFormValidation(data?.getListingById, 'updateListing');
+  } = useFormValidation(data?.getListingById, 'updateListing', {
+    setSelectedProvince,
+    setSelectedCity,
+    setSelectedLocalidad,
+  });
   const [updateListing] = useMutation(UPDATE_LISTING);
   const [uploadImage] = useMutation(UPLOAD_IMAGES);
 
@@ -112,7 +123,14 @@ function UpdateListingContent() {
       }
 
       const fileImages = { fotos: uploadedImageUrls };
-      const { __typename, ...sanitizedForm } = form;
+      const {
+        __typename,
+        documentation,
+        mercadoPago,
+        sena,
+        potential_tenant,
+        ...sanitizedForm
+      } = form;
 
       if (sanitizedForm.owner && typeof sanitizedForm.owner === 'object') {
         sanitizedForm.owner = sanitizedForm.owner.id;
@@ -177,6 +195,12 @@ function UpdateListingContent() {
   useEffect(() => {
     setAddress(`${form?.direccion}, ${form?.barrio}, ${form?.provincia}`);
   }, [form?.provincia, form?.barrio, form?.direccion]);
+
+  useEffect(() => {
+    if (form?.provincia) {
+      setSelectedProvince(form.provincia);
+    }
+  }, [form?.provincia]);
 
   if (loading) {
     return (
@@ -814,7 +838,7 @@ function UpdateListingContent() {
                   placeholder="Estado"
                   required
                   onChange={handleChange}
-                  value={form?.estado || ''}
+                  value={form?.estado[0] || ''}
                 >
                   <button>
                     <selectedcontent></selectedcontent>
@@ -826,11 +850,10 @@ function UpdateListingContent() {
                   <option>Activo</option>
                   <option>Pausado</option>
                   <option>Borrador</option>
+                  <option>En negociación</option>
                 </select>
-                {errors.tipo_de_propiedad && (
-                  <small className="error-message">
-                    {errors.tipo_de_propiedad}
-                  </small>
+                {errors.estado && (
+                  <small className="error-message">{errors.estado}</small>
                 )}
               </div>
             </div>

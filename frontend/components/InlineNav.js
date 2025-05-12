@@ -1,13 +1,22 @@
 import Link from 'next/link';
 
-export default function InlineNav({ id }) {
+export default function InlineNav({ id, page, user }) {
   return (
     <nav className="inline-nav">
       <ul>
-        <li className="inline-nav__item--active">
+        <li
+          className={
+            page === 'configListing'
+              ? 'inline-nav__item--active'
+              : 'inline-nav__item'
+          }
+        >
           <Link
             href={{
-              pathname: `/account/listings/configListing`,
+              pathname:
+                user?.tipo_de_cuenta === 'Dueño'
+                  ? '/account/listings/configListing'
+                  : '/account/alquileres/configListing',
               query: {
                 id,
               },
@@ -16,10 +25,19 @@ export default function InlineNav({ id }) {
             <h6>Configuración</h6>
           </Link>
         </li>
-        <li className="inline-nav__item">
+        <li
+          className={
+            page === 'notifications'
+              ? 'inline-nav__item--active'
+              : 'inline-nav__item'
+          }
+        >
           <Link
             href={{
-              pathname: `/account/listings/configListing/notifications`,
+              pathname:
+                user?.tipo_de_cuenta === 'Dueño'
+                  ? '/account/listings/configListing/notifications'
+                  : '/account/alquileres/configListing/notifications',
               query: {
                 id,
               },
@@ -28,10 +46,19 @@ export default function InlineNav({ id }) {
             <h6>Notificaciones</h6>
           </Link>
         </li>
-        <li className="inline-nav__item">
+        <li
+          className={
+            page === 'documents'
+              ? 'inline-nav__item--active'
+              : 'inline-nav__item'
+          }
+        >
           <Link
             href={{
-              pathname: `/account/listings/configListing/documents`,
+              pathname:
+                user?.tipo_de_cuenta === 'Dueño'
+                  ? '/account/listings/configListing/documents'
+                  : '/account/alquileres/configListing/documents',
               query: {
                 id,
               },
@@ -40,10 +67,19 @@ export default function InlineNav({ id }) {
             <h6>Documentación</h6>
           </Link>
         </li>
-        <li className="inline-nav__item">
+        <li
+          className={
+            page === 'payments'
+              ? 'inline-nav__item--active'
+              : 'inline-nav__item'
+          }
+        >
           <Link
             href={{
-              pathname: `/account/listings/configListing/payments`,
+              pathname:
+                user?.tipo_de_cuenta === 'Dueño'
+                  ? '/account/listings/configListing/payments'
+                  : '/account/alquileres/configListing/payments',
               query: {
                 id,
               },

@@ -1,14 +1,17 @@
 'use client';
 
+import { Modal } from '@/components/Modal';
 import { REGISTER } from '@/components/queries/queries';
 import { useMutation } from '@apollo/client';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useFormValidation } from '@/app/hooks/useFormValidation';
 import { useAuth } from '@/components/AuthContext';
+import { useState } from 'react';
 
 export default function Page() {
-  const { login } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const { handleRegister } = useAuth();
   const initialState = {
     tipo_de_cuenta: '',
     email: '',
@@ -27,28 +30,44 @@ export default function Page() {
   const [register] = useMutation(REGISTER);
   const router = useRouter();
 
-  const handleRegister = async () => {
+  const handleRegisterSubmit = async () => {
     if (!validateFormCheck()) return;
 
     try {
+      setIsLoading(true);
       const { data } = await register({
         variables: {
           ...form,
         },
       });
+
       if (data?.register?.token) {
-        localStorage.setItem('token', data.register.token);
-        await login();
+        setIsLoading(false);
+        await handleRegister(data.register.token);
         router.push('/account');
       }
     } catch (error) {
       console.error('Registration error:', error);
-      setErrors({ api: 'Error en el registro. Intentá de nuevo.' });
+      const errorMessage =
+        error.graphQLErrors?.[0]?.message ||
+        'Error en el inicio de sesión. Intentá de nuevo.';
+
+      const newErrors = {};
+
+      if (errorMessage.includes('User already exists')) {
+        newErrors.usuario = 'Ya existe un usuario con este nombre, elegí otro.';
+      } else if (errorMessage.includes('Email already exists')) {
+        newErrors.email = 'El email ingresado ya existe en el sistema.';
+      } else {
+        newErrors.api = errorMessage;
+      }
+
+      setErrors(newErrors);
     }
   };
 
   return (
-    <div className="modal-container">
+    <div className="modal-single-container">
       <h1>Registrá tu cuenta</h1>
       <p>
         ¿No estás seguro qué significan estas opciones? <br />
@@ -81,7 +100,7 @@ export default function Page() {
         )}
       </fieldset>
       <fieldset>
-        <label htmlFor="email">Usuario:</label>
+        <label htmlFor="usuario">Usuario:</label>
         <input
           type="text"
           className="small"
@@ -235,8 +254,12 @@ export default function Page() {
           <small className="error-message">{errors.terms}</small>
         )}
       </fieldset>
-      <button onClick={handleRegister} className="button button--large">
-        Registrarse
+      <button onClick={handleRegisterSubmit} className="button button--large">
+        {isLoading ? (
+          <span className="loader"></span>
+        ) : (
+          <span>Registrarse</span>
+        )}
       </button>
     </div>
   );

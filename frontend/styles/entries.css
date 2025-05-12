@@ -264,6 +264,7 @@
   gap: 40px;
   overflow: auto;
   scroll-snap-type: x mandatory;
+  margin-block-start: 32px;
   .entry {
     flex-direction: column;
     min-width: 370px;

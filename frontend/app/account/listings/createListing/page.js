@@ -6,6 +6,7 @@ import AccountSidebar from '@/components/AccountSidebar';
 import MapComponent from '@/components/Map';
 import Select from '@/components/Select';
 import { useFormValidation } from '@/app/hooks/useFormValidation';
+import { useLocationData } from '@/app/hooks/useLocationData';
 import { useMutation } from '@apollo/client';
 import { useAuth } from '@/components/AuthContext';
 import {
@@ -47,6 +48,16 @@ export default function Page() {
     titulo: '',
     toilettes: 0,
   };
+
+  const {
+    provinceData,
+    cityData,
+    localidadesData,
+    setSelectedProvince,
+    setSelectedCity,
+    setSelectedLocalidad,
+  } = useLocationData();
+
   const {
     form,
     setForm,
@@ -55,10 +66,11 @@ export default function Page() {
     validateFormCheck,
     handleIncrement,
     handleDecrement,
-    provinceData,
-    cityData,
-    localidadesData,
-  } = useFormValidation(initialState, 'createListing');
+  } = useFormValidation(initialState, 'createListing', {
+    setSelectedProvince,
+    setSelectedCity,
+    setSelectedLocalidad,
+  });
   const [createListing] = useMutation(CREATE_LISTING, {
     onCompleted: (data) => {
       if (data?.createListing?.id) {

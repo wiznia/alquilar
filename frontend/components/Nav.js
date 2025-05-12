@@ -4,13 +4,50 @@ import Link from 'next/link';
 import { useAuth } from './AuthContext';
 import NavbarPopover from './NavbarPopover';
 import Notifications from './Notifications';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { MARK_NOTIFICATIONS_AS_READ } from './queries/queries';
+import { useMutation } from '@apollo/client';
 
 export default function Nav() {
   const { user, logout } = useAuth();
   const notificationsAnchorName = `--anchor-notifications`;
   const accountAnchorName = `--anchor-account`;
   const [notificationCount, setNotificationCount] = useState(0);
+  const [notificationData, setNotificationData] = useState([]);
+  const [popoverAction, setPopoverAction] = useState('auto');
+  const notificationsRef = useRef(null);
+  const [markNotificationsAsRead] = useMutation(MARK_NOTIFICATIONS_AS_READ, {
+    onCompleted: () => {
+      const updatedCount = notificationData.filter(
+        (n) => n.read === false,
+      ).length;
+      setNotificationCount(updatedCount);
+    },
+  });
+
+  const handleNotifications = (e) => {
+    const popoverTarget = e.currentTarget.getAttribute('popovertarget');
+    popoverTarget === 'notifications'
+      ? setPopoverAction('manual')
+      : setPopoverAction('auto');
+    const unreadNotifications = notificationData
+      .filter((notification) => notification.read !== true)
+      .map((notification) => notification.id);
+
+    if (unreadNotifications.length > 0) {
+      markNotificationsAsRead({
+        variables: { notifications: unreadNotifications },
+      });
+
+      setNotificationData((prev) =>
+        prev.map((notification) =>
+          unreadNotifications.includes(notification.id)
+            ? { ...notification, read: true }
+            : notification,
+        ),
+      );
+    }
+  };
 
   return (
     <nav>
@@ -45,6 +82,7 @@ export default function Nav() {
             className="notifications"
             popoverTarget="notifications"
             style={{ anchorName: notificationsAnchorName }}
+            onClick={handleNotifications}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -61,10 +99,12 @@ export default function Nav() {
               <span className="notifications__count">{notificationCount}</span>
             )}
           </button>
-          <NavbarPopover id="notifications">
+          <NavbarPopover id="notifications" popoverAction={popoverAction}>
             <Notifications
               userId={user?.id}
               setNotificationCount={setNotificationCount}
+              setNotificationData={setNotificationData}
+              ref={notificationsRef}
             />
           </NavbarPopover>
           {user?.tipo_de_cuenta === 'Dueño' && (

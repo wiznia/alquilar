@@ -25,6 +25,13 @@ dialog {
   }
 }
 
+.modal-single-container {
+  display: flex;
+  flex-direction: column;
+  gap: 23px;
+  width: min(calc(100vw - 60px), 500px);
+}
+
 .close {
   background-color: var(--primary-bg);
   border-radius: 100%;

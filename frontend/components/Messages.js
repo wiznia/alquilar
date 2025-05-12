@@ -11,6 +11,7 @@ import { useFormValidation } from '@/app/hooks/useFormValidation';
 import Loading from './Loading';
 import { useState, useRef, useEffect } from 'react';
 import formatDateTime from '@/lib/formatDateTime';
+import Link from 'next/link';
 
 export default function Messages() {
   const { user } = useAuth();
@@ -204,18 +205,26 @@ export default function Messages() {
                   key={`${msg.messageId}-${index}`}
                   className={`messages__conversation-container ${msg.senderId === user?.id ? 'messages__conversation-owner' : ''}`}
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="34"
-                    height="34"
-                    fill="none"
+                  <Link
+                    href={
+                      msg.senderId !== user?.id
+                        ? `/user/${openConversation.sender.id}`
+                        : `/user/${openConversation.receiver.id}`
+                    }
                   >
-                    <rect width="34" height="34" fill="#FF9500" rx="17" />
-                    <path
-                      fill="#FAFAFA"
-                      d="M17 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM26 24v1c0 .265-.119.52-.33.707a1.2 1.2 0 0 1-.795.293H9.125a1.2 1.2 0 0 1-.795-.293A.947.947 0 0 1 8 25v-1c0-1.591.711-3.117 1.977-4.243C11.243 18.632 12.96 18 14.75 18h4.5c1.79 0 3.507.632 4.773 1.757C25.289 20.883 26 22.41 26 24Z"
-                    />
-                  </svg>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="34"
+                      height="34"
+                      fill="none"
+                    >
+                      <rect width="34" height="34" fill="#FF9500" rx="17" />
+                      <path
+                        fill="#FAFAFA"
+                        d="M17 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM26 24v1c0 .265-.119.52-.33.707a1.2 1.2 0 0 1-.795.293H9.125a1.2 1.2 0 0 1-.795-.293A.947.947 0 0 1 8 25v-1c0-1.591.711-3.117 1.977-4.243C11.243 18.632 12.96 18 14.75 18h4.5c1.79 0 3.507.632 4.773 1.757C25.289 20.883 26 22.41 26 24Z"
+                      />
+                    </svg>
+                  </Link>
                   <div className="messages__bubble shadow">
                     <p>{msg.asunto}</p>
                     <small>{formatDateTime(msg.createdAt)}</small>

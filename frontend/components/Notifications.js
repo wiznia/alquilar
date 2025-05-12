@@ -5,7 +5,11 @@ import { GET_NOTIFICATIONS } from './queries/queries';
 import formatDateTime from '@/lib/formatDateTime';
 import { useEffect } from 'react';
 
-export default function Notifications({ userId, setNotificationCount }) {
+export default function Notifications({
+  userId,
+  setNotificationCount,
+  setNotificationData,
+}) {
   const { data, loading, error } = useQuery(GET_NOTIFICATIONS, {
     variables: { userId },
   });
@@ -13,8 +17,9 @@ export default function Notifications({ userId, setNotificationCount }) {
   useEffect(() => {
     if (data && data.getNotifications) {
       setNotificationCount(data.getNotifications.length);
+      setNotificationData(data.getNotifications);
     }
-  }, [data, setNotificationCount]);
+  }, [data, setNotificationCount, setNotificationData]);
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;

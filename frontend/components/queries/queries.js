@@ -104,6 +104,14 @@ export const SINGLE_LISTING_QUERY = gql`
       barrio
       descripcion
       direccion
+      documentation {
+        id
+        documents {
+          id
+          name
+          url
+        }
+      }
       dormitorios
       estado
       expensas
@@ -126,6 +134,7 @@ export const SINGLE_LISTING_QUERY = gql`
         celular
         tipo_de_cuenta
       }
+      potential_tenant
       precio
       provincia
       sena
@@ -208,6 +217,7 @@ export const GET_USER_BY_ID = gql`
         user {
           nombre
           apellido
+          id
         }
         rating
         message
@@ -216,6 +226,16 @@ export const GET_USER_BY_ID = gql`
       telefono
       tipo_de_cuenta
       usuario
+    }
+  }
+`;
+
+export const GET_POTENTIAL_TENANTS_BY_LISTING = gql`
+  query GET_POTENTIAL_TENANTS_BY_LISTING($ids: [ID!]!) {
+    getPotentialTenantsByListing(ids: $ids) {
+      nombre
+      apellido
+      id
     }
   }
 `;
@@ -248,6 +268,7 @@ export const GET_LISTINGS_BY_OWNER = gql`
         owner {
           nombre
           apellido
+          id
         }
         precio
         provincia
@@ -263,8 +284,8 @@ export const GET_LISTINGS_BY_OWNER = gql`
 `;
 
 export const GET_LISTINGS_BY_TENANT = gql`
-  query GET_LISTINGS_BY_TENANT($potential_tenant: [ID!]!, $estado: [String]) {
-    getListings(potential_tenant: $potential_tenant, estado: $estado) {
+  query GET_LISTINGS_BY_TENANT($id: [ID!]!) {
+    getListings(potential_tenant: $id) {
       count
       listings {
         ambientes
@@ -283,23 +304,22 @@ export const GET_LISTINGS_BY_TENANT = gql`
           url
         }
         id
+        likes {
+          id
+        }
         moneda
         owner {
           nombre
           apellido
+          id
         }
-        potential_tenant
         precio
         provincia
-        superficie_cubierta
-        superficie_total
-        tenant {
-          nombre
-          apellido
-        }
         tipo_de_alquiler
         tipo_de_propiedad
         titulo
+        superficie_cubierta
+        superficie_total
         viewCount
       }
     }
@@ -339,6 +359,7 @@ export const GET_NOTIFICATIONS = gql`
       content
       createdAt
       read
+      id
     }
   }
 `;
@@ -623,5 +644,27 @@ export const ADD_POTENTIAL_TENANT = gql`
       receiverId: $receiverId
       type: $type
     )
+  }
+`;
+
+export const REMOVE_POTENTIAL_TENANT = gql`
+  mutation REMOVE_POTENTIAL_TENANT(
+    $listingId: ID!
+    $senderId: ID!
+    $receiverId: ID!
+    $type: String!
+  ) {
+    removePotentialTenant(
+      listingId: $listingId
+      senderId: $senderId
+      receiverId: $receiverId
+      type: $type
+    )
+  }
+`;
+
+export const MARK_NOTIFICATIONS_AS_READ = gql`
+  mutation MarkNotificationsAsRead($notifications: [ID!]!) {
+    markNotificationsAsRead(notifications: $notifications)
   }
 `;

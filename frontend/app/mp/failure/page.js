@@ -1,11 +1,11 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 
-export default function Failure() {
-  const router = useRouter();
-  const { error } = router.query;
+function Failure() {
+  const error = useSearchParams().get('error');
 
   useEffect(() => {
     setTimeout(() => {
@@ -17,5 +17,13 @@ export default function Failure() {
     <div>
       <p>Connection failed: {error}. You can close this window.</p>
     </div>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<p>Loading...</p>}>
+      <Failure />
+    </Suspense>
   );
 }

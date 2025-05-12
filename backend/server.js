@@ -41,6 +41,7 @@ const typeDefs = `
       token: String
       tipo_de_cuenta: String
       usuario: String
+      potential_tenant: [ID]
     ): User
     getListings(
       ambientes: Int
@@ -80,6 +81,7 @@ const typeDefs = `
     getUser(id: ID!): User
     getMessages(userId: ID!): [Message]
     getNotifications(userId: ID!): [Notification]
+    getPotentialTenantsByListing(ids: [ID!]!): [User]
     getTenantUser(nombre: String!, apellido: String!, tipo_de_cuenta: String!, potential_tenant: [String!]!): [User]
     getUserListingNotifications(userId: ID!, listingId: ID!): [Notification]
   }
@@ -102,6 +104,7 @@ const typeDefs = `
     barrio: String
     descripcion: String
     direccion: String!
+    documentation: [DocumentationData]
     dormitorios: Int
     estado: [String]
     expensas: Float
@@ -117,7 +120,6 @@ const typeDefs = `
     sena: Float
     superficie_cubierta: Int
     superficie_total: Int
-    tenant: [ID]
     tipo_de_alquiler: String!
     tipo_de_ambientes: [String]
     tipo_de_propiedad: String!
@@ -125,6 +127,11 @@ const typeDefs = `
     toilettes: Int
     createdAt: String
     viewCount: Int
+  }
+
+  type DocumentationData {
+    id: ID
+    documents: [File]
   }
 
   type User {
@@ -282,11 +289,12 @@ const typeDefs = `
     sendMessage(senderId: ID, receiverId: ID!, asunto: String!, conversationId: String): Message
     sendEmail(nombre: String!, apellido: String!, email: String!, asunto: String!, receiverEmail: String!, listingId: String!): Boolean
     markMessagesAsRead(messageIds: [ID!]!): [SingleMessage!]!
-    markNotificationAsRead(notificationId: ID!): Notification
+    markNotificationsAsRead(notifications: [ID!]!): Boolean
     connectMercadoPago(listingId: ID!): String
     disconnectMercadoPago(listingId: ID!): String
     createPaymentLink(userId: ID!, value: Float!, listingId: ID!): String
     addPotentialTenant(tenantId: ID!, listingId: ID!, senderId: ID!, receiverId: ID!, type: String!): Boolean
+    removePotentialTenant(listingId: ID!, senderId: ID!, receiverId: ID!, type: String!): Boolean
   }
 `;
 
@@ -294,8 +302,6 @@ const resolvers = {
   Upload: GraphQLUpload,
   Query: {
     user: async (_, __, context) => {
-      if (!context.req || !context.req.headers) {
-      }
       const authHeader = context.req.headers.authorization;
       if (!authHeader) {
         throw new Error('No token provided');
@@ -315,6 +321,9 @@ const resolvers = {
         path: 'ratings.user',
         select: 'nombre apellido',
       });
+    },
+    getPotentialTenantsByListing: async (_, { ids }) => {
+      return await User.find({ _id: { $in: ids } });
     },
     getTenantUser: async (
       _,
@@ -464,6 +473,7 @@ const resolvers = {
       return await Notification.find({
         receiver: userId,
         listingId: listingId,
+        type: 'listing',
       });
     },
   },
@@ -589,7 +599,7 @@ const resolvers = {
         throw new Error('Invalid password');
       }
       const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
-        expiresIn: '24h',
+        expiresIn: '7 days',
       });
 
       res.cookie('authToken', token, {
@@ -943,13 +953,13 @@ const resolvers = {
 
       return updatedMessages;
     },
-    markNotificationAsRead: async (_, { notificationId }) => {
-      const notification = await Notification.findByIdAndUpdate(
-        notificationId,
-        { read: true },
-        { new: true },
+    markNotificationsAsRead: async (_, { notifications }) => {
+      await Promise.all(
+        notifications.map((id) =>
+          Notification.findByIdAndUpdate(id, { read: true }),
+        ),
       );
-      return notification;
+      return true;
     },
     connectMercadoPago: async (_, { listingId }) => {
       const listing = await Listing.findById(listingId);
@@ -1025,7 +1035,27 @@ const resolvers = {
 
       const sender = await User.findById(senderId).select('nombre apellido');
 
-      const content = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> te dio acceso como potencial inquilino en su <a href=${process.env.FRONTEND_URL}/listing/${listingId}>inmueble</a>.`;
+      const content = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> te dio acceso como potencial inquilino en su <a href=${process.env.FRONTEND_URL}/listing/${listingId}>inmueble</a>.<a class="button button--small" href=${process.env.FRONTEND_URL}/account/alquileres/configListing?id=${listingId}>Ir a la configuración</a>`;
+
+      await handleNotification(senderId, receiverId, content, type, listingId);
+
+      return true;
+    },
+    removePotentialTenant: async (
+      _,
+      { listingId, senderId, receiverId, type },
+    ) => {
+      await Listing.findByIdAndUpdate(listingId, {
+        $unset: { potential_tenant: '' },
+      });
+
+      await User.findByIdAndUpdate(receiverId, {
+        $unset: { potential_tenant: '' },
+      });
+
+      const sender = await User.findById(senderId).select('nombre apellido');
+
+      const content = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> removió tu acceso como potencial inquilino en su <a href=${process.env.FRONTEND_URL}/listing/${listingId}>inmueble</a>.`;
 
       await handleNotification(senderId, receiverId, content, type, listingId);
 
@@ -1095,9 +1125,9 @@ app.get('/api/mercado-pago/callback', async (req, res) => {
 
     res.redirect(`${process.env.FRONTEND_URL}/mp/success?userId=${state}`);
   } catch (error) {
-    console.error('OAuth Callback Error:', error.message);
+    console.error('OAuth Callback Error:', error);
     res.redirect(
-      `${process.env.FRONTEND_URL}/mp/failure?error=${encodeURIComponent(error.message)}`,
+      `${process.env.FRONTEND_URL}/mp/failure?error=${encodeURIComponent(error)}`,
     );
   }
 });

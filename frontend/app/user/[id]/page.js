@@ -6,6 +6,7 @@ import Rating from '@/components/Rating';
 import Related from '@/components/Related';
 import ContactForm from '@/lib/ContactForm';
 import { useQuery } from '@apollo/client';
+import Link from 'next/link';
 import { useParams } from 'next/navigation';
 
 export default function Id() {
@@ -143,34 +144,40 @@ export default function Id() {
           <ContactForm tipoDeCuenta={tipo_de_cuenta} id={id} />
         </div>
         <div className="user-profile-content__right">
-          {ratings?.length > 0 &&
-            ratings.map((rating, i) => {
-              return (
-                <div key={i} className="rating-item">
-                  <div className="rating-item__profile-pic">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="67"
-                      height="67"
-                      fill="none"
-                    >
-                      <rect width="67" height="67" fill="#FF9500" rx="33.5" />
-                      <path
-                        fill="#FAFAFA"
-                        d="M33.5 32a8.292 8.292 0 1 0 0-16.584A8.292 8.292 0 0 0 33.5 32ZM50.416 47.438v2.073c0 .55-.223 1.077-.62 1.466a2.136 2.136 0 0 1-1.495.607H18.698c-.56 0-1.098-.218-1.495-.607a2.053 2.053 0 0 1-.619-1.466v-2.073c0-3.299 1.337-6.462 3.716-8.795A12.817 12.817 0 0 1 29.27 35h8.459c3.365 0 6.592 1.31 8.97 3.643a12.316 12.316 0 0 1 3.717 8.795Z"
-                      />
-                    </svg>
+          {ratings?.length > 0 && (
+            <>
+              <h6>{ratings.length} opiniones</h6>
+              {ratings.map((rating, i) => {
+                return (
+                  <div key={i} className="rating-item">
+                    <div className="rating-item__profile-pic">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="67"
+                        height="67"
+                        fill="none"
+                      >
+                        <rect width="67" height="67" fill="#FF9500" rx="33.5" />
+                        <path
+                          fill="#FAFAFA"
+                          d="M33.5 32a8.292 8.292 0 1 0 0-16.584A8.292 8.292 0 0 0 33.5 32ZM50.416 47.438v2.073c0 .55-.223 1.077-.62 1.466a2.136 2.136 0 0 1-1.495.607H18.698c-.56 0-1.098-.218-1.495-.607a2.053 2.053 0 0 1-.619-1.466v-2.073c0-3.299 1.337-6.462 3.716-8.795A12.817 12.817 0 0 1 29.27 35h8.459c3.365 0 6.592 1.31 8.97 3.643a12.316 12.316 0 0 1 3.717 8.795Z"
+                        />
+                      </svg>
+                    </div>
+                    <div className="rating-item__info">
+                      <h6>
+                        <Link href={`/user/${rating.user.id}`}>
+                          {rating.user.nombre} {rating.user.apellido}
+                        </Link>
+                      </h6>
+                      {buildStars(rating.rating)}
+                      <p>{rating.message}</p>
+                    </div>
                   </div>
-                  <div className="rating-item__info">
-                    <h6>
-                      {rating.user.nombre} {rating.user.apellido}
-                    </h6>
-                    {buildStars(rating.rating)}
-                    <p>{rating.message}</p>
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </>
+          )}
         </div>
       </div>
       <Related owner={owner} />

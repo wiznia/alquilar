@@ -12,6 +12,18 @@ const listingSchema = new mongoose.Schema({
   },
   descripcion: String,
   direccion: { type: String, required: true },
+  documentation: [
+    {
+      id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      documents: [
+        {
+          id: String,
+          name: String,
+          url: String,
+        },
+      ],
+    },
+  ],
   dormitorios: Number,
   estado: { type: [String], required: true },
   expensas: { type: Number, required: true },

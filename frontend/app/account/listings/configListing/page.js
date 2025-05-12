@@ -9,6 +9,8 @@ import {
   CREATE_PAYMENT_LINK,
   GET_TENANT_USER,
   ADD_POTENTIAL_TENANT,
+  GET_POTENTIAL_TENANTS_BY_LISTING,
+  REMOVE_POTENTIAL_TENANT,
 } from '@/components/queries/queries';
 import { useSearchParams } from 'next/navigation';
 import { useQuery, useMutation, useLazyQuery } from '@apollo/client';
@@ -18,10 +20,13 @@ import { Suspense, useCallback, useEffect, useState } from 'react';
 import InlineNav from '@/components/InlineNav';
 import { useFormValidation } from '@/app/hooks/useFormValidation';
 import throttle from '@/lib/throttle';
+import { usePathname } from 'next/navigation';
 
 function ConfigListing() {
   const { user } = useAuth();
   const id = useSearchParams().get('id');
+  const pathname = usePathname();
+  const page = pathname.split('/').findLast((element) => element);
   const { data, loading, error, refetch } = useQuery(SINGLE_LISTING_QUERY, {
     variables: {
       id,
@@ -29,9 +34,12 @@ function ConfigListing() {
   });
   const [paymentLink, setPaymentLink] = useState('');
   const [searchIsActive, setSearchIsActive] = useState(false);
+  const [shouldFetchPotentialTenants, setShouldFetchPotentialTenants] =
+    useState(false);
   const [connectMercadoPago] = useMutation(CONNECT_MERCADO_PAGO);
   const [disconnectMercadoPago] = useMutation(DISCONNECT_MERCADO_PAGO);
   const [addPotentialTenant] = useMutation(ADD_POTENTIAL_TENANT);
+  const [removePotentialTenant] = useMutation(REMOVE_POTENTIAL_TENANT);
   const [createPaymentLink] = useMutation(CREATE_PAYMENT_LINK);
   const { form, setForm, errors, handleChange, validateFormCheck } =
     useFormValidation(data?.getListingById, 'sendSena');
@@ -39,7 +47,16 @@ function ConfigListing() {
     findTenants,
     { data: tenantData, loading: tenantLoading, error: tenantError },
   ] = useLazyQuery(GET_TENANT_USER);
-
+  const {
+    data: dataPotentialTenants,
+    loading: loadingPotentialTenants,
+    error: errorPotentialTenants,
+  } = useQuery(GET_POTENTIAL_TENANTS_BY_LISTING, {
+    variables: {
+      ids: data?.getListingById?.potential_tenant,
+    },
+    skip: !shouldFetchPotentialTenants,
+  });
   const throttledFindTenants = useCallback(
     throttle((variables) => {
       findTenants({ variables });
@@ -117,11 +134,39 @@ function ConfigListing() {
         },
       });
       setSearchIsActive(false);
+      refetch();
     } catch (error) {
       console.error('Error agregando potencial inquilino:', error.message);
       setSearchIsActive(false);
     }
   };
+
+  const handleRemovePotentialTenant = async (tenantId) => {
+    try {
+      await removePotentialTenant({
+        variables: {
+          listingId: id,
+          senderId: user?.id,
+          receiverId: tenantId,
+          type: 'listing',
+        },
+      });
+      refetch();
+    } catch (error) {
+      console.error('Error removiendo potencial inquilino:', error.message);
+    }
+  };
+
+  useEffect(() => {
+    if (
+      data?.getListingById?.potential_tenant &&
+      data.getListingById.potential_tenant.length > 0
+    ) {
+      setShouldFetchPotentialTenants(true);
+    } else {
+      setShouldFetchPotentialTenants(false);
+    }
+  }, [data?.getListingById?.potential_tenant]);
 
   useEffect(() => {
     if (user) {
@@ -144,7 +189,7 @@ function ConfigListing() {
     return (
       <Loading>
         <p>
-          Hubo un problema al cargar el listado de publicaciones:
+          Hubo un problema al cargar la publicación:
           {error.message}
         </p>
       </Loading>
@@ -160,7 +205,7 @@ function ConfigListing() {
           title={user?.tipo_de_cuenta === 'Dueño' ? 'inmuebles' : 'alquileres'}
         />
         <h2>Configuración del inmueble</h2>
-        <InlineNav id={id} />
+        <InlineNav id={id} page={page} user={user} />
         <div className="account__info-inner">
           <h6>Agregar usuarios como potenciales inquilinos:</h6>
           <p>
@@ -205,6 +250,54 @@ function ConfigListing() {
             )}
           </div>
         </div>
+        {dataPotentialTenants?.getPotentialTenantsByListing?.length > 0 && (
+          <div className="account__info-inner">
+            <h6>Permisos de usuarios:</h6>
+            <p>
+              Los siguientes usuarios son potenciales inquilinos y pueden ver
+              todo lo relacionado a este inmueble. A su vez, vas a poder ver
+              toda su documentación necesaria para poder alquilar.
+            </p>
+            <p>
+              Si removés a un usuario dejarás de tener acceso a la documentación
+              y no podrán ver la tuya tampoco.
+            </p>
+            {dataPotentialTenants.getPotentialTenantsByListing.map(
+              (tenant, i) => (
+                <div className="account__info-ownership-item" key={i}>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="40"
+                    height="39"
+                    fill="none"
+                  >
+                    <rect
+                      width="39"
+                      height="38"
+                      x=".074"
+                      y=".457"
+                      fill="#FF9500"
+                      rx="19"
+                    />
+                    <path
+                      fill="#FAFAFA"
+                      d="M19.574 17.957a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9ZM10.074 27.707v1.125c0 .298.125.584.348.796.223.21.525.329.84.329h16.625c.315 0 .617-.119.84-.33.222-.21.347-.497.347-.795v-1.125c0-1.79-.75-3.507-2.087-4.773-1.336-1.266-3.148-1.977-5.038-1.977H17.2c-1.89 0-3.702.711-5.038 1.977-1.336 1.266-2.087 2.983-2.087 4.773Z"
+                    />
+                  </svg>
+                  <small>
+                    {tenant.nombre} {tenant.apellido}
+                  </small>
+                  <button
+                    className="button button--small"
+                    onClick={() => handleRemovePotentialTenant(tenant.id)}
+                  >
+                    Remover
+                  </button>
+                </div>
+              ),
+            )}
+          </div>
+        )}
         <div className="account__info-inner">
           {!data?.getListingById?.mercadoPago?.userId ||
           data?.getListingById?.sena === null ? (
@@ -248,7 +341,7 @@ function ConfigListing() {
         <div className="button-container">
           {data?.getListingById?.mercadoPago?.userId && (
             <button className="button" onClick={handleCreatePaymentLink}>
-              Actualizar seña
+              {data?.getListingById?.sena ? 'Actualizar' : 'Configurar'} seña
             </button>
           )}
           {!data?.getListingById?.mercadoPago?.userId ? (

@@ -104,7 +104,7 @@ nav {
 .notification__info {
   width: max-content;
   flex-grow: 1;
-  a {
+  a:not(.button) {
     text-decoration: underline;
     color: inherit;
     padding: 0;
@@ -115,5 +115,9 @@ nav {
     display: flex;
     justify-self: flex-end;
     margin-block-start: 3px;
+  }
+  a.button {
+    justify-self: flex-start;
+    margin-block-start: 16px;
   }
 }

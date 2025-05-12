@@ -9,16 +9,14 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [isClient, setIsClient] = useState(false);
+  const [token, setToken] = useState(null);
   const router = useRouter();
 
   const getCookie = (name) => {
-    if (isClient) {
-      const value = `; ${document.cookie}`;
-      const parts = value.split(`; ${name}=`);
-      if (parts.length === 2) return parts.pop().split(';').shift();
-      return null;
-    }
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
   };
 
   const setCookie = (name, value, days) => {
@@ -35,9 +33,9 @@ export const AuthProvider = ({ children }) => {
     document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure; SameSite=Strict`;
   };
 
-  const token = getCookie('authToken');
-  const { data, loading, error, refetch } = useQuery(GET_USER, {
+  const { data, loading, error } = useQuery(GET_USER, {
     fetchPolicy: 'no-cache',
+    skip: !token,
     context: {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -46,14 +44,17 @@ export const AuthProvider = ({ children }) => {
   });
 
   const login = async () => {
-    const token = getCookie('authToken');
-    if (token) {
-      refetch();
+    const authToken = getCookie('authToken');
+    if (authToken) {
+      setToken(authToken);
     }
   };
 
   useEffect(() => {
-    setIsClient(true);
+    const authToken = getCookie('authToken');
+    if (authToken) {
+      setToken(authToken);
+    }
   }, []);
 
   useEffect(() => {
@@ -65,11 +66,13 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     deleteCookie('authToken');
     setUser(null);
+    setToken(null);
     router.push('/');
   };
 
   const handleRegister = async (token) => {
     setCookie('authToken', token, 7);
+    setToken(token);
     await login();
     router.push('/account');
   };

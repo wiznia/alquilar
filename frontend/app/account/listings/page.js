@@ -74,7 +74,11 @@ export default function Page() {
             </div>
             <div className="account-listing-container">
               {data?.getListings?.listings.map((listing) => (
-                <AccountListing key={listing.id} listing={listing} />
+                <AccountListing
+                  key={listing.id}
+                  listing={listing}
+                  user={user}
+                />
               ))}
             </div>
           </>

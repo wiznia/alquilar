@@ -74,6 +74,13 @@ li {
   list-style-type: none;
 }
 
+.documentation-list {
+  li {
+    list-style-type: disc;
+    color: var(--primary-text);
+  }
+}
+
 form {
   display: contents;
 }
@@ -275,12 +282,15 @@ small,
 
 .button {
   border-radius: var(--border-radius);
+  border: 3px solid var(--primary-bg);
   background-color: var(--primary-bg);
-  padding: 12px 16px;
+  padding: 9px 12px;
   font-size: 14px;
   font-weight: bold;
   color: #fff;
-  transition: background-color 500ms ease;
+  transition:
+    background-color 500ms ease,
+    border-color 500ms ease;
   text-align: center;
   text-decoration: none;
   display: flex;
@@ -297,24 +307,25 @@ small,
   }
   &:hover {
     background-color: hsl(35.06deg 100% 60%);
+    border-color: hsl(35.06deg 100% 60%);
   }
   &.button--small {
-    padding: 9px 12px;
+    padding: 7px 10px;
   }
   &.button--large {
-    padding: 15px 25px;
+    padding: 12px 22px;
   }
   &[disabled] {
+    border-color: transparent;
     background-color: rgb(255 149 0 / 40%);
   }
   &.button--secondary {
     background-color: #fff;
-    border: 3px solid var(--primary-bg);
     color: var(--primary-bg);
-    padding: 11px 16px;
   }
   &.button--danger {
     background-color: #ff3b30;
+    border-color: #ff3b30;
   }
 }
 
