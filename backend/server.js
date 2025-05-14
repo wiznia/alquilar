@@ -6,6 +6,7 @@ import Listing from './listingSchema.js';
 import User from './userSchema.js';
 import Message from './messageSchema.js';
 import Notification from './notificationSchema.js';
+import Event from './eventSchema.js';
 import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
 import bcrypt from 'bcrypt';
@@ -82,7 +83,7 @@ const typeDefs = `
     getMessages(userId: ID!): [Message]
     getNotifications(userId: ID!): [Notification]
     getPotentialTenantsByListing(ids: [ID!]!): [User]
-    getTenantUser(nombre: String!, apellido: String!, tipo_de_cuenta: String!, potential_tenant: [String!]!): [User]
+    getTenantUser(nombre: String!, apellido: String!, tipo_de_cuenta: String!, potential_tenant: [String!], invite: [String]): [User]
     getUserListingNotifications(userId: ID!, listingId: ID!): [Notification]
   }
 
@@ -173,6 +174,15 @@ const typeDefs = `
     receiver: User
     sender: User
     type: String!
+  }
+
+  type Event {
+    titulo: String!
+    asunto: String!
+    date: Int!
+    time: String!
+    senderId: User
+    receiverId: User
   }
 
   type Rating {
@@ -295,6 +305,7 @@ const typeDefs = `
     createPaymentLink(userId: ID!, value: Float!, listingId: ID!): String
     addPotentialTenant(tenantId: ID!, listingId: ID!, senderId: ID!, receiverId: ID!, type: String!): Boolean
     removePotentialTenant(listingId: ID!, senderId: ID!, receiverId: ID!, type: String!): Boolean
+    setCalendarEvent(titulo: String!, asunto: String!, time: String!, date: String!, senderId: ID!, receiverId: [ID!]!): [Event!]!
   }
 `;
 
@@ -327,16 +338,25 @@ const resolvers = {
     },
     getTenantUser: async (
       _,
-      { nombre, apellido, tipo_de_cuenta, potential_tenant },
+      { nombre, apellido, tipo_de_cuenta, potential_tenant, invite },
     ) => {
-      return await User.find({
+      const query = {
         tipo_de_cuenta,
         $or: [
           { nombre: { $regex: '^' + nombre, $options: 'i' } },
           { apellido: { $regex: '^' + apellido, $options: 'i' } },
         ],
-        potential_tenant: { $nin: [potential_tenant] },
-      });
+      };
+
+      if (potential_tenant) {
+        query.potential_tenant = { $nin: [potential_tenant] };
+      }
+
+      if (invite) {
+        query.invite = { $nin: [invite] };
+      }
+
+      return await User.find(query);
     },
     getListings: async (_, args) => {
       const filter = {};
@@ -467,7 +487,7 @@ const resolvers = {
       return conversations;
     },
     getNotifications: async (_, { userId }) => {
-      return await Notification.find({ receiver: userId });
+      return await Notification.find({ receiver: userId, read: false });
     },
     getUserListingNotifications: async (_, { userId, listingId }) => {
       return await Notification.find({
@@ -541,7 +561,7 @@ const resolvers = {
         email,
         nombre,
         password: hashedPassword,
-        ratings,
+        ratings: [],
         telefono,
         tipo_de_cuenta,
         usuario,
@@ -1026,7 +1046,7 @@ const resolvers = {
       { tenantId, listingId, senderId, receiverId, type },
     ) => {
       await Listing.findByIdAndUpdate(listingId, {
-        potential_tenant: [tenantId],
+        $addToSet: { potential_tenant: tenantId },
       });
 
       await User.findByIdAndUpdate(receiverId, {
@@ -1046,7 +1066,7 @@ const resolvers = {
       { listingId, senderId, receiverId, type },
     ) => {
       await Listing.findByIdAndUpdate(listingId, {
-        $unset: { potential_tenant: '' },
+        $pull: { potential_tenant: receiverId },
       });
 
       await User.findByIdAndUpdate(receiverId, {
@@ -1061,6 +1081,49 @@ const resolvers = {
 
       return true;
     },
+    setCalendarEvent: async (
+      _,
+      { titulo, asunto, time, date, senderId, receiverId },
+      context,
+    ) => {
+      const authHeader = context.req.headers.authorization;
+      if (!authHeader) {
+        throw new Error('No token provided');
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const actualSenderId = decoded.userId;
+      const sender =
+        await User.findById(actualSenderId).select('nombre apellido');
+
+      if (!sender) {
+        throw new Error('Sender user not found');
+      }
+
+      const month = date.split('/')[1];
+      const day = date.split('/')[0];
+      const content = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> agendó una visita a su inmueble para el día ${day}/${month}`;
+
+      await Promise.all(
+        receiverId.map(async (receiver) => {
+          await handleNotification(senderId, receiver, content, 'event');
+        }),
+      );
+
+      const event = new Event({
+        titulo,
+        asunto,
+        time,
+        date,
+        senderId,
+        receiverId,
+      });
+
+      await event.save();
+
+      return [event];
+    },
   },
   Listing: {
     likes: async (listing) => {
@@ -1068,6 +1131,14 @@ const resolvers = {
     },
     owner: async (listing) => {
       return await User.findById(listing.owner);
+    },
+  },
+  Event: {
+    senderId: async (event) => {
+      return await User.findById(event.senderId);
+    },
+    receiverId: async (event) => {
+      return await User.findById(event.receiverId);
     },
   },
 };

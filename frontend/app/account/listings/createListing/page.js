@@ -129,39 +129,37 @@ export default function Page() {
 
     try {
       let uploadedImageUrls = form.fotos || [];
+      const { data } = await createListing({
+        variables: {
+          input: { ...form, estado: estadoValue },
+        },
+      });
+
       if (inputFiles.length > 0) {
-        if (!listingId) {
-          const { data } = await createListing({
+        if (data) {
+          const listingId = data.createListing.id;
+          const newUrls = await uploadFilesToCloudinary(
+            inputFiles,
+            user.id,
+            listingId,
+          );
+          uploadedImageUrls = [...uploadedImageUrls, ...newUrls];
+          setForm((prevForm) => ({
+            ...prevForm,
+            fotos: uploadedImageUrls,
+          }));
+
+          await updateListing({
             variables: {
-              input: { ...form, estado: estadoValue },
+              id: listingId,
+              input: {
+                ...form,
+                fotos: uploadedImageUrls,
+                estado: estadoValue,
+                id: listingId,
+              },
             },
           });
-
-          if (data) {
-            const listingId = data.createListing.id;
-            const newUrls = await uploadFilesToCloudinary(
-              inputFiles,
-              user.id,
-              listingId,
-            );
-            uploadedImageUrls = [...uploadedImageUrls, ...newUrls];
-            setForm((prevForm) => ({
-              ...prevForm,
-              fotos: uploadedImageUrls,
-            }));
-
-            await updateListing({
-              variables: {
-                id: listingId,
-                input: {
-                  ...form,
-                  fotos: uploadedImageUrls,
-                  estado: estadoValue,
-                  id: listingId,
-                },
-              },
-            });
-          }
         }
       }
 

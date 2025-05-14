@@ -379,13 +379,15 @@ export const GET_TENANT_USER = gql`
     $nombre: String!
     $apellido: String!
     $tipo_de_cuenta: String!
-    $potential_tenant: [String!]!
+    $potential_tenant: [String!]
+    $invite: [String!]
   ) {
     getTenantUser(
       nombre: $nombre
       apellido: $apellido
       tipo_de_cuenta: $tipo_de_cuenta
       potential_tenant: $potential_tenant
+      invite: $invite
     ) {
       id
       nombre
@@ -666,5 +668,38 @@ export const REMOVE_POTENTIAL_TENANT = gql`
 export const MARK_NOTIFICATIONS_AS_READ = gql`
   mutation MarkNotificationsAsRead($notifications: [ID!]!) {
     markNotificationsAsRead(notifications: $notifications)
+  }
+`;
+
+export const SET_CALENDAR_EVENT = gql`
+  mutation SetCalendarEvent(
+    $titulo: String!
+    $asunto: String!
+    $time: String!
+    $date: String!
+    $senderId: ID!
+    $receiverId: [ID!]!
+  ) {
+    setCalendarEvent(
+      titulo: $titulo
+      asunto: $asunto
+      time: $time
+      date: $date
+      senderId: $senderId
+      receiverId: $receiverId
+    ) {
+      titulo
+      asunto
+      time
+      date
+      senderId {
+        nombre
+        apellido
+      }
+      receiverId {
+        nombre
+        apellido
+      }
+    }
   }
 `;

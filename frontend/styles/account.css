@@ -160,7 +160,6 @@
     margin-inline-end: auto;
   }
   .button {
-    margin-block-start: 16px;
     justify-self: flex-start;
   }
   a:not(.button) {
@@ -248,6 +247,9 @@
   input[type='text'] {
     width: 100%;
   }
+  .pill {
+    margin-block-start: 16px;
+  }
 }
 .input-suggestion__container {
   position: absolute;
@@ -266,4 +268,75 @@
   small {
     font-weight: bold;
   }
+}
+
+.calendar {
+  display: flex;
+  flex-grow: 1;
+  flex-direction: column;
+}
+.calendar-container {
+  display: flex;
+}
+
+.calendar__inner {
+  width: 59%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.calendar__header {
+  display: flex;
+  align-items: center;
+  padding: 16px 32px;
+}
+
+.calendar__nav {
+  display: flex;
+  gap: 12px;
+  margin-inline-start: auto;
+}
+
+.calendar__content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.calendar__weekdays {
+  display: flex;
+  justify-content: space-between;
+  label {
+    font-size: 13px;
+    font-weight: bold;
+    text-align: center;
+    width: calc(100% / 7);
+  }
+}
+
+.calendar__days {
+  display: flex;
+  flex-wrap: wrap;
+  cursor: pointer;
+  span {
+    width: calc(100% / 7);
+    text-align: center;
+    padding: 27px 0;
+    font-size: 19px;
+    font-weight: 500;
+  }
+  .calendar__day--current {
+    color: var(--primary-bg);
+  }
+}
+
+.calendar-event {
+  display: flex;
+  flex-direction: column;
+  gap: var(--margin);
+}
+
+.calendar-events {
+  width: 41%;
 }

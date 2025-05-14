@@ -177,6 +177,14 @@ function ConfigListing() {
     }
   }, [user]);
 
+  useEffect(() => {
+    if (data?.getListingById) {
+      setForm((prevForm) => ({
+        ...prevForm,
+      }));
+    }
+  }, [data?.getListingById]);
+
   if (loading) {
     return (
       <Loading>
@@ -328,7 +336,7 @@ function ConfigListing() {
               <input
                 type="number"
                 name="sena"
-                value={data?.getListingById.sena || ''}
+                value={form?.sena || ''}
                 onChange={handleChange}
                 placeholder="Ingresá el monto de la seña en pesos argentinos"
               />

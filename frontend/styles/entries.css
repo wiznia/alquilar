@@ -26,6 +26,7 @@
   flex-direction: column;
   gap: 8px;
   h5 {
+    font-weight: normal;
     color: var(--primary-text);
   }
   h4 + p {
@@ -165,6 +166,7 @@
 .address {
   margin-block-start: 3px;
   h5 {
+    font-weight: bold;
     color: var(--primary-titles);
   }
   h6 {

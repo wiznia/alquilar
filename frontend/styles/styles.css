@@ -72,6 +72,7 @@ img {
 ul,
 li {
   list-style-type: none;
+  list-style-position: inside;
 }
 
 .documentation-list {
@@ -110,6 +111,7 @@ input[type='tel'],
 input[type='number'],
 input[type='search'],
 input[type='password'],
+input[type='time'],
 textarea {
   font-family: inherit;
   transition: all 250ms ease;
@@ -242,7 +244,7 @@ h4 {
 
 h5 {
   font-size: 23px;
-  font-weight: 500;
+  font-weight: 700;
   line-height: 1.2;
 }
 
@@ -336,7 +338,11 @@ small,
   font-size: 14px;
   font-weight: 600;
   margin-block-start: 5px;
+  margin-inline-end: 10px;
   background-color: var(--primary-bg);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   &.borrador {
     background-color: var(--primary-text);
   }
@@ -353,6 +359,10 @@ small,
   &.alquilado {
     background-color: #000;
   }
+}
+.pill-close {
+  font-size: 22px;
+  cursor: pointer;
 }
 
 .badge {

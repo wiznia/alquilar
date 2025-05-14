@@ -210,6 +210,8 @@ function UpdateListingContent() {
     );
   }
 
+  if (error) return <p>Error: {error.message}</p>;
+
   return (
     <div className="account">
       <AccountSidebar />

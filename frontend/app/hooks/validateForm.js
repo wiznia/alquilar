@@ -69,13 +69,31 @@ export const validateForm = (form, formType) => {
 
   if (formType === 'sendMessage') {
     if (!form.asunto) {
-      errors.titulo = 'Debés completar el asunto.';
+      errors.asunto = 'Debés completar el asunto.';
     }
   }
 
   if (formType === 'sendSena') {
     if (!form.sena) {
       errors.sena = 'Debés ingresar un valor en pesos argentinos mayor a cero.';
+    }
+  }
+
+  if (formType === 'setEvent') {
+    if (!form.titulo) {
+      errors.titulo = 'Debés completar un título.';
+    }
+
+    if (!form.asunto) {
+      errors.titulo = 'Debés completar el asunto.';
+    }
+
+    if (!form.time) {
+      errors.time = 'Debés completar la hora.';
+    }
+
+    if (!form.invite) {
+      errors.invite = 'Tenés que invitar al menos a una persona a tu evento.';
     }
   }
 
