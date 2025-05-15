@@ -85,6 +85,7 @@ const typeDefs = `
     getPotentialTenantsByListing(ids: [ID!]!): [User]
     getTenantUser(nombre: String!, apellido: String!, tipo_de_cuenta: String!, potential_tenant: [String!], invite: [String]): [User]
     getUserListingNotifications(userId: ID!, listingId: ID!): [Notification]
+    getCalendarEvents(senderId: ID!, createdAt_min: String!, createdAt_max: String!): [Event!]!
   }
 
   type ListingsResult {
@@ -179,10 +180,11 @@ const typeDefs = `
   type Event {
     titulo: String!
     asunto: String!
-    date: Int!
+    date: String!
     time: String!
     senderId: User
     receiverId: User
+    id: String
   }
 
   type Rating {
@@ -305,7 +307,7 @@ const typeDefs = `
     createPaymentLink(userId: ID!, value: Float!, listingId: ID!): String
     addPotentialTenant(tenantId: ID!, listingId: ID!, senderId: ID!, receiverId: ID!, type: String!): Boolean
     removePotentialTenant(listingId: ID!, senderId: ID!, receiverId: ID!, type: String!): Boolean
-    setCalendarEvent(titulo: String!, asunto: String!, time: String!, date: String!, senderId: ID!, receiverId: [ID!]!): [Event!]!
+    setCalendarEvent(titulo: String!, asunto: String!, time: String!, date: String!, senderId: ID!, receiverId: [ID!]!): Event!
   }
 `;
 
@@ -495,6 +497,33 @@ const resolvers = {
         listingId: listingId,
         type: 'listing',
       });
+    },
+    getCalendarEvents: async (
+      _,
+      { senderId, createdAt_min, createdAt_max },
+      context,
+    ) => {
+      const authHeader = context.req.headers.authorization;
+      if (!authHeader) {
+        throw new Error('No token provided');
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+      if (decoded.userId !== senderId) {
+        throw new Error('Unauthorized access');
+      }
+
+      const events = await Event.find({
+        senderId,
+        date: {
+          $gte: createdAt_min,
+          $lte: createdAt_max,
+        },
+      });
+
+      return events;
     },
   },
   Mutation: {
@@ -1101,9 +1130,11 @@ const resolvers = {
         throw new Error('Sender user not found');
       }
 
-      const month = date.split('/')[1];
-      const day = date.split('/')[0];
-      const content = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> agendó una visita a su inmueble para el día ${day}/${month}`;
+      const id = crypto.randomUUID();
+      const day = new Date(date).getDate();
+      const month = new Date(date).getMonth() + 1;
+      const fullMonth = month.toString().padStart(2, '0');
+      const content = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> agendó una visita a su inmueble para el día ${day}/${fullMonth}`;
 
       await Promise.all(
         receiverId.map(async (receiver) => {
@@ -1112,6 +1143,7 @@ const resolvers = {
       );
 
       const event = new Event({
+        id,
         titulo,
         asunto,
         time,
@@ -1122,7 +1154,7 @@ const resolvers = {
 
       await event.save();
 
-      return [event];
+      return event;
     },
   },
   Listing: {

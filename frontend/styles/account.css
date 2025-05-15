@@ -329,6 +329,22 @@
   .calendar__day--current {
     color: var(--primary-bg);
   }
+  .calendar__day--event {
+    position: relative;
+    &::before {
+      background-color: var(--primary-bg);
+      content: '';
+      border-radius: 100%;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 35px;
+      height: 35px;
+      display: block;
+      transform: translate(-50%, -50%);
+      z-index: -1;
+    }
+  }
 }
 
 .calendar-event {
@@ -339,4 +355,48 @@
 
 .calendar-events {
   width: 41%;
+}
+
+.calendar__event {
+  border-bottom: 1px solid #cccccc6b;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 24px;
+  small {
+    font-weight: bold;
+    color: var(--primary-text);
+  }
+}
+
+.calendar__event-info {
+  flex-grow: 1;
+  p {
+    font-weight: bold;
+    color: var(--primary-titles);
+  }
+  a {
+    display: flex;
+    font-size: 13px;
+    font-weight: bold;
+  }
+}
+
+.calendar__event-info-footer {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.calendar__event-count {
+  background-color: var(--error);
+  width: 15px;
+  height: 15px;
+  display: block;
+  border-radius: 100%;
+  position: absolute;
+  top: 18px;
+  right: 22px;
+  font-size: 12px;
+  color: #fff;
 }

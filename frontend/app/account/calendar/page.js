@@ -5,12 +5,15 @@ import AccountSidebar from '@/components/AccountSidebar';
 import {
   GET_TENANT_USER,
   SET_CALENDAR_EVENT,
+  GET_CALENDAR_EVENTS_BY_MONTH,
 } from '@/components/queries/queries';
 import formatDateTime from '@/lib/formatDateTime';
-import { useLazyQuery, useMutation } from '@apollo/client';
-import { useCallback, useRef, useState } from 'react';
+import { useLazyQuery, useMutation, useQuery } from '@apollo/client';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/components/AuthContext';
 import throttle from '@/lib/throttle';
+import Loading from '@/components/Loading';
+import Link from 'next/link';
 
 export default function Calendar() {
   const { user } = useAuth();
@@ -40,27 +43,45 @@ export default function Calendar() {
   const [currentMonth, setCurrentMonth] = useState(currentDate.getMonth());
   const [currentYear, setCurrentYear] = useState(currentDate.getFullYear());
   const [selectedDate, setSelectedDate] = useState(currentDate);
-  const [showEvent, setShowEvent] = useState(false);
-  const [invite, setInvite] = useState('');
+  const [showAddEventForm, setShowAddEventForm] = useState(false);
+  const [invite, setInvite] = useState([]);
   const [inviteName, setInviteName] = useState('');
   const [searchIsActive, setSearchIsActive] = useState(false);
-  const [setCalendarEvent] = useMutation(SET_CALENDAR_EVENT);
   const [isLoading, setIsLoading] = useState(false);
+  const [monthlyEvents, setMonthlyEvents] = useState([]);
+  const [dateEvents, setDateEvents] = useState([]);
+  const [eventsCountByDay, setEventsCountByDay] = useState({});
+  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+  const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
+  const monthTwoDecimals = (currentMonth + 1).toString().padStart(2, '0');
+  const { form, setForm, errors, handleChange, validateFormCheck } =
+    useFormValidation(initialState, 'setEvent');
+
+  const [setCalendarEvent] = useMutation(SET_CALENDAR_EVENT);
   const [
     findTenants,
     { data: tenantData, loading: tenantLoading, error: tenantError },
   ] = useLazyQuery(GET_TENANT_USER);
-
-  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-  const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
-  const { form, setForm, errors, handleChange, validateFormCheck } =
-    useFormValidation(initialState, 'setEvent');
+  const { data, loading, error, refetch } = useQuery(
+    GET_CALENDAR_EVENTS_BY_MONTH,
+    {
+      variables: {
+        senderId: user?.id,
+        createdAt_min: `${currentYear}-${monthTwoDecimals}-01`,
+        createdAt_max: `${currentYear}-${monthTwoDecimals}-${daysInMonth}`,
+      },
+      skip: !user?.id,
+    },
+  );
 
   const prevMonth = () => {
     setCurrentMonth((prevMonth) => (prevMonth === 0 ? 11 : prevMonth - 1));
     setCurrentYear((prevYear) =>
       currentMonth === 0 ? prevYear - 1 : prevYear,
     );
+    setDateEvents([]);
+    setShowAddEventForm(false);
+    refetch();
   };
 
   const nextMonth = () => {
@@ -68,6 +89,9 @@ export default function Calendar() {
     setCurrentYear((prevYear) =>
       currentMonth === 11 ? prevYear + 1 : prevYear,
     );
+    setDateEvents([]);
+    setShowAddEventForm(false);
+    refetch();
   };
 
   const handleDayClick = (day) => {
@@ -76,7 +100,18 @@ export default function Calendar() {
 
     if (clickedDate > today || isSameDay(clickedDate, today)) {
       setSelectedDate(clickedDate);
-      setShowEvent(true);
+      setShowAddEventForm(true);
+
+      const eventsForDate = monthlyEvents.filter((event) => {
+        const eventDate = new Date(event.date);
+        return (
+          eventDate.getFullYear() === clickedDate.getFullYear() &&
+          eventDate.getMonth() === clickedDate.getMonth() &&
+          eventDate.getDate() === clickedDate.getDate()
+        );
+      });
+
+      setDateEvents(eventsForDate);
     }
   };
 
@@ -93,16 +128,12 @@ export default function Calendar() {
     if (!validateFormCheck()) return;
 
     try {
-      const date = selectedDate;
-      const month = date.getMonth() + 1;
-      const fullDate = `${date.getDate()}/${month.toString().padStart(2, '0')}/${date.getFullYear()}`;
-
       setIsLoading(true);
 
       const { data } = await setCalendarEvent({
         variables: {
           ...form,
-          date: fullDate,
+          date: selectedDate.toISOString(),
           senderId: user?.id,
           receiverId: invite,
         },
@@ -110,9 +141,13 @@ export default function Calendar() {
 
       if (data?.setCalendarEvent) {
         setIsLoading(false);
-        setShowEvent(false);
-        formRef.current.reset();
-        if (formRef.current) formRef.current.value = '';
+        setShowAddEventForm(false);
+        setInvite([]);
+        setInviteName('');
+        if (formRef.current) {
+          formRef.current.reset();
+        }
+        refetch();
       }
     } catch (error) {
       setIsLoading(false);
@@ -156,6 +191,42 @@ export default function Calendar() {
     }, 2000),
     [findTenants],
   );
+
+  const handleDayClasses = (day) => {
+    const classes = [];
+
+    monthlyEvents.forEach((event) => {
+      const eventDate = new Date(event.date).getDate() - 1;
+
+      if (eventDate === day) {
+        classes.push('calendar__day--event');
+      }
+    });
+
+    if (
+      day + 1 === currentDate.getDate() &&
+      currentMonth === currentDate.getMonth() &&
+      currentYear === currentDate.getFullYear()
+    ) {
+      classes.push('calendar__day--current');
+    }
+
+    return classes.join(' ');
+  };
+
+  useEffect(() => {
+    if (data?.getCalendarEvents) {
+      setMonthlyEvents(data.getCalendarEvents);
+
+      const counts = {};
+      data.getCalendarEvents.forEach((event) => {
+        const date = new Date(event.date);
+        const day = date.getDate();
+        counts[day] = (counts[day] || 0) + 1;
+      });
+      setEventsCountByDay(counts);
+    }
+  }, [data?.getCalendarEvents]);
 
   return (
     <div className="account">
@@ -243,22 +314,21 @@ export default function Calendar() {
                 {[...Array(daysInMonth).keys()].map((day) => (
                   <span
                     key={day + 1}
-                    className={
-                      day + 1 === currentDate.getDate() &&
-                      currentMonth === currentDate.getMonth() &&
-                      currentYear === currentDate.getFullYear()
-                        ? 'calendar__day--current'
-                        : ''
-                    }
+                    className={handleDayClasses(day)}
                     onClick={() => handleDayClick(day + 1)}
                   >
                     {day + 1}
+                    {eventsCountByDay[day + 1] && (
+                      <div className="calendar__event-count">
+                        {eventsCountByDay[day + 1]}
+                      </div>
+                    )}
                   </span>
                 ))}
               </div>
             </div>
             <div className="calendar-form">
-              {showEvent && (
+              {showAddEventForm && (
                 <form onSubmit={handleSubmit} ref={formRef}>
                   <div className="calendar-event">
                     <h5>
@@ -345,7 +415,7 @@ export default function Calendar() {
                             {errors.invite}
                           </small>
                         )}
-                        {invite &&
+                        {invite.length > 0 &&
                           inviteName.map((invitee) => (
                             <div key={invitee} className="pill">
                               <span>{invitee}</span>
@@ -374,13 +444,35 @@ export default function Calendar() {
             </div>
           </div>
           <div className="calendar-events">
-            <div className="messages__item">
-              <div className="messages__item-info">
-                <p>Titulo del evento</p>
-                <small>Descripcion</small>
-              </div>
-              <small>{formatDateTime(currentDate)}</small>
-            </div>
+            {loading && (
+              <Loading>
+                <h4>Cargando eventos...</h4>
+              </Loading>
+            )}
+            {error && (
+              <Loading>
+                <p>
+                  Hubo un problema al cargar los eventos:
+                  {error.message}
+                </p>
+              </Loading>
+            )}
+            {dateEvents &&
+              dateEvents.map((event) => (
+                <div key={event.id} className="calendar__event">
+                  <div className="calendar__event-info">
+                    <p>{event.titulo}</p>
+                    <small>{event.asunto}</small>
+                    <div className="calendar__event-info-footer">
+                      <small>Invitado:</small>
+                      <Link href={`/user/${event.receiverId.id}`}>
+                        {event.receiverId.nombre} {event.receiverId.apellido}
+                      </Link>
+                    </div>
+                  </div>
+                  <small>{event.time}hs</small>
+                </div>
+              ))}
           </div>
         </div>
       </div>

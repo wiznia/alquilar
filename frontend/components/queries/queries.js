@@ -396,6 +396,36 @@ export const GET_TENANT_USER = gql`
   }
 `;
 
+export const GET_CALENDAR_EVENTS_BY_MONTH = gql`
+  query GetCalendarEvents(
+    $senderId: ID!
+    $createdAt_min: String!
+    $createdAt_max: String!
+  ) {
+    getCalendarEvents(
+      senderId: $senderId
+      createdAt_min: $createdAt_min
+      createdAt_max: $createdAt_max
+    ) {
+      titulo
+      asunto
+      time
+      date
+      id
+      senderId {
+        nombre
+        apellido
+        id
+      }
+      receiverId {
+        nombre
+        apellido
+        id
+      }
+    }
+  }
+`;
+
 export const REGISTER = gql`
   mutation Register(
     $apellido: String!
