@@ -191,12 +191,16 @@ export default function Messages() {
                 </svg>
               </div>
               <div className="messages__item-info">
-                <h6>
-                  {openConversation.sender.id === user?.id
-                    ? `${openConversation.receiver.nombre} ${openConversation.receiver.apellido}`
-                    : `${openConversation.sender.nombre} ${openConversation.sender.apellido}`}
-                </h6>
-                <p>Online</p>
+                <Link
+                  href={`/user/${openConversation.sender.id !== user?.id ? openConversation.sender.id : openConversation.receiver.id}`}
+                >
+                  <h6>
+                    {openConversation.sender.id === user?.id
+                      ? `${openConversation.receiver.nombre} ${openConversation.receiver.apellido}`
+                      : `${openConversation.sender.nombre} ${openConversation.sender.apellido}`}
+                  </h6>
+                  <p>Online</p>
+                </Link>
               </div>
             </div>
             <div className="messages__conversation" ref={messagesEndRef}>

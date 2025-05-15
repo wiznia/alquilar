@@ -6,8 +6,8 @@ import {
   GET_TENANT_USER,
   SET_CALENDAR_EVENT,
   GET_CALENDAR_EVENTS_BY_MONTH,
+  DELETE_CALENDAR_EVENT,
 } from '@/components/queries/queries';
-import formatDateTime from '@/lib/formatDateTime';
 import { useLazyQuery, useMutation, useQuery } from '@apollo/client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/components/AuthContext';
@@ -58,6 +58,7 @@ export default function Calendar() {
     useFormValidation(initialState, 'setEvent');
 
   const [setCalendarEvent] = useMutation(SET_CALENDAR_EVENT);
+  const [deleteCalendarEvent] = useMutation(DELETE_CALENDAR_EVENT);
   const [
     findTenants,
     { data: tenantData, loading: tenantLoading, error: tenantError },
@@ -100,7 +101,6 @@ export default function Calendar() {
 
     if (clickedDate > today || isSameDay(clickedDate, today)) {
       setSelectedDate(clickedDate);
-      setShowAddEventForm(true);
 
       const eventsForDate = monthlyEvents.filter((event) => {
         const eventDate = new Date(event.date);
@@ -211,7 +211,24 @@ export default function Calendar() {
       classes.push('calendar__day--current');
     }
 
+    if (
+      selectedDate.getDate() === day + 1 &&
+      selectedDate.getMonth() === currentMonth &&
+      selectedDate.getFullYear() === currentYear
+    ) {
+      classes.push('calendar__day--selected');
+    }
+
     return classes.join(' ');
+  };
+
+  const handleDeleteEvent = async (eventId) => {
+    await deleteCalendarEvent({
+      variables: {
+        eventId,
+      },
+    });
+    refetch();
   };
 
   useEffect(() => {
@@ -327,123 +344,135 @@ export default function Calendar() {
                 ))}
               </div>
             </div>
-            <div className="calendar-form">
-              {showAddEventForm && (
-                <form onSubmit={handleSubmit} ref={formRef}>
-                  <div className="calendar-event">
-                    <h5>
-                      Agregar evento el{' '}
-                      {`${selectedDate.getDate()} de ${monthsOfYear[currentMonth]}`}
-                      :
-                    </h5>
-                    <fieldset>
-                      <label htmlFor="titulo">Título:</label>
+          </div>
+          {showAddEventForm && (
+            <div className="calendar-form shadow">
+              <form onSubmit={handleSubmit} ref={formRef}>
+                <button
+                  className="close"
+                  onClick={() => {
+                    setShowAddEventForm(false);
+                  }}
+                >
+                  &times;
+                </button>
+                <div className="calendar-event">
+                  <h5>
+                    Agregar evento el{' '}
+                    {`${selectedDate.getDate()} de ${monthsOfYear[currentMonth]}`}
+                    :
+                  </h5>
+                  <fieldset>
+                    <label htmlFor="titulo">Título:</label>
+                    <input
+                      type="text"
+                      placeholder="Título"
+                      id="titulo"
+                      name="titulo"
+                      required
+                      onChange={handleChange}
+                    />
+                    {errors.titulo && (
+                      <small className="error-message">{errors.titulo}</small>
+                    )}
+                  </fieldset>
+                  <fieldset>
+                    <label htmlFor="asunto">Asunto:</label>
+                    <textarea
+                      placeholder="Asunto"
+                      id="asunto"
+                      name="asunto"
+                      required
+                      onChange={handleChange}
+                    ></textarea>
+                    {errors.asunto && (
+                      <small className="error-message">{errors.asunto}</small>
+                    )}
+                  </fieldset>
+                  <fieldset>
+                    <label htmlFor="time">Hora:</label>
+                    <input
+                      type="time"
+                      id="time"
+                      name="time"
+                      onChange={handleChange}
+                      required
+                    />
+                    {errors.time && (
+                      <small className="error-message">{errors.time}</small>
+                    )}
+                  </fieldset>
+                  <fieldset>
+                    <div className="input-suggestion">
                       <input
                         type="text"
-                        placeholder="Título"
-                        id="titulo"
-                        name="titulo"
-                        required
-                        onChange={handleChange}
+                        name="inquilino"
+                        onChange={(e) => {
+                          setSearchIsActive(true);
+                          throttledFindTenants({
+                            nombre: e.target.value,
+                            apellido: e.target.value,
+                            tipo_de_cuenta: 'Inquilino',
+                            invite: e.target.value,
+                          });
+                        }}
+                        placeholder="Ingresá el nombre o apellido del usuario que quieras invitar a este evento"
                       />
-                      {errors.titulo && (
-                        <small className="error-message">{errors.titulo}</small>
-                      )}
-                    </fieldset>
-                    <fieldset>
-                      <label htmlFor="asunto">Asunto:</label>
-                      <textarea
-                        placeholder="Asunto"
-                        id="asunto"
-                        name="asunto"
-                        required
-                        onChange={handleChange}
-                      ></textarea>
-                      {errors.asunto && (
-                        <small className="error-message">{errors.asunto}</small>
-                      )}
-                    </fieldset>
-                    <fieldset>
-                      <label htmlFor="time">Hora:</label>
-                      <input
-                        type="time"
-                        id="time"
-                        name="time"
-                        onChange={handleChange}
-                        required
-                      />
-                      {errors.time && (
-                        <small className="error-message">{errors.time}</small>
-                      )}
-                    </fieldset>
-                    <fieldset>
-                      <div className="input-suggestion">
-                        <input
-                          type="text"
-                          name="inquilino"
-                          onChange={(e) => {
-                            setSearchIsActive(true);
-                            throttledFindTenants({
-                              nombre: e.target.value,
-                              apellido: e.target.value,
-                              tipo_de_cuenta: 'Inquilino',
-                              invite: e.target.value,
-                            });
-                          }}
-                          placeholder="Ingresá el nombre o apellido del usuario que quieras invitar a este evento"
-                        />
-                        {tenantData?.getTenantUser?.length > 0 &&
-                          searchIsActive && (
-                            <div className="input-suggestion__container">
-                              {tenantData?.getTenantUser.map((tenant, i) => (
-                                <div key={i} className="input-suggestion__item">
-                                  <small>
-                                    {tenant.nombre} {tenant.apellido}
-                                  </small>
-                                  <button
-                                    className="button button--small"
-                                    onClick={() => handleInvite(tenant)}
-                                  >
-                                    Invitar
-                                  </button>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        {errors.invite && (
-                          <small className="error-message">
-                            {errors.invite}
-                          </small>
+                      {tenantData?.getTenantUser?.length > 0 &&
+                        searchIsActive && (
+                          <div className="input-suggestion__container">
+                            {tenantData?.getTenantUser.map((tenant, i) => (
+                              <div key={i} className="input-suggestion__item">
+                                <small>
+                                  {tenant.nombre} {tenant.apellido}
+                                </small>
+                                <button
+                                  className="button button--small"
+                                  onClick={() => handleInvite(tenant)}
+                                >
+                                  Invitar
+                                </button>
+                              </div>
+                            ))}
+                          </div>
                         )}
-                        {invite.length > 0 &&
-                          inviteName.map((invitee) => (
-                            <div key={invitee} className="pill">
-                              <span>{invitee}</span>
-                              <span
-                                className="pill-close"
-                                onClick={() => handleRemoveInvite(invitee)}
-                              >
-                                &times;
-                              </span>
-                            </div>
-                          ))}
-                      </div>
-                    </fieldset>
-                    <div className="button-container">
-                      <button className="button" disabled={isLoading}>
-                        {isLoading ? (
-                          <span className="loader"></span>
-                        ) : (
-                          <span>Agregar evento</span>
-                        )}
-                      </button>
+                      {errors.invite && (
+                        <small className="error-message">{errors.invite}</small>
+                      )}
+                      {invite.length > 0 &&
+                        inviteName.map((invitee) => (
+                          <div key={invitee} className="pill">
+                            <span>{invitee}</span>
+                            <span
+                              className="pill-close"
+                              onClick={() => handleRemoveInvite(invitee)}
+                            >
+                              &times;
+                            </span>
+                          </div>
+                        ))}
                     </div>
+                  </fieldset>
+                  <div className="button-container">
+                    <button className="button" disabled={isLoading}>
+                      {isLoading ? (
+                        <span className="loader"></span>
+                      ) : (
+                        <span>Agregar evento</span>
+                      )}
+                    </button>
                   </div>
-                </form>
-              )}
+                </div>
+              </form>
             </div>
-          </div>
+          )}
           <div className="calendar-events">
+            <button
+              className="button"
+              onClick={() => setShowAddEventForm(true)}
+            >
+              Agregar evento
+            </button>
             {loading && (
               <Loading>
                 <h4>Cargando eventos...</h4>
@@ -460,11 +489,23 @@ export default function Calendar() {
             {dateEvents &&
               dateEvents.map((event) => (
                 <div key={event.id} className="calendar__event">
+                  <button
+                    className="calendar__event-delete"
+                    onClick={() => handleDeleteEvent(event.id)}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 448 512"
+                      width="16"
+                    >
+                      <path d="M432 80h-82.38l-34-56.75C306.1 8.827 291.4 0 274.6 0H173.4c-16.8 0-32.4 8.827-41 23.25L98.38 80H16C7.125 80 0 87.13 0 96v16c0 8.9 7.125 16 16 16h16v320c0 35.35 28.65 64 64 64h256c35.35 0 64-28.65 64-64V128h16c8.9 0 16-7.1 16-16V96c0-8.87-7.1-16-16-16zM171.9 50.88c1-1.75 3-2.88 5.1-2.88h94c2.125 0 4.125 1.125 5.125 2.875L293.6 80H154.4l17.5-29.12zM352 464H96c-8.837 0-16-7.163-16-16V128h288v320c0 8.8-7.2 16-16 16zm-128-48c8.844 0 16-7.156 16-16V192c0-8.844-7.156-16-16-16s-16 7.2-16 16v208c0 8.8 7.2 16 16 16zm-80 0c8.8 0 16-7.2 16-16V192c0-8.844-7.156-16-16-16s-16 7.2-16 16v208c0 8.8 7.2 16 16 16zm160 0c8.844 0 16-7.156 16-16V192c0-8.844-7.156-16-16-16s-16 7.2-16 16v208c0 8.8 7.2 16 16 16z" />
+                    </svg>
+                  </button>
                   <div className="calendar__event-info">
                     <p>{event.titulo}</p>
                     <small>{event.asunto}</small>
                     <div className="calendar__event-info-footer">
-                      <small>Invitado:</small>
+                      <small>Asistente:</small>
                       <Link href={`/user/${event.receiverId.id}`}>
                         {event.receiverId.nombre} {event.receiverId.apellido}
                       </Link>

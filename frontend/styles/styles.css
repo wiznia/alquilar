@@ -246,6 +246,7 @@ h5 {
   font-size: 23px;
   font-weight: 700;
   line-height: 1.2;
+  color: var(--primary-titles);
 }
 
 h6 {

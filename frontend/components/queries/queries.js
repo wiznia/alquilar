@@ -733,3 +733,9 @@ export const SET_CALENDAR_EVENT = gql`
     }
   }
 `;
+
+export const DELETE_CALENDAR_EVENT = gql`
+  mutation DELETE_CALENDAR_EVENT($eventId: String!) {
+    deleteCalendarEvent(eventId: $eventId)
+  }
+`;

@@ -44,6 +44,9 @@
 .messages__item-info {
   width: 68%;
   flex: 0 0 auto;
+  a {
+    text-decoration: none;
+  }
 }
 
 .messages__area {
