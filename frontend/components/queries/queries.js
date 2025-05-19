@@ -426,6 +426,36 @@ export const GET_CALENDAR_EVENTS_BY_MONTH = gql`
   }
 `;
 
+export const GET_CALENDAR_EVENTS_BY_INVITEE = gql`
+  query GetCalendarEventsByInvitee(
+    $receiverId: ID!
+    $createdAt_min: String!
+    $createdAt_max: String!
+  ) {
+    getCalendarEventsByInvitee(
+      receiverId: $receiverId
+      createdAt_min: $createdAt_min
+      createdAt_max: $createdAt_max
+    ) {
+      titulo
+      asunto
+      time
+      date
+      id
+      senderId {
+        nombre
+        apellido
+        id
+      }
+      receiverId {
+        nombre
+        apellido
+        id
+      }
+    }
+  }
+`;
+
 export const REGISTER = gql`
   mutation Register(
     $apellido: String!

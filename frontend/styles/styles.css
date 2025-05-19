@@ -38,10 +38,14 @@ fieldset {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  > p {
-    margin-block-end: 12px;
-  }
-  &:has(input[required], select[required], textarea[required]) {
+  &:has(
+      input[required],
+      select[required],
+      textarea[required],
+      input.required,
+      select.required,
+      textarea.required
+    ) {
     p,
     label {
       &::after {

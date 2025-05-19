@@ -68,11 +68,10 @@ export default function Page() {
           <label htmlFor="email">Email:</label>
           <input
             type="email"
-            className="small"
+            className="small required"
             id="email"
             name="email"
             placeholder="Email"
-            required
             onChange={handleChange}
           />
           {errors.email && (
@@ -84,11 +83,10 @@ export default function Page() {
           <div className="input-password">
             <input
               type={showPassword ? 'text' : 'password'}
-              className="small"
+              className="small required"
               id="contrasena"
               name="password"
               placeholder="Contraseña"
-              required
               onChange={handleChange}
             />
             {showPassword ? (

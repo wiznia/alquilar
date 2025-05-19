@@ -7,7 +7,7 @@ import { SINGLE_LISTING_QUERY } from './queries/queries';
 import MapComponent from './Map';
 import Loading from './Loading';
 import { formatText } from '@/config';
-import ContactForm from '@/lib/ContactForm';
+import ContactForm from '@/components/ContactForm';
 import Related from './Related';
 
 export default function SingleListingPage({ id }) {

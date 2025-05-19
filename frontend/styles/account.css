@@ -27,57 +27,49 @@
   flex-direction: column;
   min-width: 520px;
   max-width: 660px;
-  fieldset {
-    input[type='text'],
-    input[type='email'],
-    input[type='tel'],
-    input[type='number'],
-    input[type='search'],
-    textarea,
-    select {
-      width: 100%;
-    }
-    .account__item {
-      display: flex;
-      gap: 20px;
-      &.account__item--checkbox {
-        display: block;
-        column-count: 2;
-        width: 300px;
-      }
-    }
-    .account__item-inner {
-      display: flex;
-      align-items: center;
-      color: var(--primary-text);
-      &.account__item-inner--half {
-        align-items: flex-start;
-        flex-direction: column;
-        gap: 12px;
-        flex: 1;
-      }
-    }
-    .account__item-number {
-      display: flex;
-      width: 160px;
-      button {
-        background-color: var(--secondary-bg);
-        color: var(--primary-text);
-        width: 50px;
-        font-size: 20px;
-        flex: 1 0 auto;
-      }
-      input[type='number'] {
-        text-align: center;
-      }
-      input::-webkit-inner-spin-button {
-        appearance: none;
-      }
-    }
-  }
   h6 {
     font-weight: bold;
     color: var(--primary-text);
+  }
+}
+fieldset {
+  .account__item {
+    display: flex;
+    gap: 20px;
+    &.account__item--checkbox {
+      display: block;
+      column-count: 2;
+      width: 300px;
+    }
+  }
+  .account__item-inner {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    color: var(--primary-text);
+    &.account__item-inner--half {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 12px;
+      flex: 1;
+    }
+  }
+  .account__item-number {
+    display: flex;
+    button {
+      background-color: var(--secondary-bg);
+      color: var(--primary-text);
+      width: 50px;
+      font-size: 20px;
+      flex: 1 0 auto;
+    }
+    input[type='number'] {
+      text-align: center;
+      width: 50px;
+    }
+    input::-webkit-inner-spin-button {
+      appearance: none;
+    }
   }
 }
 .account__item-photo-upload {
@@ -158,6 +150,9 @@
   gap: 10px;
   small {
     margin-inline-end: auto;
+    a {
+      margin-block-start: 16px;
+    }
   }
   .button {
     justify-self: flex-start;
@@ -330,7 +325,8 @@
   }
   .calendar__day--current {
     color: var(--primary-bg);
-    &.calendar__day--event {
+    &.calendar__day--event,
+    &.calendar__day--selected {
       color: var(--primary-titles);
     }
   }
@@ -428,12 +424,14 @@
   background: #fff;
   border-radius: var(--border-radius);
   position: absolute;
-  top: 50%;
-  left: 50%;
+  left: 0;
+  right: 0;
   z-index: 10;
-  transform: translate(-50%, -50%);
+  margin: auto;
   width: max-content;
-  min-width: 550px;
+  min-width: 650px;
   height: max-content;
+  max-height: 70vh;
+  overflow: auto;
   padding: var(--margin);
 }

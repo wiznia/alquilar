@@ -25,76 +25,89 @@ export const validateForm = (form, formType) => {
     else if (!/^\d{7,8}$/.test(form.dni))
       errors.dni = 'El DNI debe tener 7 u 8 números.';
 
-    if (!form.terms) errors.terms = 'Debés aceptar los términos y condiciones.';
+    if (!form.terms)
+      errors.terms = 'Tenés que aceptar los términos y condiciones.';
   }
 
   if (formType === 'createListing') {
     if (!form.tipo_de_alquiler) {
-      errors.tipo_de_alquiler = 'Debés seleccionar un tipo de operación.';
+      errors.tipo_de_alquiler = 'Tenés que seleccionar un tipo de operación.';
     }
     if (!form.moneda) {
-      errors.moneda = 'Debés seleccionar una moneda.';
+      errors.moneda = 'Tenés que seleccionar una moneda.';
     }
     if (!form.precio) {
-      errors.precio = 'Debés seleccionar un precio.';
+      errors.precio = 'El precio no puede estar vacío.';
     }
     if (!form.expensas) {
       errors.expensas = 'Las expensas no pueden estar vacías.';
     }
     if (!form.tipo_de_propiedad) {
-      errors.tipo_de_propiedad = 'Debés seleccionar un tipo de propiedad.';
+      errors.tipo_de_propiedad = 'Tenés que seleccionar un tipo de propiedad.';
     }
     if (form.antiguedad_max === null) {
-      errors.antiguedad_max = 'Debés seleccionar una antiguedad.';
+      errors.antiguedad_max = 'Tenés que seleccionar una antiguedad.';
     }
     if (!form.superficie_cubierta) {
-      errors.superficie_cubierta = 'Debés seleccionar una superficie cubierta.';
+      errors.superficie_cubierta =
+        'La superficie cubierta no puede estar vacía.';
     }
     if (!form.superficie_total) {
-      errors.superficie_total = 'Debés seleccionar una superficie total.';
+      errors.superficie_total = 'La superficie total no puede estar vacía.';
     }
     if (!form.provincia) {
-      errors.provincia = 'Debés seleccionar una provincia.';
+      errors.provincia = 'Tenés que seleccionar una provincia.';
     }
     if (!form.barrio) {
-      errors.barrio = 'Debés seleccionar un barrio.';
+      errors.barrio = 'Tenés que seleccionar un barrio.';
     }
     if (!form.direccion) {
-      errors.direccion = 'Debés seleccionar una direccion.';
+      errors.direccion = 'La dirección no puede estar vacía.';
     }
     if (!form.titulo) {
-      errors.titulo = 'Debés seleccionar un título.';
+      errors.titulo = 'Ingresá un título.';
+    }
+    if (!form.descripcion) {
+      errors.descripcion = 'Ingresá una descripción.';
     }
   }
 
   if (formType === 'sendMessage') {
     if (!form.asunto) {
-      errors.asunto = 'Debés completar el asunto.';
+      errors.asunto = 'Tenés que completar el asunto.';
     }
   }
 
   if (formType === 'sendSena') {
     if (!form.sena) {
-      errors.sena = 'Debés ingresar un valor en pesos argentinos mayor a cero.';
+      errors.sena =
+        'Tenés que ingresar un valor en pesos argentinos mayor a cero.';
     }
   }
 
   if (formType === 'setEvent') {
     if (!form.titulo) {
-      errors.titulo = 'Debés completar un título.';
+      errors.titulo = 'Tenés que completar un título.';
     }
 
     if (!form.asunto) {
-      errors.titulo = 'Debés completar el asunto.';
+      errors.asunto = 'Tenés que completar el asunto.';
     }
 
     if (!form.time) {
-      errors.time = 'Debés completar la hora.';
+      errors.time = 'Tenés que completar la hora.';
     }
 
     if (!form.invite) {
       errors.invite = 'Tenés que invitar al menos a una persona a tu evento.';
     }
+
+    if (!form.inquilino) {
+      errors.inquilino = 'Tenés que seleccionar un inmueble.';
+    }
+  }
+
+  if (formType === 'uploadDocuments') {
   }
 
   return errors;

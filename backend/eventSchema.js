@@ -17,6 +17,7 @@ const eventSchema = new mongoose.Schema({
       required: true,
     },
   ],
+  notified: { type: Boolean },
 });
 
 const Event = mongoose.model('Event', eventSchema);

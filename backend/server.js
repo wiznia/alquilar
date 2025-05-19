@@ -18,6 +18,7 @@ import cors from 'cors';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import { handleNotification } from './helpers.js';
+import cron from 'node-cron';
 
 dotenv.config();
 
@@ -86,6 +87,7 @@ const typeDefs = `
     getTenantUser(nombre: String!, apellido: String!, tipo_de_cuenta: String!, potential_tenant: [String!], invite: [String]): [User]
     getUserListingNotifications(userId: ID!, listingId: ID!): [Notification]
     getCalendarEvents(senderId: ID!, createdAt_min: String!, createdAt_max: String!): [Event!]!
+    getCalendarEventsByInvitee(receiverId: ID!, createdAt_min: String!, createdAt_max: String!): [Event!]!
   }
 
   type ListingsResult {
@@ -308,6 +310,7 @@ const typeDefs = `
     addPotentialTenant(tenantId: ID!, listingId: ID!, senderId: ID!, receiverId: ID!, type: String!): Boolean
     removePotentialTenant(listingId: ID!, senderId: ID!, receiverId: ID!, type: String!): Boolean
     setCalendarEvent(titulo: String!, asunto: String!, time: String!, date: String!, senderId: ID!, receiverId: [ID!]!): Event!
+    deleteCalendarEvent(eventId: String!): Boolean
   }
 `;
 
@@ -517,6 +520,33 @@ const resolvers = {
 
       const events = await Event.find({
         senderId,
+        date: {
+          $gte: createdAt_min,
+          $lte: createdAt_max,
+        },
+      });
+
+      return events;
+    },
+    getCalendarEventsByInvitee: async (
+      _,
+      { receiverId, createdAt_min, createdAt_max },
+      context,
+    ) => {
+      const authHeader = context.req.headers.authorization;
+      if (!authHeader) {
+        throw new Error('No token provided');
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+      if (decoded.userId !== receiverId) {
+        throw new Error('Unauthorized access');
+      }
+
+      const events = await Event.find({
+        receiverId: [receiverId],
         date: {
           $gte: createdAt_min,
           $lte: createdAt_max,
@@ -1156,6 +1186,11 @@ const resolvers = {
 
       return event;
     },
+    deleteCalendarEvent: async (_, { eventId }) => {
+      await Event.deleteOne({ _id: eventId });
+
+      return true;
+    },
   },
   Listing: {
     likes: async (listing) => {
@@ -1234,6 +1269,31 @@ app.get('/api/mercado-pago/callback', async (req, res) => {
     );
   }
 });
+
+const notifyPastEvents = async () => {
+  const oneDayAgo = new Date();
+  oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+
+  const events = await Event.find({
+    date: {
+      $lte: oneDayAgo,
+    },
+    notified: { $ne: true },
+  });
+
+  for (const event of events) {
+    const senderId = event.senderId;
+    const sender = await User.findById(senderId).select('nombre apellido');
+    const content = `Cómo estuvo la visita a "${event.titulo}"?. Agregá a <a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> como potencial inquilino si querés alquilarle tu inmueble.`;
+
+    await handleNotification(senderId, senderId, content, 'event', null);
+
+    event.notified = true;
+    await event.save();
+  }
+};
+
+cron.schedule('*/2 * * * *', notifyPastEvents);
 
 const server = new ApolloServer({
   typeDefs,

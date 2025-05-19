@@ -113,7 +113,7 @@ export default function Listing({ listing, user }) {
               clipRule="evenodd"
             />
           </svg>
-          Configurar
+          {user?.tipo_de_cuenta === 'Dueño' ? 'Configurar' : 'Ver detalles'}
         </Link>
       </div>
     </div>

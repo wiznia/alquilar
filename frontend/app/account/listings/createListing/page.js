@@ -15,6 +15,7 @@ import {
   UPLOAD_IMAGES,
 } from '@/components/queries/queries';
 import { useRouter } from 'next/navigation';
+import { handleUploadFile, handleRemoveFile } from '@/lib/fileHandlers';
 
 export default function Page() {
   const router = useRouter();
@@ -80,23 +81,6 @@ export default function Page() {
   });
   const [updateListing] = useMutation(UPDATE_LISTING);
   const [uploadImage] = useMutation(UPLOAD_IMAGES);
-
-  const handleUploadFile = (e) => {
-    const files = [...e.target.files];
-
-    setInputFiles((prevFiles) => [...prevFiles, ...files]);
-  };
-
-  const handleRemoveFile = (e, indexToRemove) => {
-    e.preventDefault();
-    setInputFiles((prevFiles) =>
-      prevFiles.filter((_, index) => index !== indexToRemove),
-    );
-    setForm((prevForm) => ({
-      ...prevForm,
-      fotos: prevForm.fotos.filter((_, index) => index !== indexToRemove),
-    }));
-  };
 
   const uploadFilesToCloudinary = async (files, userId, listingId) => {
     try {
@@ -191,7 +175,7 @@ export default function Page() {
           <fieldset>
             <p>Tipo de operación:</p>
             <div className="account__item">
-              <div className="account__item-inner popover__item">
+              <div className="account__item-inner">
                 <input
                   type="radio"
                   id="alquiler"
@@ -202,7 +186,7 @@ export default function Page() {
                 />
                 <label htmlFor="alquiler">Alquiler</label>
               </div>
-              <div className="account__item-inner popover__item">
+              <div className="account__item-inner">
                 <input
                   type="radio"
                   id="alquiler-temporario"
@@ -221,7 +205,7 @@ export default function Page() {
           <fieldset>
             <p>Moneda:</p>
             <div className="account__item">
-              <div className="account__item-inner popover__item">
+              <div className="account__item-inner">
                 <input
                   type="radio"
                   id="pesos"
@@ -232,7 +216,7 @@ export default function Page() {
                 />
                 <label htmlFor="pesos">Pesos</label>
               </div>
-              <div className="account__item-inner popover__item">
+              <div className="account__item-inner">
                 <input
                   type="radio"
                   id="dolares"
@@ -376,6 +360,7 @@ export default function Page() {
                   resource="provincias"
                   options={provinceData ? provinceData.provincias : []}
                   onChange={handleChange}
+                  keyName="nombre"
                 />
                 {errors.provincia && (
                   <small className="error-message">{errors.provincia}</small>
@@ -392,6 +377,7 @@ export default function Page() {
                   placeholder="Barrio"
                   onChange={handleChange}
                   options={cityData ? cityData.localidades : []}
+                  keyName="nombre"
                 />
                 {errors.barrio && (
                   <small className="error-message">{errors.barrio}</small>
@@ -410,6 +396,7 @@ export default function Page() {
                     resource="localidades"
                     onChange={handleChange}
                     options={localidadesData ? localidadesData : []}
+                    keyName="nombre"
                   />
                 </div>
               </div>
@@ -460,6 +447,9 @@ export default function Page() {
                   required
                   onChange={handleChange}
                 ></textarea>
+                {errors.descripcion && (
+                  <small className="error-message">{errors.descripcion}</small>
+                )}
               </div>
             </div>
           </fieldset>
@@ -725,7 +715,11 @@ export default function Page() {
                   : 'account__item-photo-upload'
               }
             >
-              <input type="file" multiple onChange={handleUploadFile} />
+              <input
+                type="file"
+                multiple
+                onChange={(e) => handleUploadFile(e, setInputFiles)}
+              />
               {inputFiles.length > 0 ? (
                 inputFiles.map((file, index) => (
                   <div key={index} className="account__item-photo-item">
@@ -734,7 +728,15 @@ export default function Page() {
                     </span>
                     <span>{file.name}</span>
                     <button
-                      onClick={(e) => handleRemoveFile(e, index)}
+                      onClick={(e) =>
+                        handleRemoveFile(
+                          e,
+                          index,
+                          setInputFiles,
+                          setForm,
+                          'fotos',
+                        )
+                      }
                       className="account__item-photo-close"
                     >
                       &times;

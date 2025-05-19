@@ -25,6 +25,7 @@
     "jsonwebtoken": "^9.0.2",
     "mercadopago": "^2.5.0",
     "mongoose": "^8.12.0",
+    "node-cron": "^4.0.5",
     "nodemailer": "^6.10.0",
     "stream": "^0.0.3",
     "uuid": "^11.1.0"

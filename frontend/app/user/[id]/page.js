@@ -4,7 +4,7 @@ import Loading from '@/components/Loading';
 import { GET_USER_BY_ID } from '@/components/queries/queries';
 import Rating from '@/components/Rating';
 import Related from '@/components/Related';
-import ContactForm from '@/lib/ContactForm';
+import ContactForm from '@/components/ContactForm';
 import { useQuery } from '@apollo/client';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';

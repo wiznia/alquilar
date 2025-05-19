@@ -4,15 +4,15 @@ export default function Select({
   options,
   onChange,
   value,
+  keyName,
 }) {
   return (
     <>
       <select
-        className="popover-button small"
+        className="popover-button small required"
         name={name}
         id={name}
         placeholder={placeholder}
-        required
         onChange={onChange}
         value={value}
       >
@@ -25,8 +25,8 @@ export default function Select({
         </option>
         {options?.length > 0 ? (
           options.map((option, i) => (
-            <option key={i} value={option.nombre}>
-              {option.nombre}
+            <option key={i} value={option[keyName]}>
+              {option[keyName]}
             </option>
           ))
         ) : (

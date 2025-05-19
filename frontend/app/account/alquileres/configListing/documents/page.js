@@ -11,6 +11,7 @@ import Loading from '@/components/Loading';
 import { Suspense, useState } from 'react';
 import InlineNav from '@/components/InlineNav';
 import { usePathname } from 'next/navigation';
+import { handleUploadFile, handleRemoveFile } from '@/lib/fileHandlers';
 
 function Documentation() {
   const { user } = useAuth();
@@ -29,23 +30,6 @@ function Documentation() {
     data?.getListingById,
     'uploadDocuments',
   );
-
-  const handleUploadFile = (e) => {
-    const files = [...e.target.files];
-
-    setInputFiles((prevFiles) => [...prevFiles, ...files]);
-  };
-
-  const handleRemoveFile = (e, indexToRemove) => {
-    e.preventDefault();
-    setInputFiles((prevFiles) =>
-      prevFiles.filter((_, index) => index !== indexToRemove),
-    );
-    setForm((prevForm) => ({
-      ...prevForm,
-      fotos: prevForm.fotos.filter((_, index) => index !== indexToRemove),
-    }));
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -108,7 +92,11 @@ function Documentation() {
               : 'account__item-photo-upload'
           }
         >
-          <input type="file" multiple onChange={handleUploadFile} />
+          <input
+            type="file"
+            multiple
+            onChange={(e) => handleUploadFile(e, setInputFiles)}
+          />
           {inputFiles.length > 0 ? (
             inputFiles.map((file, index) => (
               <div key={index} className="account__item-photo-item">
@@ -117,7 +105,15 @@ function Documentation() {
                 </span>
                 <span>{file.name}</span>
                 <button
-                  onClick={(e) => handleRemoveFile(e, index)}
+                  onClick={(e) =>
+                    handleRemoveFile(
+                      e,
+                      index,
+                      setInputFiles,
+                      setForm,
+                      'documentation',
+                    )
+                  }
                   className="account__item-photo-close"
                 >
                   &times;

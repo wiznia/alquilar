@@ -169,21 +169,13 @@ function ConfigListing() {
   }, [data?.getListingById?.potential_tenant]);
 
   useEffect(() => {
-    if (user) {
+    if (user && data?.getListingById) {
       setForm((prevForm) => ({
         ...prevForm,
-        sena: data?.getListingById?.sena,
+        sena: data.getListingById.sena,
       }));
     }
-  }, [user]);
-
-  useEffect(() => {
-    if (data?.getListingById) {
-      setForm((prevForm) => ({
-        ...prevForm,
-      }));
-    }
-  }, [data?.getListingById]);
+  }, [user, data?.getListingById]);
 
   if (loading) {
     return (
