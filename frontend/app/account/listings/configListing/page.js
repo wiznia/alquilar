@@ -11,6 +11,7 @@ import {
   ADD_POTENTIAL_TENANT,
   GET_POTENTIAL_TENANTS_BY_LISTING,
   REMOVE_POTENTIAL_TENANT,
+  UPDATE_LISTING,
 } from '@/components/queries/queries';
 import { useSearchParams } from 'next/navigation';
 import { useQuery, useMutation, useLazyQuery } from '@apollo/client';
@@ -21,6 +22,7 @@ import InlineNav from '@/components/InlineNav';
 import { useFormValidation } from '@/app/hooks/useFormValidation';
 import throttle from '@/lib/throttle';
 import { usePathname } from 'next/navigation';
+import removeTypename from '@/lib/removeTypename';
 
 function ConfigListing() {
   const { user } = useAuth();
@@ -34,6 +36,7 @@ function ConfigListing() {
   });
   const [paymentLink, setPaymentLink] = useState('');
   const [searchIsActive, setSearchIsActive] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [shouldFetchPotentialTenants, setShouldFetchPotentialTenants] =
     useState(false);
   const [connectMercadoPago] = useMutation(CONNECT_MERCADO_PAGO);
@@ -41,6 +44,7 @@ function ConfigListing() {
   const [addPotentialTenant] = useMutation(ADD_POTENTIAL_TENANT);
   const [removePotentialTenant] = useMutation(REMOVE_POTENTIAL_TENANT);
   const [createPaymentLink] = useMutation(CREATE_PAYMENT_LINK);
+  const [updateListing] = useMutation(UPDATE_LISTING);
   const { form, setForm, errors, handleChange, validateFormCheck } =
     useFormValidation(data?.getListingById, 'sendSena');
   const [
@@ -157,6 +161,21 @@ function ConfigListing() {
     }
   };
 
+  const handleAddCBU = async () => {
+    const cleanedForm = removeTypename(form);
+
+    await updateListing({
+      variables: {
+        id,
+        input: {
+          payment: {
+            cbu: cleanedForm.payment.cbu,
+          },
+        },
+      },
+    });
+  };
+
   useEffect(() => {
     if (
       data?.getListingById?.potential_tenant &&
@@ -171,8 +190,10 @@ function ConfigListing() {
   useEffect(() => {
     if (user && data?.getListingById) {
       setForm((prevForm) => ({
-        ...prevForm,
         sena: data.getListingById.sena,
+        payment: {
+          cbu: data.getListingById.payment.cbu,
+        },
       }));
     }
   }, [user, data?.getListingById]);
@@ -356,6 +377,38 @@ function ConfigListing() {
               Desconectar cuenta
             </button>
           )}
+        </div>
+        <div className="account__info-inner">
+          <h6>Configurar CBU:</h6>
+          <p>
+            Si preferís no conectar tu cuenta de Mercado Pago y querés manejar
+            las transferencias por CBU, ingresalo en el campo siguiente.
+          </p>
+          <input
+            type="text"
+            name="payment.cbu"
+            onChange={handleChange}
+            placeholder="Ingresá el CBU de 22 dígitos"
+            value={form?.payment?.cbu || ''}
+          />
+        </div>
+        <div className="button-container">
+          <button
+            className="button"
+            onClick={handleAddCBU}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <span className="loader"></span>
+            ) : (
+              <span>
+                {data?.getListingById?.payment?.cbu
+                  ? 'Actualizar'
+                  : 'Configurar'}{' '}
+                CBU
+              </span>
+            )}
+          </button>
         </div>
       </div>
     </div>

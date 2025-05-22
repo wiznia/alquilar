@@ -1,8 +1,8 @@
 'use client';
 
-export function handleUploadFile(e, setInputFiles) {
+export function handleUploadFile(e, setNewFiles) {
   const files = e.target.files ? Array.from(e.target.files) : [];
-  setInputFiles((prevFiles) => [...prevFiles, ...files]);
+  setNewFiles((prevFiles) => [...prevFiles, ...files]);
 }
 
 export function handleRemoveFile(
@@ -23,5 +23,19 @@ export function handleRemoveFile(
         ? prevForm[type].filter((_, index) => index !== indexToRemove)
         : prevForm[type],
     }));
+  }
+}
+
+export function handleRemoveDisplayFile(
+  index,
+  uploadedFiles,
+  setUploadedFiles,
+  setNewFiles,
+) {
+  if (index < uploadedFiles.length) {
+    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
+  } else {
+    const newIndex = index - uploadedFiles.length;
+    setNewFiles((prev) => prev.filter((_, i) => i !== newIndex));
   }
 }

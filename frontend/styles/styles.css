@@ -31,6 +31,10 @@ body {
 
 a {
   color: var(--primary-bg);
+  &.dark {
+    font-weight: bold;
+    color: var(--primary-text);
+  }
 }
 
 fieldset {
@@ -116,6 +120,7 @@ input[type='number'],
 input[type='search'],
 input[type='password'],
 input[type='time'],
+input[type='date'],
 textarea {
   font-family: inherit;
   transition: all 250ms ease;
@@ -470,11 +475,6 @@ main {
 .button-container {
   display: flex;
   gap: 16px;
-  margin-block-end: 20px;
-  input {
-    width: 50%;
-    padding: 13px 10px;
-  }
   span {
     pointer-events: none;
   }

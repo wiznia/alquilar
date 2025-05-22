@@ -62,6 +62,7 @@ export default function Listing({ listing }) {
         </div>
       </Link>
       {user &&
+        user.tipo_de_cuenta !== 'Dueño' &&
         (isLiked?.length > 0 ? (
           <svg
             width="25"

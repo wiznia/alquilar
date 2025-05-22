@@ -100,6 +100,11 @@ const typeDefs = `
     accessToken: String
   }
 
+  input MercadoPagoInput {
+    userId: String
+    accessToken: String
+  }
+
   type Listing {
     ambientes: Int
     ammenities: [String]
@@ -118,6 +123,7 @@ const typeDefs = `
     mercadoPago: MercadoPagoData
     moneda: String!
     owner: User!
+    payment: PaymentData
     potential_tenant: [ID]
     precio: Float!
     provincia: String!
@@ -135,7 +141,14 @@ const typeDefs = `
 
   type DocumentationData {
     id: ID
+    nombre: String
+    apellido: String
     documents: [File]
+  }
+
+  type PaymentData {
+    cbu: String
+    alias: String
   }
 
   type User {
@@ -225,30 +238,35 @@ const typeDefs = `
   }
 
   input UpdateListingInput {
-    id: ID!
-    ambientes: Int!
+    id: ID
+    ambientes: Int
     ammenities: [String]
     antiguedad_max: Int
-    banos: Int!
-    barrio: String!
+    banos: Int
+    barrio: String
     descripcion: String
-    direccion: String!
+    direccion: String
+    documentation: [DocumentationDataInput]
     dormitorios: Int
     estado: [String!]
     expensas: Float
     fotos: [FileInput!]
     likes: [ID]
-    moneda: String!
+    mercadoPago: MercadoPagoInput
+    moneda: String
     municipio: String
     owner: ID
-    precio: Float!
-    provincia: String!
+    payment: PaymentInput
+    potential_tenant: [ID]
+    precio: Float
+    provincia: String
+    sena: Float
     superficie_cubierta: Int
     superficie_total: Int
-    tipo_de_alquiler: String!
+    tipo_de_alquiler: String
     tipo_de_ambientes: [String]
-    tipo_de_propiedad: String!
-    titulo: String!
+    tipo_de_propiedad: String
+    titulo: String
     toilettes: Int
     viewCount: Int
   }
@@ -257,12 +275,26 @@ const typeDefs = `
     id: ID!
     name: String
     url: String
+    extension: String
   }
 
   input FileInput {
     id: String
     name: String
     url: String
+    extension: String
+  }
+
+  input DocumentationDataInput {
+    id: ID
+    nombre: String
+    apellido: String
+    documents: [FileInput]
+  }
+
+  input PaymentInput {
+    cbu: String,
+    alias: String
   }
 
   input SortListingsBy {
@@ -291,7 +323,7 @@ const typeDefs = `
       usuario: String!,
     ): User
     createListing(input: CreateListingInput!): Listing
-    updateListing(id: ID!, input: UpdateListingInput!): Listing
+    updateListing(id: ID!, input: UpdateListingInput!, senderId: ID): Listing
     deleteListing(id: ID!): Boolean
     login(email: String!, password: String!): User
     logout: Boolean
@@ -822,14 +854,36 @@ const resolvers = {
       });
       return await newListing.save();
     },
-    updateListing: async (_, { id, input }, context) => {
-      const authHeader = context.req.headers.authorization;
-      if (!authHeader) {
-        throw new Error('No token provided');
+    updateListing: async (_, { id, input, senderId }) => {
+      if (input.documentation && senderId) {
+        const listing = await Listing.findById(id);
+        const currentDocs = listing.documentation || [];
+        const incoming = input.documentation[0];
+
+        const existingIndex = currentDocs.findIndex(
+          (doc) => doc.id.toString() === incoming.id.toString(),
+        );
+
+        if (existingIndex >= 0) {
+          currentDocs[existingIndex].documents = incoming.documents;
+        } else {
+          currentDocs.push(incoming);
+        }
+
+        input.documentation = currentDocs;
+
+        const sender = await User.findById(senderId).select(
+          'nombre apellido tipo_de_cuenta',
+        );
+        const content = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> subió su documentación al <a href=${process.env.FRONTEND_URL}/account/listings/configListing/notifications?id=${id}>inmueble</a>.`;
+        if (sender.tipo_de_cuenta === 'Dueño') {
+          listing.potential_tenant.map((tenant) => {
+            handleNotification(senderId, tenant, content, 'listing', id);
+          });
+        } else {
+          handleNotification(senderId, listing.owner, content, 'listing', id);
+        }
       }
-      const token = authHeader.replace('Bearer ', '');
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const owner = decoded.userId;
 
       const updatedFields = {
         ...input,
@@ -838,12 +892,13 @@ const resolvers = {
               id: file.id,
               name: file.name,
               url: file.url,
+              extension: file.extension,
             }))
           : undefined,
       };
 
       const updatedListing = await Listing.findOneAndUpdate(
-        { _id: id, owner },
+        { _id: id },
         updatedFields,
         { new: true },
       );
@@ -857,7 +912,7 @@ const resolvers = {
     },
     uploadImage: async (_, { files, userId, listingId }) => {
       if (!files || files.length === 0) {
-        throw new Error('No files provided.');
+        return [];
       }
 
       const uploadPromises = files.map(async (file) => {
@@ -883,7 +938,9 @@ const resolvers = {
           id: uploadResult.public_id,
           name: filename,
           url: uploadResult.secure_url,
+          extension: uploadResult.format,
         };
+
         return fileObject;
       });
 
@@ -1270,7 +1327,7 @@ app.get('/api/mercado-pago/callback', async (req, res) => {
   }
 });
 
-const notifyPastEvents = async () => {
+/*const notifyPastEvents = async () => {
   const oneDayAgo = new Date();
   oneDayAgo.setDate(oneDayAgo.getDate() - 1);
 
@@ -1291,9 +1348,9 @@ const notifyPastEvents = async () => {
     event.notified = true;
     await event.save();
   }
-};
+};*/
 
-cron.schedule('*/2 * * * *', notifyPastEvents);
+//cron.schedule('*/2 * * * *', notifyPastEvents);
 
 const server = new ApolloServer({
   typeDefs,
@@ -1312,3 +1369,4 @@ const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`🚀 Server ready at http://localhost:${PORT}`);
 });
+

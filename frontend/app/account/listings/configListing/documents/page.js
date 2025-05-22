@@ -1,21 +1,22 @@
 'use client';
 
-import { useRef, useEffect, useState, Suspense } from 'react';
-import { useMutation, useQuery } from '@apollo/client';
-import { useSearchParams, usePathname } from 'next/navigation';
 import AccountSidebar from '@/components/AccountSidebar';
 import Breadcrumb from '@/components/Breadcrumb';
-import InlineNav from '@/components/InlineNav';
-import Loading from '@/components/Loading';
-import removeTypename from '@/lib/removeTypename';
-import { useAuth } from '@/components/AuthContext';
-import { useFormValidation } from '@/app/hooks/useFormValidation';
 import {
   SINGLE_LISTING_QUERY,
   UPDATE_LISTING,
   UPLOAD_IMAGES,
 } from '@/components/queries/queries';
+import { useSearchParams } from 'next/navigation';
+import { useMutation, useQuery } from '@apollo/client';
+import { useAuth } from '@/components/AuthContext';
+import { useFormValidation } from '@/app/hooks/useFormValidation';
+import Loading from '@/components/Loading';
+import { Suspense, useEffect, useRef, useState } from 'react';
+import InlineNav from '@/components/InlineNav';
+import { usePathname } from 'next/navigation';
 import { handleUploadFile, handleRemoveDisplayFile } from '@/lib/fileHandlers';
+import removeTypename from '@/lib/removeTypename';
 import Link from 'next/link';
 
 function Documentation() {
@@ -32,7 +33,9 @@ function Documentation() {
   const [uploadSuccess, setUploadSuccess] = useState(false);
 
   const { data, loading, error, refetch } = useQuery(SINGLE_LISTING_QUERY, {
-    variables: { id },
+    variables: {
+      id,
+    },
   });
   const [uploadImage] = useMutation(UPLOAD_IMAGES);
   const [updateListing] = useMutation(UPDATE_LISTING);
@@ -115,13 +118,16 @@ function Documentation() {
   ];
 
   const renderDocumentation = (documentation = [], user) => {
-    const docs = documentation.filter(
-      (document) => document.id === user?.id || document.id === form.owner.id,
-    );
+    const sortedDocumentation = documentation.slice().sort((a, b) => {
+      if (a.id === user?.id) return -1;
+      if (b.id === user?.id) return 1;
+      return 0;
+    });
 
-    return docs.map((document) => {
+    return sortedDocumentation.map((document) => {
       const title =
         user?.id === document.id ? 'Tu documentación:' : 'Documentación de';
+
       return (
         <div className="account__info-inner" key={document.id}>
           {user?.id === document.id ? (
@@ -135,7 +141,7 @@ function Documentation() {
               >{`${document.nombre} ${document.apellido}`}</Link>
             </h6>
           )}
-          {document.documents.map((document) => (
+          {document.documents?.map((document) => (
             <div key={document.id} className="account__item-photo-item">
               <span className="account__item-photo-extension">
                 {document.extension}
@@ -150,7 +156,7 @@ function Documentation() {
 
   useEffect(() => {
     if (data?.getListingById) {
-      const userDocuments = data?.getListingById?.documentation?.filter(
+      const userDocuments = data?.getListingById?.documentation.filter(
         (doc) => doc.id === user?.id,
       )[0];
 
@@ -194,14 +200,14 @@ function Documentation() {
         {showUploadFiles ? (
           <>
             <p>
-              Subí tu documentación para que el dueño la pueda evaluar. <br />
-              Recordá que para alquilar necesitas:
+              Recordá que tenés que subir tu DNI (frente y dorso) y el modelo de
+              contrato de alquiler con los datos del inquilino para su revisión
+              o{' '}
+              <Link className="dark" href="#">
+                generarlo automáticamente (experimental)
+              </Link>
+              .
             </p>
-            <ul className="documentation-list">
-              <li>DNI o pasaporte vigente</li>
-              <li>Recibo de sueldo o certificado de ingresos</li>
-              <li>Garantía inmobiliaria</li>
-            </ul>
             <div
               className={
                 displayFiles.length > 0
@@ -212,7 +218,6 @@ function Documentation() {
               <input
                 type="file"
                 multiple
-                ref={fileInputRef}
                 onChange={(e) => handleUploadFile(e, setNewFiles)}
               />
               {displayFiles.length > 0 ? (
@@ -260,7 +265,7 @@ function Documentation() {
             </div>
             {uploadSuccess && (
               <p className="success-message">
-                ¡Documentos subidos exitosamente!
+                Documentos subidos exitósamente!
               </p>
             )}
             <div className="button-container">

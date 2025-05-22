@@ -51,13 +51,17 @@ function ConfigListing() {
         />
         <h2>Configuración del inmueble</h2>
         <InlineNav id={id} page={page} user={user} />
-        {data?.getListingById?.documentation.length === 0 && (
+        {data?.getListingById?.documentation.length === 0 ? (
           <div className="account__info-inner">
             <p>
               Para poder ver la información de este inmueble, primero tenés que
               subir tus documentos en la pestaña de "documentación". Una vez que
               lo hayas hecho vas a poder ver la configuración en esta pestaña.
             </p>
+          </div>
+        ) : (
+          <div className="account__info-inner">
+            <p></p>
           </div>
         )}
       </div>

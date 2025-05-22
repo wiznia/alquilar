@@ -14,7 +14,6 @@ export default function Nav() {
   const accountAnchorName = `--anchor-account`;
   const [notificationCount, setNotificationCount] = useState(0);
   const [notificationData, setNotificationData] = useState([]);
-  const [popoverAction, setPopoverAction] = useState('auto');
   const notificationsRef = useRef(null);
   const [markNotificationsAsRead] = useMutation(MARK_NOTIFICATIONS_AS_READ, {
     onCompleted: () => {
@@ -25,11 +24,7 @@ export default function Nav() {
     },
   });
 
-  const handleNotifications = (e) => {
-    const popoverTarget = e.currentTarget.getAttribute('popovertarget');
-    popoverTarget === 'notifications'
-      ? setPopoverAction('manual')
-      : setPopoverAction('auto');
+  const handleNotifications = () => {
     const unreadNotifications = notificationData
       .filter((notification) => notification.read !== true)
       .map((notification) => notification.id);
@@ -99,7 +94,7 @@ export default function Nav() {
               <span className="notifications__count">{notificationCount}</span>
             )}
           </button>
-          <NavbarPopover id="notifications" popoverAction={popoverAction}>
+          <NavbarPopover id="notifications" popoverAction="auto">
             <Notifications
               userId={user?.id}
               setNotificationCount={setNotificationCount}

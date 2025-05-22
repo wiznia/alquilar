@@ -6,6 +6,10 @@ const listingSchema = new mongoose.Schema({
   antiguedad_max: { type: Number, required: true },
   banos: Number,
   barrio: { type: String, required: true },
+  payment: {
+    cbu: { type: String },
+    alias: { type: String },
+  },
   createdAt: {
     type: Date,
     default: Date.now,
@@ -15,11 +19,14 @@ const listingSchema = new mongoose.Schema({
   documentation: [
     {
       id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      nombre: String,
+      apellido: String,
       documents: [
         {
           id: String,
           name: String,
           url: String,
+          extension: String,
         },
       ],
     },
@@ -32,6 +39,7 @@ const listingSchema = new mongoose.Schema({
       id: String,
       name: String,
       url: String,
+      extension: String,
     },
   ],
   likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],

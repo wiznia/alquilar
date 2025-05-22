@@ -37,6 +37,15 @@ export const useFormValidation = (
           [name]: updatedArray,
         };
       });
+    } else if (name.includes('.')) {
+      const [parent, child] = name.split('.');
+      setForm((prev) => ({
+        ...prev,
+        [parent]: {
+          ...prev[parent],
+          [child]: value,
+        },
+      }));
     } else {
       setForm((prevForm) => ({
         ...prevForm,

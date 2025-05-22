@@ -33,7 +33,7 @@
   margin-top: -1px;
   position: absolute;
   position-area: bottom center;
-  padding: 15px 20px 0;
+  padding: 15px 20px 20px;
   width: anchor-size(width);
   display: none;
   height: 0;
@@ -68,8 +68,8 @@
   }
 }
 
-.popover-isolated {
-  margin-block-end: 30px;
+.popover-isolated + .popover-isolated {
+  margin-block-start: 30px;
 }
 
 .popover-column {
@@ -104,14 +104,21 @@
   font-size: 16px;
   color: var(--primary-text);
   cursor: pointer;
+  gap: 16px;
   label {
     display: flex;
     flex-grow: 1;
-    padding-left: 13px;
     cursor: inherit;
   }
   .popover__item--hidden {
     display: none;
   }
+  &.popover__item--half {
+    input {
+      width: 50%;
+      padding: 13px 10px;
+    }
+  }
 }
+
 /* End Popover */

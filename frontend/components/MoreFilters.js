@@ -178,7 +178,7 @@ export default function MoreFilters({ props }) {
                   </div>
                 ))}
                 {option.name === 'superficie_total' && (
-                  <div className="button-container">
+                  <div className="popover__item popover__item--half">
                     <input
                       type="number"
                       min="0"
@@ -196,7 +196,7 @@ export default function MoreFilters({ props }) {
                   </div>
                 )}
                 {option.name === 'fecha_de_publicacion' && (
-                  <div className="button-container">
+                  <div className="popover__item popover__item--half">
                     <input
                       type="date"
                       placeholder="Desde"

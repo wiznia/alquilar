@@ -106,10 +106,13 @@ export const SINGLE_LISTING_QUERY = gql`
       direccion
       documentation {
         id
+        nombre
+        apellido
         documents {
           id
           name
           url
+          extension
         }
       }
       dormitorios
@@ -119,6 +122,7 @@ export const SINGLE_LISTING_QUERY = gql`
         id
         name
         url
+        extension
       }
       id
       mercadoPago {
@@ -133,6 +137,10 @@ export const SINGLE_LISTING_QUERY = gql`
         telefono
         celular
         tipo_de_cuenta
+      }
+      payment {
+        cbu
+        alias
       }
       potential_tenant
       precio
@@ -559,8 +567,8 @@ export const CREATE_LISTING = gql`
 `;
 
 export const UPDATE_LISTING = gql`
-  mutation UpdateListing($id: ID!, $input: UpdateListingInput!) {
-    updateListing(id: $id, input: $input) {
+  mutation UpdateListing($id: ID!, $input: UpdateListingInput!, $senderId: ID) {
+    updateListing(id: $id, input: $input, senderId: $senderId) {
       ambientes
       antiguedad_max
       ammenities
@@ -602,6 +610,7 @@ export const UPLOAD_IMAGES = gql`
       id
       name
       url
+      extension
     }
   }
 `;
