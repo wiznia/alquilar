@@ -128,6 +128,7 @@ export const SINGLE_LISTING_QUERY = gql`
       mercadoPago {
         userId
       }
+      mpPaymentLink
       moneda
       owner {
         id

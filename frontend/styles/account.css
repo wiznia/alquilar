@@ -161,6 +161,9 @@ fieldset {
     font-weight: bold;
     color: var(--primary-text);
   }
+  svg {
+    flex-shrink: 0;
+  }
 }
 
 .account-map {

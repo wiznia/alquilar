@@ -122,6 +122,7 @@ const typeDefs = `
     likes: [User]
     mercadoPago: MercadoPagoData
     moneda: String!
+    mpPaymentLink: String
     owner: User!
     payment: PaymentData
     potential_tenant: [ID]
@@ -875,7 +876,12 @@ const resolvers = {
         const sender = await User.findById(senderId).select(
           'nombre apellido tipo_de_cuenta',
         );
-        const content = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> subió su documentación al <a href=${process.env.FRONTEND_URL}/account/listings/configListing/notifications?id=${id}>inmueble</a>.`;
+        const extraContent =
+          (!listing.payment.cbu || !listing.sena) &&
+          sender.tipo_de_cuenta !== 'Dueño'
+            ? ' Configurá tu seña o CBU para recibir la reserva del potencial inquilino.'
+            : '';
+        const content = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> subió su documentación al <a href=${process.env.FRONTEND_URL}/account/listings/configListing/notifications?id=${id}>inmueble</a>.${extraContent}`;
         if (sender.tipo_de_cuenta === 'Dueño') {
           listing.potential_tenant.map((tenant) => {
             handleNotification(senderId, tenant, content, 'listing', id);
@@ -1107,7 +1113,7 @@ const resolvers = {
     },
     disconnectMercadoPago: async (_, { listingId }) => {
       await Listing.findByIdAndUpdate(listingId, {
-        $unset: { mercadoPago: '', mpPaymentLink: '', sena: null },
+        $unset: { mercadoPago: '', mpPaymentLink: '' },
       });
 
       return true;
@@ -1273,6 +1279,7 @@ const corsOptions = {
 };
 
 const app = express();
+console.log('CORS allowed origin:', process.env.FRONTEND_URL);
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use(cookieParser());
@@ -1327,7 +1334,7 @@ app.get('/api/mercado-pago/callback', async (req, res) => {
   }
 });
 
-/*const notifyPastEvents = async () => {
+const notifyPastEvents = async () => {
   const oneDayAgo = new Date();
   oneDayAgo.setDate(oneDayAgo.getDate() - 1);
 
@@ -1348,9 +1355,9 @@ app.get('/api/mercado-pago/callback', async (req, res) => {
     event.notified = true;
     await event.save();
   }
-};*/
+};
 
-//cron.schedule('*/2 * * * *', notifyPastEvents);
+cron.schedule('*/2 * * * *', notifyPastEvents);
 
 const server = new ApolloServer({
   typeDefs,

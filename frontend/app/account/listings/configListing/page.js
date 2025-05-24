@@ -36,7 +36,9 @@ function ConfigListing() {
   });
   const [paymentLink, setPaymentLink] = useState('');
   const [searchIsActive, setSearchIsActive] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingMP, setIsLoadingMP] = useState(false);
+  const [isLoadingCBU, setIsLoadingCBU] = useState(false);
+  const [isLoadingSena, setIsLoadingSena] = useState(false);
   const [shouldFetchPotentialTenants, setShouldFetchPotentialTenants] =
     useState(false);
   const [connectMercadoPago] = useMutation(CONNECT_MERCADO_PAGO);
@@ -111,6 +113,7 @@ function ConfigListing() {
     if (!validateFormCheck()) {
       return;
     }
+    setIsLoadingMP(true);
     try {
       const { data } = await createPaymentLink({
         variables: {
@@ -120,9 +123,11 @@ function ConfigListing() {
         },
       });
       setPaymentLink(data.createPaymentLink);
+      setIsLoadingMP(false);
       await refetch();
     } catch (error) {
       console.error('Error creating payment link:', error.message);
+      setIsLoadingMP(false);
     }
   };
 
@@ -163,17 +168,49 @@ function ConfigListing() {
 
   const handleAddCBU = async () => {
     const cleanedForm = removeTypename(form);
+    setIsLoadingCBU(true);
 
-    await updateListing({
-      variables: {
-        id,
-        input: {
-          payment: {
-            cbu: cleanedForm.payment.cbu,
+    try {
+      await updateListing({
+        variables: {
+          id,
+          input: {
+            payment: {
+              cbu: cleanedForm.payment.cbu,
+            },
           },
         },
-      },
-    });
+      });
+      setIsLoadingCBU(false);
+    } catch (error) {
+      console.error('Error agregando cbu:', error.message);
+      setIsLoadingCBU(false);
+    }
+  };
+
+  const handleAddSena = async () => {
+    const cleanedForm = removeTypename(form);
+    setIsLoadingSena(true);
+
+    try {
+      await updateListing({
+        variables: {
+          id,
+          input: {
+            sena: cleanedForm.sena,
+          },
+        },
+      });
+
+      if (data?.getListingById?.mercadoPago?.userId) {
+        handleCreatePaymentLink();
+      }
+      setIsLoadingSena(false);
+      refetch();
+    } catch (error) {
+      console.error('Error agregando seña:', error.message);
+      setIsLoadingSena(false);
+    }
   };
 
   useEffect(() => {
@@ -189,7 +226,7 @@ function ConfigListing() {
 
   useEffect(() => {
     if (user && data?.getListingById) {
-      setForm((prevForm) => ({
+      setForm(() => ({
         sena: data.getListingById.sena,
         payment: {
           cbu: data.getListingById.payment.cbu,
@@ -227,125 +264,106 @@ function ConfigListing() {
         />
         <h2>Configuración del inmueble</h2>
         <InlineNav id={id} page={page} user={user} />
-        <div className="account__info-inner">
-          <h6>Agregar usuarios como potenciales inquilinos:</h6>
-          <p>
-            Los usuarios que agregues como potenciales inquilinos van a poder
-            acceder a la configuración de este inmueble incluyendo tu
-            documentación e información general del inmueble como el valor de la
-            seña o tu CBU o alias.
-          </p>
-          <div className="input-suggestion">
-            <input
-              type="text"
-              name="inquilino"
-              value={form?.inquilino || ''}
-              onChange={(e) => {
-                handleChange(e);
-                setSearchIsActive(true);
-                throttledFindTenants({
-                  nombre: e.target.value,
-                  apellido: e.target.value,
-                  tipo_de_cuenta: 'Inquilino',
-                  potential_tenant: [id],
-                });
-              }}
-              placeholder="Ingresá el nombre o apellido del usuario para agregarlo como potencial inquilino"
-            />
-            {tenantData?.getTenantUser?.length > 0 && searchIsActive && (
-              <div className="input-suggestion__container">
-                {tenantData?.getTenantUser.map((tenant, i) => (
-                  <div key={i} className="input-suggestion__item">
+        <>
+          <div className="account__info-inner">
+            <h6>Agregar usuarios como potenciales inquilinos:</h6>
+            <p>
+              Los usuarios que agregues como potenciales inquilinos van a poder
+              acceder a la configuración de este inmueble incluyendo tu
+              documentación e información general del inmueble como el valor de
+              la seña o tu CBU o alias.
+            </p>
+            <div className="input-suggestion">
+              <input
+                type="text"
+                name="inquilino"
+                value={form?.inquilino || ''}
+                onChange={(e) => {
+                  handleChange(e);
+                  setSearchIsActive(true);
+                  throttledFindTenants({
+                    nombre: e.target.value,
+                    apellido: e.target.value,
+                    tipo_de_cuenta: 'Inquilino',
+                    potential_tenant: [id],
+                  });
+                }}
+                placeholder="Ingresá el nombre o apellido del usuario para agregarlo como potencial inquilino"
+              />
+              {tenantData?.getTenantUser?.length > 0 && searchIsActive && (
+                <div className="input-suggestion__container">
+                  {tenantData?.getTenantUser.map((tenant, i) => (
+                    <div key={i} className="input-suggestion__item">
+                      <small>
+                        {tenant.nombre} {tenant.apellido}
+                      </small>
+                      <button
+                        className="button button--small"
+                        onClick={() => handleAddPotentialTenant(tenant.id)}
+                      >
+                        Agregar
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+          {dataPotentialTenants?.getPotentialTenantsByListing?.length > 0 && (
+            <div className="account__info-inner">
+              <h6>Permisos de usuarios:</h6>
+              <p>
+                Los siguientes usuarios son potenciales inquilinos y pueden ver
+                todo lo relacionado a este inmueble. A su vez, vas a poder ver
+                toda su documentación necesaria para poder alquilar.
+              </p>
+              <p>
+                Si removés a un usuario dejarás de tener acceso a la
+                documentación y no podrán ver la tuya tampoco.
+              </p>
+              {dataPotentialTenants.getPotentialTenantsByListing.map(
+                (tenant, i) => (
+                  <div className="account__info-ownership-item" key={i}>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="40"
+                      height="39"
+                      fill="none"
+                    >
+                      <rect
+                        width="39"
+                        height="38"
+                        x=".074"
+                        y=".457"
+                        fill="#FF9500"
+                        rx="19"
+                      />
+                      <path
+                        fill="#FAFAFA"
+                        d="M19.574 17.957a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9ZM10.074 27.707v1.125c0 .298.125.584.348.796.223.21.525.329.84.329h16.625c.315 0 .617-.119.84-.33.222-.21.347-.497.347-.795v-1.125c0-1.79-.75-3.507-2.087-4.773-1.336-1.266-3.148-1.977-5.038-1.977H17.2c-1.89 0-3.702.711-5.038 1.977-1.336 1.266-2.087 2.983-2.087 4.773Z"
+                      />
+                    </svg>
                     <small>
                       {tenant.nombre} {tenant.apellido}
                     </small>
                     <button
                       className="button button--small"
-                      onClick={() => handleAddPotentialTenant(tenant.id)}
+                      onClick={() => handleRemovePotentialTenant(tenant.id)}
                     >
-                      Agregar
+                      Remover
                     </button>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-        {dataPotentialTenants?.getPotentialTenantsByListing?.length > 0 && (
-          <div className="account__info-inner">
-            <h6>Permisos de usuarios:</h6>
-            <p>
-              Los siguientes usuarios son potenciales inquilinos y pueden ver
-              todo lo relacionado a este inmueble. A su vez, vas a poder ver
-              toda su documentación necesaria para poder alquilar.
-            </p>
-            <p>
-              Si removés a un usuario dejarás de tener acceso a la documentación
-              y no podrán ver la tuya tampoco.
-            </p>
-            {dataPotentialTenants.getPotentialTenantsByListing.map(
-              (tenant, i) => (
-                <div className="account__info-ownership-item" key={i}>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="40"
-                    height="39"
-                    fill="none"
-                  >
-                    <rect
-                      width="39"
-                      height="38"
-                      x=".074"
-                      y=".457"
-                      fill="#FF9500"
-                      rx="19"
-                    />
-                    <path
-                      fill="#FAFAFA"
-                      d="M19.574 17.957a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9ZM10.074 27.707v1.125c0 .298.125.584.348.796.223.21.525.329.84.329h16.625c.315 0 .617-.119.84-.33.222-.21.347-.497.347-.795v-1.125c0-1.79-.75-3.507-2.087-4.773-1.336-1.266-3.148-1.977-5.038-1.977H17.2c-1.89 0-3.702.711-5.038 1.977-1.336 1.266-2.087 2.983-2.087 4.773Z"
-                    />
-                  </svg>
-                  <small>
-                    {tenant.nombre} {tenant.apellido}
-                  </small>
-                  <button
-                    className="button button--small"
-                    onClick={() => handleRemovePotentialTenant(tenant.id)}
-                  >
-                    Remover
-                  </button>
-                </div>
-              ),
-            )}
-          </div>
-        )}
-        <div className="account__info-inner">
-          {!data?.getListingById?.mercadoPago?.userId ||
-          data?.getListingById?.sena === null ? (
-            <>
+                ),
+              )}
+            </div>
+          )}
+          {data?.getListingById?.sena === null && (
+            <div className="account__info-inner">
               <h6>Configurar valor de seña:</h6>
               <p>
-                Podés recibir el pago de la seña de tu inmueble directamente en
-                tu cuenta de Mercado Pago. Clickeá en "Conectar cuenta" e
-                ingresá el valor de la seña en pesos argentinos.
+                Ingresá el valor de la seña que querés cobrar para reservar tu
+                inmueble.
               </p>
-              {data?.getListingById?.mercadoPago?.userId && (
-                <input
-                  type="number"
-                  name="sena"
-                  value={form?.sena || ''}
-                  onChange={handleChange}
-                  placeholder="Ingresá el monto de la seña en pesos argentinos"
-                />
-              )}
-              {errors.sena && (
-                <small className="error-message">{errors.sena}</small>
-              )}
-            </>
-          ) : (
-            <>
-              <h6>Seña:</h6>
-              <p>Este es el valor de tu seña en pesos argentinos.</p>
               <input
                 type="number"
                 name="sena"
@@ -356,60 +374,124 @@ function ConfigListing() {
               {errors.sena && (
                 <small className="error-message">{errors.sena}</small>
               )}
+              <div className="button-container">
+                <button
+                  className="button"
+                  onClick={handleAddSena}
+                  disabled={isLoadingSena}
+                >
+                  {isLoadingSena ? (
+                    <span className="loader"></span>
+                  ) : (
+                    <span>Configurar seña</span>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
+          {data?.getListingById?.sena !== null && (
+            <>
+              <div className="account__info-inner">
+                <h6>Seña:</h6>
+                <p>Este es el valor de tu seña en pesos argentinos.</p>
+                <input
+                  type="number"
+                  name="sena"
+                  value={form?.sena || ''}
+                  onChange={handleChange}
+                  placeholder="Ingresá el monto de la seña en pesos argentinos"
+                />
+                {errors.sena && (
+                  <small className="error-message">{errors.sena}</small>
+                )}
+                <div className="button-container">
+                  <button
+                    className="button"
+                    onClick={handleAddSena}
+                    disabled={isLoadingSena}
+                  >
+                    {isLoadingSena ? (
+                      <span className="loader"></span>
+                    ) : (
+                      <span>Actualizar seña</span>
+                    )}
+                  </button>
+                </div>
+              </div>
+              <div className="account__info-inner">
+                <h6>Recibí tu seña directo en tu cuenta de Mercado Pago:</h6>
+                <p>
+                  Podés recibir el pago de la seña de tu inmueble directamente
+                  en tu cuenta de Mercado Pago. Clickeá en "Conectar cuenta"
+                  para poder vincularla.
+                </p>
+                <div className="button-container">
+                  {data?.getListingById?.mercadoPago?.userId ? (
+                    <>
+                      {!data?.getListingById?.mpPaymentLink && (
+                        <button
+                          className="button"
+                          onClick={handleCreatePaymentLink}
+                        >
+                          {isLoadingMP ? (
+                            <span className="loader"></span>
+                          ) : (
+                            <span>Vincular seña a Mercado Pago</span>
+                          )}
+                        </button>
+                      )}
+                      <button
+                        className="button button--secondary"
+                        onClick={handleDisconnectMercadoPago}
+                      >
+                        Desconectar cuenta
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      className="button"
+                      onClick={handleConnectMercadoPago}
+                    >
+                      Conectar cuenta
+                    </button>
+                  )}
+                </div>
+              </div>
             </>
           )}
-        </div>
-        <div className="button-container">
-          {data?.getListingById?.mercadoPago?.userId && (
-            <button className="button" onClick={handleCreatePaymentLink}>
-              {data?.getListingById?.sena ? 'Actualizar' : 'Configurar'} seña
-            </button>
-          )}
-          {!data?.getListingById?.mercadoPago?.userId ? (
-            <button className="button" onClick={handleConnectMercadoPago}>
-              Conectar cuenta
-            </button>
-          ) : (
-            <button
-              className="button button--secondary"
-              onClick={handleDisconnectMercadoPago}
-            >
-              Desconectar cuenta
-            </button>
-          )}
-        </div>
-        <div className="account__info-inner">
-          <h6>Configurar CBU:</h6>
-          <p>
-            Si preferís no conectar tu cuenta de Mercado Pago y querés manejar
-            las transferencias por CBU, ingresalo en el campo siguiente.
-          </p>
-          <input
-            type="text"
-            name="payment.cbu"
-            onChange={handleChange}
-            placeholder="Ingresá el CBU de 22 dígitos"
-            value={form?.payment?.cbu || ''}
-          />
-        </div>
-        <div className="button-container">
-          <button
-            className="button"
-            onClick={handleAddCBU}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <span className="loader"></span>
-            ) : (
-              <span>
-                {data?.getListingById?.payment?.cbu
-                  ? 'Actualizar'
-                  : 'Configurar'}{' '}
-                CBU
-              </span>
-            )}
-          </button>
-        </div>
+          <div className="account__info-inner">
+            <h6>Configurar CBU:</h6>
+            <p>
+              Si preferís no conectar tu cuenta de Mercado Pago y querés manejar
+              las transferencias por CBU, ingresalo en el campo siguiente.
+            </p>
+            <input
+              type="text"
+              name="payment.cbu"
+              onChange={handleChange}
+              placeholder="Ingresá el CBU de 22 dígitos"
+              value={form?.payment?.cbu || ''}
+            />
+            <div className="button-container">
+              <button
+                className="button"
+                onClick={handleAddCBU}
+                disabled={isLoadingCBU}
+              >
+                {isLoadingCBU ? (
+                  <span className="loader"></span>
+                ) : (
+                  <span>
+                    {data?.getListingById?.payment?.cbu
+                      ? 'Actualizar'
+                      : 'Configurar'}{' '}
+                    CBU
+                  </span>
+                )}
+              </button>
+            </div>
+          </div>
+        </>
       </div>
     </div>
   );

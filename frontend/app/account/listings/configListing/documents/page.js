@@ -287,18 +287,13 @@ function Documentation() {
             </div>
           </>
         ) : (
-          <>
-            <div className="button-container">
-              <button
-                className="button"
-                onClick={() => setShowUploadFiles(true)}
-              >
-                Editar documentos
-              </button>
-            </div>
-            {renderDocumentation(form?.documentation, user)}
-          </>
+          <div className="button-container">
+            <button className="button" onClick={() => setShowUploadFiles(true)}>
+              Editar documentos
+            </button>
+          </div>
         )}
+        {renderDocumentation(form?.documentation, user)}
       </div>
     </div>
   );

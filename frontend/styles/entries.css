@@ -140,6 +140,7 @@
   padding: 32px 0;
   .entry__info {
     width: 63%;
+    padding: 0;
     p {
       margin-block-start: 0;
     }

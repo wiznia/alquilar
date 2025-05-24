@@ -7,20 +7,24 @@ import { useSearchParams } from 'next/navigation';
 import { useQuery } from '@apollo/client';
 import { useAuth } from '@/components/AuthContext';
 import Loading from '@/components/Loading';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense } from 'react';
 import InlineNav from '@/components/InlineNav';
 import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 
 function ConfigListing() {
   const { user } = useAuth();
   const id = useSearchParams().get('id');
   const pathname = usePathname();
   const page = pathname.split('/').findLast((element) => element);
-  const { data, loading, error, refetch } = useQuery(SINGLE_LISTING_QUERY, {
+  const { data, loading, error } = useQuery(SINGLE_LISTING_QUERY, {
     variables: {
       id,
     },
   });
+  const userDocumentation = data?.getListingById?.documentation.filter(
+    (documentation) => documentation.id === user?.id,
+  );
 
   if (loading) {
     return (
@@ -48,10 +52,11 @@ function ConfigListing() {
         <Breadcrumb
           direccion={data?.getListingById?.direccion}
           title={user?.tipo_de_cuenta === 'Dueño' ? 'inmuebles' : 'alquileres'}
+          user={user}
         />
         <h2>Configuración del inmueble</h2>
         <InlineNav id={id} page={page} user={user} />
-        {data?.getListingById?.documentation.length === 0 ? (
+        {userDocumentation.length === 0 ? (
           <div className="account__info-inner">
             <p>
               Para poder ver la información de este inmueble, primero tenés que
@@ -61,7 +66,21 @@ function ConfigListing() {
           </div>
         ) : (
           <div className="account__info-inner">
-            <p></p>
+            <h6>Seña:</h6>
+            <p>
+              Este es el monto que configuró el dueño que tenés que pagar para
+              reservar este inmueble.
+            </p>
+            <p>${data?.getListingById?.sena}</p>
+            <div className="button-container">
+              <Link
+                className="button"
+                href={data?.getListingById.mpPaymentLink}
+                target="_blank"
+              >
+                Reservar inmueble
+              </Link>
+            </div>
           </div>
         )}
       </div>
