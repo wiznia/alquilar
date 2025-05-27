@@ -8,25 +8,43 @@ import Link from 'next/link';
 import { useFormValidation } from '@/app/hooks/useFormValidation';
 import { useAuth } from '@/components/AuthContext';
 import { useState } from 'react';
+import { useLocationData } from '@/app/hooks/useLocationData';
+import Select from '@/components/Select';
 
 export default function Page() {
   const [isLoading, setIsLoading] = useState(false);
   const { handleRegister } = useAuth();
   const initialState = {
-    tipo_de_cuenta: '',
-    email: '',
-    password: '',
-    usuario: '',
-    nombre: '',
     apellido: '',
-    condicion_fiscal: '',
-    dni: null,
-    telefono: null,
+    barrio: '',
     celular: null,
+    condicion_fiscal: '',
+    direccion: '',
+    dni: null,
+    email: '',
+    localidad: '',
+    nombre: '',
+    password: '',
+    provincia: '',
+    telefono: null,
     terms: false,
+    tipo_de_cuenta: '',
+    usuario: '',
   };
+  const {
+    provinceData,
+    cityData,
+    localidadesData,
+    setSelectedProvince,
+    setSelectedCity,
+    setSelectedLocalidad,
+  } = useLocationData();
   const { form, errors, handleChange, validateFormCheck, setErrors } =
-    useFormValidation(initialState, 'register');
+    useFormValidation(initialState, 'register', {
+      setSelectedProvince,
+      setSelectedCity,
+      setSelectedLocalidad,
+    });
   const [register] = useMutation(REGISTER);
   const router = useRouter();
 
@@ -173,6 +191,75 @@ export default function Page() {
         {errors.apellido && (
           <small className="error-message">{errors.apellido}</small>
         )}
+      </fieldset>
+      <fieldset>
+        <div className="account__item">
+          <div className="account__item-inner account__item-inner--half">
+            <p>Provincia:</p>
+            <Select
+              name="provincia"
+              placeholder="Provincia"
+              resource="provincias"
+              options={provinceData ? provinceData.provincias : []}
+              onChange={handleChange}
+              keyName="nombre"
+            />
+            {errors.provincia && (
+              <small className="error-message">{errors.provincia}</small>
+            )}
+          </div>
+        </div>
+      </fieldset>
+      <fieldset>
+        <div className="account__item">
+          <div className="account__item-inner account__item-inner--half">
+            <p>Barrio:</p>
+            <Select
+              name="barrio"
+              placeholder="Barrio"
+              onChange={handleChange}
+              options={cityData ? cityData.localidades : []}
+              keyName="nombre"
+            />
+            {errors.barrio && (
+              <small className="error-message">{errors.barrio}</small>
+            )}
+          </div>
+        </div>
+      </fieldset>
+      {localidadesData?.length > 0 && (
+        <fieldset>
+          <div className="account__item">
+            <div className="account__item-inner account__item-inner--half">
+              <p>Municipio:</p>
+              <Select
+                name="municipio"
+                placeholder="Municipio"
+                resource="localidades"
+                onChange={handleChange}
+                options={localidadesData ? localidadesData : []}
+                keyName="nombre"
+              />
+            </div>
+          </div>
+        </fieldset>
+      )}
+      <fieldset>
+        <div className="account__item">
+          <div className="account__item-inner account__item-inner--half">
+            <p>Dirección:</p>
+            <input
+              type="text"
+              name="direccion"
+              placeholder="Dirección"
+              required
+              onChange={handleChange}
+            />
+            {errors.direccion && (
+              <small className="error-message">{errors.direccion}</small>
+            )}
+          </div>
+        </div>
       </fieldset>
       <fieldset>
         <label htmlFor="condicion_fiscal">Condición fiscal:</label>

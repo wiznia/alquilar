@@ -21,39 +21,24 @@ export default function AccountSidebar() {
     { name: 'Calendario', path: '/account/calendar' },
   ];
   const isActive = (path) => {
-    return currentPath === path;
+    return currentPath === path || currentPath.startsWith(path + '/');
   };
+  const navPages =
+    user?.tipo_de_cuenta === 'Dueño' ? navPagesDueno : navPagesInquilino;
 
   return (
     <nav className="account-navbar">
       <ul>
-        {user?.tipo_de_cuenta === 'Dueño' ? (
-          <>
-            {navPagesDueno.map((page) => (
-              <li key={page.name}>
-                <Link
-                  className={isActive(page.path) ? 'small active' : 'small'}
-                  href={page.path}
-                >
-                  {page.name}
-                </Link>
-              </li>
-            ))}
-          </>
-        ) : (
-          <>
-            {navPagesInquilino.map((page) => (
-              <li key={page.name}>
-                <Link
-                  href={page.path}
-                  className={isActive(page.path) ? 'small active' : 'small'}
-                >
-                  {page.name}
-                </Link>
-              </li>
-            ))}
-          </>
-        )}
+        {navPages.map((page) => (
+          <li key={page.name}>
+            <Link
+              href={page.path}
+              className={isActive(page.path) ? 'small active' : 'small'}
+            >
+              {page.name}
+            </Link>
+          </li>
+        ))}
       </ul>
     </nav>
   );

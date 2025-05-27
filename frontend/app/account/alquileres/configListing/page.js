@@ -68,8 +68,7 @@ function ConfigListing() {
           <div className="account__info-inner">
             <h6>Seña:</h6>
             <p>
-              Este es el monto que configuró el dueño que tenés que pagar para
-              reservar este inmueble.
+              Este es el monto que tenés que pagar para reservar este inmueble.
             </p>
             <p>${data?.getListingById?.sena}</p>
             <div className="button-container">

@@ -102,6 +102,17 @@ export const SINGLE_LISTING_QUERY = gql`
       antiguedad_max
       banos
       barrio
+      contract {
+        id
+        nombre
+        apellido
+        documents {
+          id
+          name
+          url
+          extension
+        }
+      }
       descripcion
       direccion
       documentation {
@@ -468,24 +479,32 @@ export const GET_CALENDAR_EVENTS_BY_INVITEE = gql`
 export const REGISTER = gql`
   mutation Register(
     $apellido: String!
+    $barrio: String!
     $celular: Int
     $condicion_fiscal: String!
+    $direccion: String!
     $dni: Int!
     $email: String!
+    $localidad: String
     $nombre: String!
     $password: String!
+    $provincia: String!
     $telefono: Int
     $tipo_de_cuenta: String!
     $usuario: String!
   ) {
     register(
       apellido: $apellido
+      barrio: $barrio
       celular: $celular
       condicion_fiscal: $condicion_fiscal
+      direccion: $direccion
       dni: $dni
       email: $email
+      localidad: $localidad
       nombre: $nombre
       password: $password
+      provincia: $provincia
       telefono: $telefono
       tipo_de_cuenta: $tipo_de_cuenta
       usuario: $usuario
@@ -749,6 +768,7 @@ export const SET_CALENDAR_EVENT = gql`
     $date: String!
     $senderId: ID!
     $receiverId: [ID!]!
+    $listingId: ID
   ) {
     setCalendarEvent(
       titulo: $titulo
@@ -757,6 +777,7 @@ export const SET_CALENDAR_EVENT = gql`
       date: $date
       senderId: $senderId
       receiverId: $receiverId
+      listingId: $listingId
     ) {
       titulo
       asunto

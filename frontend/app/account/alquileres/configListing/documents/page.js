@@ -118,14 +118,19 @@ function Documentation() {
     const docs = documentation.filter(
       (document) => document.id === user?.id || document.id === form.owner.id,
     );
+    const sortedDocumentation = docs.slice().sort((a, b) => {
+      if (a.id === user?.id) return -1;
+      if (b.id === user?.id) return 1;
+      return 0;
+    });
 
-    return docs.map((document) => {
+    return sortedDocumentation.map((document) => {
       const title =
-        user?.id === document.id ? 'Tu documentación:' : 'Documentación de';
+        user?.id === document.id ? 'Tu documentación' : 'Documentación de';
       return (
         <div className="account__info-inner" key={document.id}>
           {user?.id === document.id ? (
-            <h6>{title}</h6>
+            <h6>{title}:</h6>
           ) : (
             <h6>
               {title}{' '}
@@ -133,6 +138,7 @@ function Documentation() {
                 href={`/user/${document.id}`}
                 className="dark"
               >{`${document.nombre} ${document.apellido}`}</Link>
+              :
             </h6>
           )}
           {document.documents.map((document) => (
@@ -141,6 +147,9 @@ function Documentation() {
                 {document.extension}
               </span>
               <span>{document.name}</span>
+              <Link target="_blank" href={document.url}>
+                Ver
+              </Link>
             </div>
           ))}
         </div>
@@ -279,13 +288,33 @@ function Documentation() {
                   </span>
                 )}
               </button>
+              <button
+                className="button button--secondary"
+                onClick={() => setShowUploadFiles(false)}
+              >
+                Cancelar
+              </button>
             </div>
           </>
         ) : (
           <div className="button-container">
             <button className="button" onClick={() => setShowUploadFiles(true)}>
-              Editar documentos
+              Editar documentación
             </button>
+          </div>
+        )}
+        {data?.getListingById?.contract && (
+          <div className="account__info-inner">
+            <h6>Tu contrato de alquiler:</h6>
+            <div className="account__item-photo-item">
+              <span className="account__item-photo-extension">
+                {data?.getListingById?.contract?.documents[0]?.extension}
+              </span>
+              <span>{data?.getListingById?.contract?.documents[0]?.name}</span>
+              <Link href={data?.getListingById?.contract?.documents[0]?.url}>
+                Ver
+              </Link>
+            </div>
           </div>
         )}
         {renderDocumentation(form?.documentation, user)}

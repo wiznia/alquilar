@@ -25,7 +25,7 @@ export default function Select({
         </option>
         {options?.length > 0 ? (
           options.map((option, i) => (
-            <option key={i} value={option[keyName]}>
+            <option key={i} value={option[keyName]} data-id={option.id || null}>
               {option[keyName]}
             </option>
           ))

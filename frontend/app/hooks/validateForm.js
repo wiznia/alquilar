@@ -102,8 +102,8 @@ export const validateForm = (form, formType) => {
       errors.invite = 'Tenés que invitar al menos a una persona a tu evento.';
     }
 
-    if (!form.inquilino) {
-      errors.inquilino = 'Tenés que seleccionar un inmueble.';
+    if (!form.listings) {
+      errors.listings = 'Tenés que seleccionar un inmueble.';
     }
   }
 

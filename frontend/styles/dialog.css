@@ -30,6 +30,13 @@ dialog {
   flex-direction: column;
   gap: 23px;
   width: min(calc(100vw - 60px), 500px);
+  fieldset {
+    .terms__inner {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+  }
 }
 
 .close {

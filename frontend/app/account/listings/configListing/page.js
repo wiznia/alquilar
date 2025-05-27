@@ -261,6 +261,7 @@ function ConfigListing() {
         <Breadcrumb
           direccion={data?.getListingById?.direccion}
           title={user?.tipo_de_cuenta === 'Dueño' ? 'inmuebles' : 'alquileres'}
+          user={user}
         />
         <h2>Configuración del inmueble</h2>
         <InlineNav id={id} page={page} user={user} />

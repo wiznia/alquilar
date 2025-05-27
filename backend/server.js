@@ -37,9 +37,13 @@ const typeDefs = `
   type Query {
     user(
       apellido: String
+      barrio: String
+      direccion: String
       email: String
       id: ID
+      localidad: String
       nombre: String
+      provincia: String
       token: String
       tipo_de_cuenta: String
       usuario: String
@@ -105,12 +109,32 @@ const typeDefs = `
     accessToken: String
   }
 
+  type ContractData {
+    id: ID
+    nombre: String
+    apellido: String
+    documents: [File]
+  }
+
+  input ContractDataInput {
+    id: ID
+    nombre: String
+    apellido: String
+    documents: [FileInput]
+  }
+
+  input MercadoPagoInput {
+    userId: String
+    accessToken: String
+  }
+
   type Listing {
     ambientes: Int
     ammenities: [String]
     antiguedad_max: Int
     banos: Int
     barrio: String
+    contract: ContractData
     descripcion: String
     direccion: String!
     documentation: [DocumentationData]
@@ -154,12 +178,16 @@ const typeDefs = `
 
   type User {
     apellido: String!
+    barrio: String
     celular: Int
     condicion_fiscal: String!
+    direccion: String
     dni: Int!
     email: String!
     id: ID!
+    localidad: String
     nombre: String!
+    provincia: String
     ratings: [Rating]
     telefono: Int
     tipo_de_cuenta: String!
@@ -201,6 +229,7 @@ const typeDefs = `
     senderId: User
     receiverId: User
     id: String
+    listingId: Listing
   }
 
   type Rating {
@@ -245,6 +274,7 @@ const typeDefs = `
     antiguedad_max: Int
     banos: Int
     barrio: String
+    contract: ContractDataInput
     descripcion: String
     direccion: String
     documentation: [DocumentationDataInput]
@@ -312,16 +342,20 @@ const typeDefs = `
 
   type Mutation {
     register(
-      apellido: String!,
+      apellido: String!
+      barrio: String!
       celular: Int
-      condicion_fiscal: String!,
-      dni: Int!,
-      email: String!,
-      nombre: String!,
-      password: String!,
-      telefono: Int,
-      tipo_de_cuenta: String!,
-      usuario: String!,
+      condicion_fiscal: String!
+      direccion: String
+      dni: Int!
+      email: String!
+      localidad: String
+      nombre: String!
+      password: String!
+      provincia: String!
+      telefono: Int
+      tipo_de_cuenta: String!
+      usuario: String!
     ): User
     createListing(input: CreateListingInput!): Listing
     updateListing(id: ID!, input: UpdateListingInput!, senderId: ID): Listing
@@ -342,7 +376,7 @@ const typeDefs = `
     createPaymentLink(userId: ID!, value: Float!, listingId: ID!): String
     addPotentialTenant(tenantId: ID!, listingId: ID!, senderId: ID!, receiverId: ID!, type: String!): Boolean
     removePotentialTenant(listingId: ID!, senderId: ID!, receiverId: ID!, type: String!): Boolean
-    setCalendarEvent(titulo: String!, asunto: String!, time: String!, date: String!, senderId: ID!, receiverId: [ID!]!): Event!
+    setCalendarEvent(titulo: String!, asunto: String!, time: String!, date: String!, senderId: ID!, receiverId: [ID!]!, listingId: ID): Event!
     deleteCalendarEvent(eventId: String!): Boolean
   }
 `;
@@ -531,7 +565,6 @@ const resolvers = {
       return await Notification.find({
         receiver: userId,
         listingId: listingId,
-        type: 'listing',
       });
     },
     getCalendarEvents: async (
@@ -624,12 +657,16 @@ const resolvers = {
       _,
       {
         apellido,
+        barrio,
         celular,
         condicion_fiscal,
+        direccion,
         dni,
         email,
+        localidad,
         nombre,
         password,
+        provincia,
         telefono,
         tipo_de_cuenta,
         usuario,
@@ -647,12 +684,16 @@ const resolvers = {
       const hashedPassword = await bcrypt.hash(password, 10);
       const newUser = new User({
         apellido,
+        barrio,
         celular,
         condicion_fiscal,
+        direccion,
         dni,
         email,
+        localidad,
         nombre,
         password: hashedPassword,
+        provincia,
         ratings: [],
         telefono,
         tipo_de_cuenta,
@@ -688,12 +729,16 @@ const resolvers = {
 
       return {
         apellido: newUser.apellido,
+        barrio: newUser.barrio,
         celular: newUser.celular,
         condicion_fiscal: newUser.condicion_fiscal,
+        direccion: newUser.direccion,
         dni: newUser.dni,
         email: newUser.email,
         id: newUser.id,
+        localidad: newUser.localidad,
         nombre: newUser.nombre,
+        provincia: newUser.provincia,
         ratings: newUser.ratings,
         telefono: newUser.telefono,
         tipo_de_cuenta: newUser.tipo_de_cuenta,
@@ -856,56 +901,105 @@ const resolvers = {
       return await newListing.save();
     },
     updateListing: async (_, { id, input, senderId }) => {
+      const updatedFields = {};
+      let notificationContent = null;
+
       if (input.documentation && senderId) {
+        const incoming = Array.isArray(input.documentation)
+          ? input.documentation[0]
+          : input.documentation;
         const listing = await Listing.findById(id);
-        const currentDocs = listing.documentation || [];
-        const incoming = input.documentation[0];
-
-        const existingIndex = currentDocs.findIndex(
-          (doc) => doc.id.toString() === incoming.id.toString(),
+        const existingDocs = Array.isArray(listing.documentation)
+          ? listing.documentation
+          : [];
+        const getId = (obj) => (obj && obj.id ? obj.id.toString() : undefined);
+        const otherDocs = existingDocs.filter(
+          (doc) => getId(doc) !== getId(incoming),
         );
-
-        if (existingIndex >= 0) {
-          currentDocs[existingIndex].documents = incoming.documents;
-        } else {
-          currentDocs.push(incoming);
-        }
-
-        input.documentation = currentDocs;
+        const mergedDocs = [...otherDocs, incoming];
+        updatedFields.documentation = mergedDocs;
 
         const sender = await User.findById(senderId).select(
           'nombre apellido tipo_de_cuenta',
         );
-        const extraContent =
-          (!listing.payment.cbu || !listing.sena) &&
+        const isPaymentConfigured = !!listing.payment.cbu || !!listing.sena;
+        const CBUContent =
+          !isPaymentConfigured &&
+          listing.contract?.documents &&
           sender.tipo_de_cuenta !== 'Dueño'
             ? ' Configurá tu seña o CBU para recibir la reserva del potencial inquilino.'
             : '';
-        const content = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> subió su documentación al <a href=${process.env.FRONTEND_URL}/account/listings/configListing/notifications?id=${id}>inmueble</a>.${extraContent}`;
+        const contractContent =
+          !listing.contract?.documents && sender.tipo_de_cuenta !== 'Dueño'
+            ? ' Ya podés subir tu modelo de contrato de alquiler para que sea revisado por el inquilino.'
+            : '';
+        notificationContent = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> subió documentación al <a href=${process.env.FRONTEND_URL}/account/listings/configListing/notifications?id=${id}>inmueble</a>.${CBUContent} ${contractContent}`;
         if (sender.tipo_de_cuenta === 'Dueño') {
-          listing.potential_tenant.map((tenant) => {
-            handleNotification(senderId, tenant, content, 'listing', id);
+          listing.potential_tenant.forEach((tenant) => {
+            handleNotification(
+              senderId,
+              tenant,
+              notificationContent,
+              'listing',
+              id,
+            );
           });
         } else {
-          handleNotification(senderId, listing.owner, content, 'listing', id);
+          handleNotification(
+            senderId,
+            listing.owner,
+            notificationContent,
+            'listing',
+            id,
+          );
         }
       }
 
-      const updatedFields = {
-        ...input,
-        fotos: input.fotos
-          ? input.fotos.map((file) => ({
-              id: file.id,
-              name: file.name,
-              url: file.url,
-              extension: file.extension,
-            }))
-          : undefined,
-      };
+      if (input.contract && senderId) {
+        const incomingContract = Array.isArray(input.contract)
+          ? input.contract[0]
+          : input.contract;
+        const listing = await Listing.findById(id);
+        updatedFields.contract = incomingContract;
+
+        const sender = await User.findById(senderId).select(
+          'nombre apellido tipo_de_cuenta',
+        );
+        notificationContent = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> subió el contrato de alquiler al <a href=${process.env.FRONTEND_URL}/account/listings/configListing/notifications?id=${id}>inmueble</a>.`;
+        listing.potential_tenant.forEach((tenant) => {
+          handleNotification(
+            senderId,
+            tenant,
+            notificationContent,
+            'listing',
+            id,
+          );
+        });
+      }
+
+      if (input.fotos) {
+        updatedFields.fotos = input.fotos.map((file) => ({
+          id: file.id,
+          name: file.name,
+          url: file.url,
+          extension: file.extension,
+        }));
+      }
+
+      Object.entries(input).forEach(([key, value]) => {
+        if (
+          !(key in updatedFields) &&
+          key !== 'documentation' &&
+          key !== 'contract' &&
+          key !== 'fotos'
+        ) {
+          updatedFields[key] = value;
+        }
+      });
 
       const updatedListing = await Listing.findOneAndUpdate(
         { _id: id },
-        updatedFields,
+        { $set: updatedFields },
         { new: true },
       );
 
@@ -1205,7 +1299,7 @@ const resolvers = {
     },
     setCalendarEvent: async (
       _,
-      { titulo, asunto, time, date, senderId, receiverId },
+      { titulo, asunto, time, date, senderId, receiverId, listingId },
       context,
     ) => {
       const authHeader = context.req.headers.authorization;
@@ -1231,7 +1325,13 @@ const resolvers = {
 
       await Promise.all(
         receiverId.map(async (receiver) => {
-          await handleNotification(senderId, receiver, content, 'event');
+          await handleNotification(
+            senderId,
+            receiver,
+            content,
+            'event',
+            listingId,
+          );
         }),
       );
 
@@ -1243,6 +1343,7 @@ const resolvers = {
         date,
         senderId,
         receiverId,
+        listingId,
       });
 
       await event.save();
@@ -1279,7 +1380,6 @@ const corsOptions = {
 };
 
 const app = express();
-console.log('CORS allowed origin:', process.env.FRONTEND_URL);
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use(cookieParser());
@@ -1334,7 +1434,7 @@ app.get('/api/mercado-pago/callback', async (req, res) => {
   }
 });
 
-const notifyPastEvents = async () => {
+/*const notifyPastEvents = async () => {
   const oneDayAgo = new Date();
   oneDayAgo.setDate(oneDayAgo.getDate() - 1);
 
@@ -1355,9 +1455,9 @@ const notifyPastEvents = async () => {
     event.notified = true;
     await event.save();
   }
-};
+};*/
 
-cron.schedule('*/2 * * * *', notifyPastEvents);
+//cron.schedule('*/2 * * * *', notifyPastEvents);
 
 const server = new ApolloServer({
   typeDefs,

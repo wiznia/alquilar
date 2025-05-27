@@ -17,6 +17,7 @@ const eventSchema = new mongoose.Schema({
       required: true,
     },
   ],
+  listingId: { type: mongoose.Schema.Types.ObjectId, ref: 'Listing' },
   notified: { type: Boolean },
 });
 

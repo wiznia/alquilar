@@ -42,6 +42,8 @@ export default function Calendar() {
     titulo: '',
     asunto: '',
     time: '',
+    invite: [],
+    listings: '',
   };
 
   const [currentMonth, setCurrentMonth] = useState(currentDate.getMonth());
@@ -61,6 +63,8 @@ export default function Calendar() {
   const monthTwoDecimals = (currentMonth + 1).toString().padStart(2, '0');
   const { form, setForm, errors, handleChange, validateFormCheck } =
     useFormValidation(initialState, 'setEvent');
+  const nextMonthTwoDecimals =
+    monthTwoDecimals === '12' ? '01' : monthTwoDecimals + 1;
 
   const [setCalendarEvent] = useMutation(SET_CALENDAR_EVENT);
   const [deleteCalendarEvent] = useMutation(DELETE_CALENDAR_EVENT);
@@ -72,7 +76,7 @@ export default function Calendar() {
     variables: {
       senderId: user?.id,
       createdAt_min: `${currentYear}-${monthTwoDecimals}-01`,
-      createdAt_max: `${currentYear}-${monthTwoDecimals}-${daysInMonth}`,
+      createdAt_max: `${currentYear}-${nextMonthTwoDecimals}-01`,
     },
     skip: !user?.id || !isOwner,
   });
@@ -80,7 +84,7 @@ export default function Calendar() {
     variables: {
       receiverId: user?.id,
       createdAt_min: `${currentYear}-${monthTwoDecimals}-01`,
-      createdAt_max: `${currentYear}-${monthTwoDecimals}-${daysInMonth}`,
+      createdAt_max: `${currentYear}-${nextMonthTwoDecimals}-01`,
     },
     skip: !user?.id || isOwner,
   });
@@ -111,6 +115,7 @@ export default function Calendar() {
     setCurrentYear((prevYear) =>
       currentMonth === 0 ? prevYear - 1 : prevYear,
     );
+    setMonthlyEvents([]);
     setDateEvents([]);
     setShowAddEventForm(false);
     refetch();
@@ -121,6 +126,7 @@ export default function Calendar() {
     setCurrentYear((prevYear) =>
       currentMonth === 11 ? prevYear + 1 : prevYear,
     );
+    setMonthlyEvents([]);
     setDateEvents([]);
     setShowAddEventForm(false);
     refetch();
@@ -508,7 +514,7 @@ export default function Calendar() {
                         )}
                       </div>
                       <div className="account__item-inner account__item-inner--half">
-                        <label htmlFor="inquilino">Inmueble:</label>
+                        <label htmlFor="inmueble">Inmueble:</label>
                         <Select
                           name="listings"
                           placeholder="Seleccioná tu inmueble"
@@ -521,9 +527,9 @@ export default function Calendar() {
                           value={form?.listings || ''}
                           keyName="direccion"
                         />
-                        {errors.inquilino && (
+                        {errors.inmueble && (
                           <small className="error-message">
-                            {errors.inquilino}
+                            {errors.inmueble}
                           </small>
                         )}
                       </div>

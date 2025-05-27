@@ -105,6 +105,9 @@ fieldset {
   font-weight: bold;
   position: relative;
   z-index: 10;
+  a {
+    margin-inline-start: auto;
+  }
 }
 .account__item-photo-extension {
   background-color: var(--primary-bg);
@@ -128,7 +131,6 @@ fieldset {
 .account__info-inner {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
   gap: 16px;
   &:has(.input-suggestion__container) {
     input[type='text'] {
@@ -152,6 +154,9 @@ fieldset {
     margin-inline-end: auto;
     a {
       margin-block-start: 16px;
+    }
+    &.date {
+      margin-inline-end: unset;
     }
   }
   .button {

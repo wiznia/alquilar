@@ -111,7 +111,10 @@ function UpdateListingContent() {
         __typename,
         documentation,
         mercadoPago,
+        mpPaymentLink,
+        payment,
         sena,
+        contract,
         potential_tenant,
         ...sanitizedForm
       } = form;

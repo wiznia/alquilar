@@ -47,6 +47,13 @@ export const useFormValidation = (
         },
       }));
     } else {
+      if (type === 'select-one') {
+        setForm((prevForm) => ({
+          ...prevForm,
+          listingId:
+            e.target.options[e.target.options.selectedIndex].dataset.id,
+        }));
+      }
       setForm((prevForm) => ({
         ...prevForm,
         [name]: value,
