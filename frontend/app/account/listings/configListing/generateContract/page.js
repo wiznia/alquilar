@@ -1,7 +1,7 @@
 'use client';
 
 import { useFormValidation } from '@/app/hooks/useFormValidation';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useLocationData } from '@/app/hooks/useLocationData';
 import Select from '@/components/Select';
 import AccountSidebar from '@/components/AccountSidebar';
@@ -16,7 +16,7 @@ import {
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/components/AuthContext';
 
-export default function Page() {
+function GenerateContract() {
   const [isLoading, setIsLoading] = useState(false);
   const [inquilinoSelect, setInquilinoSelect] = useState('');
   const [contractUrl, setContractUrl] = useState('');
@@ -669,5 +669,13 @@ export default function Page() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<p>Loading...</p>}>
+      <GenerateContract />
+    </Suspense>
   );
 }
