@@ -110,5 +110,111 @@ export const validateForm = (form, formType) => {
   if (formType === 'uploadDocuments') {
   }
 
+  if (formType === 'generateContract') {
+    if (!form.inquilino) {
+      errors.inquilino = 'Tenés que seleccionar un inquilino.';
+    }
+
+    if (!form.nombre) {
+      errors.nombre = 'Completá tu nombre.';
+    }
+
+    if (!form.apellido) {
+      errors.apellido = 'Completá tu apellido.';
+    }
+
+    if (!form.dni) {
+      errors.dni = 'Completá tu DNI.';
+    }
+
+    if (!form.provincia) {
+      errors.provincia = 'Completá tu ciudad.';
+    }
+
+    if (!form.direccion) {
+      errors.direccion = 'Completá tu dirección.';
+    }
+
+    if (!form.cbu) {
+      errors.cbu = 'Completá tu CBU.';
+    }
+
+    if (!form.bankAccount) {
+      errors.bankAccount = 'Completá tu cuenta de banco.';
+    }
+
+    if (!form.bankName) {
+      errors.bankName = 'Completá el nombre de tu banco.';
+    }
+
+    if (!form.cuit) {
+      errors.cuit = 'Completá tu CUIT.';
+    }
+
+    if (!form.nombreTenant) {
+      errors.nombreTenant = 'Completá el nombre de tu inquilino.';
+    }
+
+    if (!form.apellidoTenant) {
+      errors.apellidoTenant = 'Completá el apellido de tu inquilino.';
+    }
+
+    if (!form.DNITenant) {
+      errors.DNITenant = 'Completá el DNI de tu inquilino.';
+    }
+
+    if (!form.provinciaTenant) {
+      errors.provinciaTenant = 'Completá la ciudad de tu inquilino.';
+    }
+
+    if (!form.direccionTenant) {
+      errors.direccionTenant = 'Completá la dirección de tu inquilino.';
+    }
+
+    if (!form.listingAddress) {
+      errors.listingAddress = 'Completá la dirección de tu inmueble.';
+    }
+
+    if (!form.listingCity) {
+      errors.listingCity = 'Completá la ciudad de tu inmueble.';
+    }
+
+    if (!form.listingMoneda) {
+      errors.listingMoneda = 'Completá la moneda del alquiler de tu inmueble.';
+    }
+
+    if (!form.listingPrice) {
+      errors.listingPrice = 'Completá el precio de tu inmueble.';
+    }
+
+    if (!form.contractSignDate) {
+      errors.contractSignDate = 'Completá la fecha de firma del contrato.';
+    }
+
+    if (!form.contractStartDate) {
+      errors.contractStartDate = 'Completá la fecha de inicio del contrato.';
+    }
+
+    if (!form.duracion) {
+      errors.duracion = 'Completá la duración del contrato.';
+    }
+
+    if (!form.adjustmentType) {
+      errors.adjustmentType = 'Completá el tipo de ajuste del alquiler.';
+    }
+
+    if (!form.adjustmentMethod) {
+      errors.adjustmentMethod = 'Completá el método de ajuste del alquiler.';
+    }
+
+    if (!form.guaranteeType) {
+      errors.guaranteeType = 'Completá el tipo de garantía del alquiler.';
+    }
+
+    if (!form.inventory) {
+      errors.inventory = 'Completá el listado de inventario del inmueble.';
+    }
+  }
+
   return errors;
 };

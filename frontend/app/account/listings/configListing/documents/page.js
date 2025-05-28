@@ -187,6 +187,7 @@ function Documentation() {
         <Breadcrumb
           direccion={data?.getListingById?.direccion}
           title={user?.tipo_de_cuenta === 'Dueño' ? 'inmuebles' : 'alquileres'}
+          user={user}
         />
         <h2>Configuración del inmueble</h2>
         <InlineNav id={id} page={page} user={user} />
@@ -291,7 +292,15 @@ function Documentation() {
             <p>
               Subí el modelo de contrato de alquiler con los datos del inquilino
               para su revisión o{' '}
-              <Link className="dark" href="#">
+              <Link
+                className="dark"
+                href={{
+                  pathname: '/account/listings/configListing/generateContract',
+                  query: {
+                    id,
+                  },
+                }}
+              >
                 generalo automáticamente (experimental)
               </Link>
               .
@@ -392,7 +401,7 @@ function Documentation() {
             </button>
           </div>
         )}
-        {data?.getListingById?.contract && (
+        {data?.getListingById?.contract?.documents?.length > 0 && (
           <div className="account__info-inner">
             <h6>Tu contrato de alquiler:</h6>
             <div className="account__item-photo-item">

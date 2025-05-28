@@ -463,8 +463,8 @@ function ConfigListing() {
           <div className="account__info-inner">
             <h6>Configurar CBU:</h6>
             <p>
-              Si preferís no conectar tu cuenta de Mercado Pago y querés manejar
-              las transferencias por CBU, ingresalo en el campo siguiente.
+              Si preferís manejar todo por transferencia bancaria, ingresá tu
+              CBU en el campo siguiente.
             </p>
             <input
               type="text"

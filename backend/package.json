@@ -19,6 +19,7 @@
     "crypto": "^1.0.1",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "fs-extra": "^11.3.0",
     "graphql": "^16.10.0",
     "graphql-subscriptions": "^3.0.0",
     "graphql-upload": "^13.0.0",
@@ -27,6 +28,7 @@
     "mongoose": "^8.12.0",
     "node-cron": "^4.0.5",
     "nodemailer": "^6.10.0",
+    "puppeteer": "^24.9.0",
     "stream": "^0.0.3",
     "uuid": "^11.1.0"
   }

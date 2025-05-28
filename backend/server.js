@@ -19,6 +19,9 @@ import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import { handleNotification } from './helpers.js';
 import cron from 'node-cron';
+import path from 'path';
+import fs from 'fs-extra';
+import puppeteer from 'puppeteer';
 
 dotenv.config();
 
@@ -302,6 +305,34 @@ const typeDefs = `
     viewCount: Int
   }
 
+  input ContractInput {
+    adjustmentMethod: String
+    adjustmentType: String
+    apellido: String
+    apellidoTenant: String
+    bankAccount: String
+    bankName: String
+    cbu: String
+    contractSignDate: String
+    contractStartDate: String
+    cuit: String
+    direccion: String
+    direccionTenant: String
+    dni: Int
+    DNITenant: Int
+    duracion: String
+    guaranteeType: String
+    inventory: String
+    listingAddress: String
+    listingCity: String
+    listingMoneda: String
+    listingPrice: Int
+    nombre: String
+    nombreTenant: String
+    provincia: String
+    provinciaTenant: String
+  }
+
   type File {
     id: ID!
     name: String
@@ -378,6 +409,7 @@ const typeDefs = `
     removePotentialTenant(listingId: ID!, senderId: ID!, receiverId: ID!, type: String!): Boolean
     setCalendarEvent(titulo: String!, asunto: String!, time: String!, date: String!, senderId: ID!, receiverId: [ID!]!, listingId: ID): Event!
     deleteCalendarEvent(eventId: String!): Boolean
+    generateContract(input: ContractInput!): String!
   }
 `;
 
@@ -904,37 +936,72 @@ const resolvers = {
       const updatedFields = {};
       let notificationContent = null;
 
-      if (input.documentation && senderId) {
-        const incoming = Array.isArray(input.documentation)
-          ? input.documentation[0]
-          : input.documentation;
-        const listing = await Listing.findById(id);
-        const existingDocs = Array.isArray(listing.documentation)
-          ? listing.documentation
-          : [];
-        const getId = (obj) => (obj && obj.id ? obj.id.toString() : undefined);
-        const otherDocs = existingDocs.filter(
-          (doc) => getId(doc) !== getId(incoming),
-        );
-        const mergedDocs = [...otherDocs, incoming];
-        updatedFields.documentation = mergedDocs;
-
+      if (senderId) {
         const sender = await User.findById(senderId).select(
           'nombre apellido tipo_de_cuenta',
         );
-        const isPaymentConfigured = !!listing.payment.cbu || !!listing.sena;
-        const CBUContent =
-          !isPaymentConfigured &&
-          listing.contract?.documents &&
-          sender.tipo_de_cuenta !== 'Dueño'
-            ? ' Configurá tu seña o CBU para recibir la reserva del potencial inquilino.'
-            : '';
-        const contractContent =
-          !listing.contract?.documents && sender.tipo_de_cuenta !== 'Dueño'
-            ? ' Ya podés subir tu modelo de contrato de alquiler para que sea revisado por el inquilino.'
-            : '';
-        notificationContent = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> subió documentación al <a href=${process.env.FRONTEND_URL}/account/listings/configListing/notifications?id=${id}>inmueble</a>.${CBUContent} ${contractContent}`;
-        if (sender.tipo_de_cuenta === 'Dueño') {
+        const inmuebleURL =
+          sender.tipo_de_cuenta === 'Dueño'
+            ? `${process.env.FRONTEND_URL}/account/alquileres/configListing/documents?id=${id}`
+            : `${process.env.FRONTEND_URL}/account/listings/configListing/documents?id=${id}`;
+
+        if (input.documentation) {
+          const incoming = Array.isArray(input.documentation)
+            ? input.documentation[0]
+            : input.documentation;
+          const listing = await Listing.findById(id);
+          const existingDocs = Array.isArray(listing.documentation)
+            ? listing.documentation
+            : [];
+          const getId = (obj) =>
+            obj && obj.id ? obj.id.toString() : undefined;
+          const otherDocs = existingDocs.filter(
+            (doc) => getId(doc) !== getId(incoming),
+          );
+          const mergedDocs = [...otherDocs, incoming];
+          updatedFields.documentation = mergedDocs;
+
+          const isPaymentConfigured = !!listing.payment.cbu || !!listing.sena;
+          const CBUContent =
+            !isPaymentConfigured &&
+            listing.contract?.documents &&
+            sender.tipo_de_cuenta !== 'Dueño'
+              ? ' Configurá tu seña o CBU para recibir la reserva del potencial inquilino.'
+              : '';
+          const contractContent =
+            listing?.contract?.documents.length === 0 &&
+            sender.tipo_de_cuenta !== 'Dueño'
+              ? ' Ya podés subir tu modelo de contrato de alquiler para que sea revisado por el inquilino.'
+              : '';
+          notificationContent = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> subió documentación al <a href=${inmuebleURL}>inmueble</a>.${CBUContent} ${contractContent}`;
+          if (sender.tipo_de_cuenta === 'Dueño') {
+            listing.potential_tenant.forEach((tenant) => {
+              handleNotification(
+                senderId,
+                tenant,
+                notificationContent,
+                'listing',
+                id,
+              );
+            });
+          } else {
+            handleNotification(
+              senderId,
+              listing.owner,
+              notificationContent,
+              'listing',
+              id,
+            );
+          }
+        }
+        if (input.contract) {
+          const incomingContract = Array.isArray(input.contract)
+            ? input.contract[0]
+            : input.contract;
+          const listing = await Listing.findById(id);
+          updatedFields.contract = incomingContract;
+
+          notificationContent = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> subió el contrato de alquiler al <a href=${inmuebleURL}>inmueble</a>.`;
           listing.potential_tenant.forEach((tenant) => {
             handleNotification(
               senderId,
@@ -944,37 +1011,7 @@ const resolvers = {
               id,
             );
           });
-        } else {
-          handleNotification(
-            senderId,
-            listing.owner,
-            notificationContent,
-            'listing',
-            id,
-          );
         }
-      }
-
-      if (input.contract && senderId) {
-        const incomingContract = Array.isArray(input.contract)
-          ? input.contract[0]
-          : input.contract;
-        const listing = await Listing.findById(id);
-        updatedFields.contract = incomingContract;
-
-        const sender = await User.findById(senderId).select(
-          'nombre apellido tipo_de_cuenta',
-        );
-        notificationContent = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> subió el contrato de alquiler al <a href=${process.env.FRONTEND_URL}/account/listings/configListing/notifications?id=${id}>inmueble</a>.`;
-        listing.potential_tenant.forEach((tenant) => {
-          handleNotification(
-            senderId,
-            tenant,
-            notificationContent,
-            'listing',
-            id,
-          );
-        });
       }
 
       if (input.fotos) {
@@ -1355,6 +1392,11 @@ const resolvers = {
 
       return true;
     },
+    generateContract: async (_, { input }) => {
+      const fileName = await generarContratoPDF(input);
+      const url = `http://localhost:${PORT}/output/${fileName}`;
+      return url;
+    },
   },
   Listing: {
     likes: async (listing) => {
@@ -1384,6 +1426,7 @@ app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }));
+app.use('/output', express.static(path.resolve('./output')));
 
 app.get('/api/mercado-pago/callback', async (req, res) => {
   try {
@@ -1433,6 +1476,91 @@ app.get('/api/mercado-pago/callback', async (req, res) => {
     );
   }
 });
+
+const generarContratoPDF = async (datos) => {
+  const [year, monthDate, today] = datos.contractSignDate
+    .split('-')
+    .map(Number);
+  const [contractYear, contractMonth, contractDay] = datos.contractStartDate
+    .split('-')
+    .map(Number);
+  const date = new Date(contractYear, contractMonth - 1, contractDay);
+  const contractStartDate = date.toLocaleDateString('es-ES', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  });
+  const month = new Date(`${year}-${monthDate}-${today}`).toLocaleDateString(
+    'es-ES',
+    {
+      month: 'long',
+    },
+  );
+  const duration = {
+    'tres años': 3,
+    'dos años': 2,
+    'un año': 1,
+    'seis meses': 6,
+  };
+  const duracion = duration[datos.duracion];
+  const contractEndDateDate =
+    duracion === 6
+      ? new Date(
+          new Date(datos.contractStartDate).setMonth(
+            new Date(datos.contractStartDate).getMonth() + 6,
+          ),
+        )
+      : new Date(
+          `${contractYear + duracion}-${contractMonth.toString().replace(/^0+/, '')}-${contractDay}`,
+        );
+  const contractEndDate = contractEndDateDate.toLocaleDateString('es-ES', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  });
+  const adjustment = {
+    trimestral: 'trimestre',
+    semestral: 'semestre',
+    anual: 'año',
+  };
+  const contractTypeOfAdjustmentMonth = adjustment[datos.adjustmentType];
+  const datosUpdates = {
+    ...datos,
+    todayDate: today,
+    month,
+    year,
+    contractStartDate,
+    contractEndDate,
+    contractTypeOfAdjustmentMonth,
+  };
+  const htmlPath = path.resolve('./contractTemplate.html');
+  const htmlTemplate = await fs.readFile(htmlPath, 'utf-8');
+  const htmlFinal = htmlTemplate.replace(
+    /{{(\w+)}}/g,
+    (_, key) => datosUpdates[key] || '',
+  );
+
+  const browser = await puppeteer.launch({
+    headless: 'new',
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+  });
+  const page = await browser.newPage();
+  await page.setContent(htmlFinal, { waitUntil: 'networkidle0' });
+
+  const pdfBuffer = await page.pdf({
+    format: 'A4',
+    printBackground: true,
+    margin: { top: '40px', bottom: '40px', left: '40px', right: '40px' },
+  });
+
+  await browser.close();
+
+  const fileName = `contrato_final_${Date.now()}.pdf`;
+  const outputPath = path.resolve('./output', fileName);
+  await fs.outputFile(outputPath, pdfBuffer);
+
+  return fileName;
+};
 
 /*const notifyPastEvents = async () => {
   const oneDayAgo = new Date();

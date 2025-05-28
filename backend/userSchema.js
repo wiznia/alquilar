@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema({
   apellido: { type: String, required: true },
   celular: { type: Number },
   condicion_fiscal: { type: String, required: true },
+  direccion: { type: String, required: true },
   dni: { type: Number, required: true },
   email: { type: String, required: true, unique: true },
   nombre: { type: String, required: true },

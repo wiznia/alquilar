@@ -48,7 +48,7 @@ export default function InlineNav({ id, page, user }) {
         </li>
         <li
           className={
-            page === 'documents'
+            page === 'documents' || page === 'generateContract'
               ? 'inline-nav__item--active'
               : 'inline-nav__item'
           }

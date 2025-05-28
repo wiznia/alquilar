@@ -207,10 +207,12 @@ export const GET_USER = gql`
       apellido
       celular
       condicion_fiscal
+      direccion
       dni
       email
       id
       nombre
+      provincia
       ratings {
         rating
         message
@@ -256,6 +258,9 @@ export const GET_POTENTIAL_TENANTS_BY_LISTING = gql`
       nombre
       apellido
       id
+      dni
+      provincia
+      direccion
     }
   }
 `;
@@ -798,5 +803,11 @@ export const SET_CALENDAR_EVENT = gql`
 export const DELETE_CALENDAR_EVENT = gql`
   mutation DELETE_CALENDAR_EVENT($eventId: String!) {
     deleteCalendarEvent(eventId: $eventId)
+  }
+`;
+
+export const GENERATE_CONTRACT = gql`
+  mutation GenerateContract($input: ContractInput!) {
+    generateContract(input: $input)
   }
 `;

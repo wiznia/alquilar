@@ -56,7 +56,7 @@ function ConfigListing() {
         />
         <h2>Configuración del inmueble</h2>
         <InlineNav id={id} page={page} user={user} />
-        {userDocumentation.length === 0 ? (
+        {userDocumentation.length === 0 && (
           <div className="account__info-inner">
             <p>
               Para poder ver la información de este inmueble, primero tenés que
@@ -64,24 +64,31 @@ function ConfigListing() {
               lo hayas hecho vas a poder ver la configuración en esta pestaña.
             </p>
           </div>
-        ) : (
-          <div className="account__info-inner">
-            <h6>Seña:</h6>
-            <p>
-              Este es el monto que tenés que pagar para reservar este inmueble.
-            </p>
-            <p>${data?.getListingById?.sena}</p>
-            <div className="button-container">
-              <Link
-                className="button"
-                href={data?.getListingById.mpPaymentLink}
-                target="_blank"
-              >
-                Reservar inmueble
-              </Link>
-            </div>
-          </div>
         )}
+        {data?.getListingById?.sena &&
+          data?.getListingById?.contract?.documents.length > 0 && (
+            <div className="account__info-inner">
+              <h6>Seña:</h6>
+              <p>
+                Este es el monto que tenés que pagar para reservar este
+                inmueble.
+              </p>
+              <p>${data?.getListingById?.sena}</p>
+              {data?.getListingById?.mpPaymentLink ? (
+                <div className="button-container">
+                  <Link
+                    className="button"
+                    href={data?.getListingById?.mpPaymentLink}
+                    target="_blank"
+                  >
+                    Reservar inmueble
+                  </Link>
+                </div>
+              ) : (
+                <div>Tenes que pagaraprata.</div>
+              )}
+            </div>
+          )}
       </div>
     </div>
   );
