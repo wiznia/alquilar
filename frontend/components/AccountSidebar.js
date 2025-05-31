@@ -10,12 +10,14 @@ export default function AccountSidebar() {
   const navPagesDueno = [
     { name: 'Configuración general', path: '/account/settings' },
     { name: 'Mis inmuebles', path: '/account/listings' },
+    { name: 'Mis documentos', path: '/account/documents' },
     { name: 'Mensajes', path: '/account/messages' },
     { name: 'Calendario', path: '/account/calendar' },
   ];
   const navPagesInquilino = [
     { name: 'Configuración general', path: '/account/settings' },
     { name: 'Mis alquileres', path: '/account/alquileres' },
+    { name: 'Mis documentos', path: '/account/documents' },
     { name: 'Wishlist', path: '/account/wishlist' },
     { name: 'Mensajes', path: '/account/messages' },
     { name: 'Calendario', path: '/account/calendar' },

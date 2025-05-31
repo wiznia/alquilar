@@ -42,8 +42,8 @@ export default function Listing({ listing }) {
 
   return (
     <div className="entry shadow">
-      <ImageSlider listing={listing} thumbnails="no" />
       <Link className="entry__link" href={`/listing/${listing.id}`}>
+        <ImageSlider listing={listing} thumbnails="no" />
         <div className="entry__info">
           <h4>{formatMoney(listing.precio, moneda)}</h4>
           <p>{formatMoney(listing.expensas)} Expensas</p>

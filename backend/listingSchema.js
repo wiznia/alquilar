@@ -18,6 +18,7 @@ const listingSchema = new mongoose.Schema({
         extension: String,
       },
     ],
+    potentialTenantAgreed: { type: Boolean, default: false },
   },
   createdAt: {
     type: Date,

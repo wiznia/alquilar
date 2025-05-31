@@ -71,6 +71,7 @@ export default function Nav() {
           </button>
           <NavbarPopover id="account">
             <Link href="/account/settings">Mi cuenta</Link>
+            <Link href={`/user/${user?.id}`}>Perfil</Link>
             <a onClick={logout}>Salir</a>
           </NavbarPopover>
           <button

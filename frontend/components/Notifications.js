@@ -13,6 +13,11 @@ export default function Notifications({
   const { data, loading, error } = useQuery(GET_NOTIFICATIONS, {
     variables: { userId },
   });
+  const sortedNotifications = data?.getNotifications
+    ? [...data.getNotifications].sort((a, b) => {
+        return Number(b.createdAt) - Number(a.createdAt);
+      })
+    : [];
 
   useEffect(() => {
     if (data && data.getNotifications) {
@@ -26,8 +31,8 @@ export default function Notifications({
 
   return (
     <ul>
-      {data.getNotifications.length > 0 ? (
-        data.getNotifications.map((notification, index) => (
+      {sortedNotifications.length > 0 ? (
+        sortedNotifications.map((notification, index) => (
           <div key={index} className="notification">
             <div className="notification__pic">
               <svg

@@ -275,7 +275,7 @@ function GenerateContract() {
           <fieldset>
             <label htmlFor="cbu">Tu CBU:</label>
             <input
-              type="number"
+              type="text"
               className="small"
               id="cbu"
               name="cbu"

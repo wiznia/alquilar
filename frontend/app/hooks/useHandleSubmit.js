@@ -4,11 +4,14 @@ export function useUnifiedSubmit({
   user,
   id,
   uploadImage,
+  uploadDocuments,
   updateListing,
+  updateUser,
   removeTypename,
   refetch,
   validateFormCheck,
   fileInputRef,
+  globalDocsEnabled,
 }) {
   const getUnifiedSubmitHandler = useCallback(
     ({
@@ -20,10 +23,11 @@ export function useUnifiedSubmit({
       setIsLoading,
       setUploadSuccess,
       type,
+      globalDocsEnabled: handlerDocsEnabled,
     }) => {
       return async function unifiedSubmit(e) {
         e.preventDefault();
-        if (!validateFormCheck()) return;
+        if (!validateFormCheck({ uploadedFiles, newFiles })) return;
         setIsLoading(true);
 
         try {
@@ -41,7 +45,7 @@ export function useUnifiedSubmit({
             );
           }
 
-          if (onlyRealFiles.length > 0) {
+          if (onlyRealFiles.length > 0 && type !== 'userDocumentation') {
             const { data: uploadData } = await uploadImage({
               variables: {
                 files: onlyRealFiles,
@@ -50,6 +54,26 @@ export function useUnifiedSubmit({
               },
             });
             newUploadedUrls = uploadData.uploadImage.map(
+              ({ id, name, url, extension }) => ({
+                id,
+                name,
+                url,
+                extension,
+              }),
+            );
+            uploadedDocs = [...uploadedDocs, ...newUploadedUrls];
+          } else if (
+            onlyRealFiles.length > 0 &&
+            type === 'userDocumentation' &&
+            typeof uploadDocuments === 'function'
+          ) {
+            const { data: uploadData } = await uploadDocuments({
+              variables: {
+                files: onlyRealFiles,
+                userId: user?.id,
+              },
+            });
+            newUploadedUrls = uploadData.uploadDocuments.map(
               ({ id, name, url, extension }) => ({
                 id,
                 name,
@@ -85,17 +109,40 @@ export function useUnifiedSubmit({
               },
               id,
             };
+          } else if (type === 'userDocumentation') {
+            input = {
+              documentation: {
+                documentsAreGlobal:
+                  typeof handlerDocsEnabled !== 'undefined'
+                    ? handlerDocsEnabled
+                    : globalDocsEnabled,
+                documents: cleanedDocs,
+              },
+            };
           } else {
             throw new Error('Invalid submit type');
           }
 
-          await updateListing({
-            variables: {
-              id,
-              senderId: user?.id,
-              input,
-            },
-          });
+          if (type !== 'userDocumentation') {
+            await updateListing({
+              variables: {
+                id,
+                senderId: user?.id,
+                input,
+              },
+            });
+            refetch();
+          } else if (
+            type === 'userDocumentation' &&
+            typeof updateUser === 'function'
+          ) {
+            await updateUser({
+              variables: {
+                id: user?.id,
+                input,
+              },
+            });
+          }
 
           setNewFiles([]);
           setUploadedFiles(uploadedDocs);
@@ -103,7 +150,6 @@ export function useUnifiedSubmit({
           setShowUpload(false);
           setIsLoading(false);
           setUploadSuccess(true);
-          refetch();
         } catch (error) {
           console.error('Error uploading documents:', error);
           setIsLoading(false);
@@ -113,14 +159,18 @@ export function useUnifiedSubmit({
     [
       id,
       uploadImage,
+      uploadDocuments,
       updateListing,
+      updateUser,
       removeTypename,
       user?.id,
       user?.nombre,
       user?.apellido,
+      user?.documentation?.documentsAreGlobal,
       validateFormCheck,
       refetch,
       fileInputRef,
+      globalDocsEnabled,
     ],
   );
 

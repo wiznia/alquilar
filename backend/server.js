@@ -117,6 +117,7 @@ const typeDefs = `
     nombre: String
     apellido: String
     documents: [File]
+    potentialTenantAgreed: Boolean
   }
 
   input ContractDataInput {
@@ -196,6 +197,7 @@ const typeDefs = `
     tipo_de_cuenta: String!
     token: String
     usuario: String!
+    documentation: Documentation
   }
   
   type Message {
@@ -240,6 +242,11 @@ const typeDefs = `
     rating: Int!
     message: String
     createdAt: String!
+  }
+
+  type Documentation {
+    documentsAreGlobal: Boolean
+    documents: [File]
   }
 
   scalar Upload
@@ -305,6 +312,17 @@ const typeDefs = `
     viewCount: Int
   }
 
+  input UpdateUserInput {
+    nombre: String
+    apellido: String
+    email: String
+    provincia: String
+    barrio: String
+    localidad: String
+    telefono: Int
+    documentation: [DocumentsDataInput]
+  }
+
   input ContractInput {
     adjustmentMethod: String
     adjustmentType: String
@@ -354,6 +372,11 @@ const typeDefs = `
     documents: [FileInput]
   }
 
+  input DocumentsDataInput {
+    documentsAreGlobal: Boolean
+    documents: [FileInput]
+  }
+
   input PaymentInput {
     cbu: String,
     alias: String
@@ -390,12 +413,14 @@ const typeDefs = `
     ): User
     createListing(input: CreateListingInput!): Listing
     updateListing(id: ID!, input: UpdateListingInput!, senderId: ID): Listing
+    updateUser(id: ID!, input: UpdateUserInput!): Boolean
     deleteListing(id: ID!): Boolean
     login(email: String!, password: String!): User
     logout: Boolean
     resetPassword(token: String!, newPassword: String!): Boolean
     requestPasswordReset(email: String!): Boolean
     uploadImage(files: [Upload]!, userId: ID!, listingId: ID!): [File]!
+    uploadDocuments(files: [Upload]!, userId: ID!): [File]!
     likeListing(listingId: ID!): Listing
     rateOwner(ownerId: ID!, rating: Int!, message: String): User
     sendMessage(senderId: ID, receiverId: ID!, asunto: String!, conversationId: String): Message
@@ -575,6 +600,9 @@ const resolvers = {
         .populate('likes');
       if (listing) {
         listing.viewCount += 1;
+        listing.potential_tenant = listing.potential_tenant.map((id) =>
+          id?.toString(),
+        );
         await listing.save();
       }
       return listing;
@@ -732,9 +760,13 @@ const resolvers = {
         usuario,
       });
       await newUser.save();
-      const token = jwt.sign({ userId: newUser.id }, process.env.JWT_SECRET, {
-        expiresIn: '1h',
-      });
+      const token = jwt.sign(
+        { userId: newUser.id, tipo_de_cuenta: newUser.tipo_de_cuenta },
+        process.env.JWT_SECRET,
+        {
+          expiresIn: '1h',
+        },
+      );
 
       try {
         const transporter = nodemailer.createTransport({
@@ -787,9 +819,13 @@ const resolvers = {
       if (!valid) {
         throw new Error('Invalid password');
       }
-      const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
-        expiresIn: '7 days',
-      });
+      const token = jwt.sign(
+        { userId: user.id, tipo_de_cuenta: user.tipo_de_cuenta },
+        process.env.JWT_SECRET,
+        {
+          expiresIn: '7 days',
+        },
+      );
 
       res.cookie('authToken', token, {
         httpOnly: true,
@@ -814,9 +850,13 @@ const resolvers = {
       const user = await User.findOne({ email });
       if (!user) throw new Error('User not found');
 
-      const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
-        expiresIn: '1h',
-      });
+      const token = jwt.sign(
+        { userId: user.id, tipo_de_cuenta: user.tipo_de_cuenta },
+        process.env.JWT_SECRET,
+        {
+          expiresIn: '1h',
+        },
+      );
 
       user.resetToken = token;
       user.resetTokenExpiration = Date.now() + 3600000;
@@ -965,6 +1005,7 @@ const resolvers = {
           const CBUContent =
             !isPaymentConfigured &&
             listing.contract?.documents &&
+            listing.contract?.potentialTenantAgreed &&
             sender.tipo_de_cuenta !== 'Dueño'
               ? ' Configurá tu seña o CBU para recibir la reserva del potencial inquilino.'
               : '';
@@ -1060,6 +1101,44 @@ const resolvers = {
         const uploadResult = await new Promise((resolve, reject) => {
           const cloudinaryStream = cloudinary.v2.uploader.upload_stream(
             { folder: `alquilar/${userId}/${listingId}` },
+            (error, result) => {
+              if (error) {
+                reject(error);
+              }
+              resolve(result);
+            },
+          );
+
+          stream.pipe(cloudinaryStream);
+        });
+
+        const fileObject = {
+          id: uploadResult.public_id,
+          name: filename,
+          url: uploadResult.secure_url,
+          extension: uploadResult.format,
+        };
+
+        return fileObject;
+      });
+
+      const results = await Promise.all(uploadPromises);
+
+      return results;
+    },
+    uploadDocuments: async (_, { files, userId }) => {
+      if (!files || files.length === 0) {
+        return [];
+      }
+
+      const uploadPromises = files.map(async (file) => {
+        const { createReadStream, filename } = await file;
+
+        const stream = createReadStream();
+
+        const uploadResult = await new Promise((resolve, reject) => {
+          const cloudinaryStream = cloudinary.v2.uploader.upload_stream(
+            { folder: `alquilar/${userId}/documents` },
             (error, result) => {
               if (error) {
                 reject(error);
@@ -1327,7 +1406,6 @@ const resolvers = {
       });
 
       const sender = await User.findById(senderId).select('nombre apellido');
-
       const content = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> removió tu acceso como potencial inquilino en su <a href=${process.env.FRONTEND_URL}/listing/${listingId}>inmueble</a>.`;
 
       await handleNotification(senderId, receiverId, content, type, listingId);
@@ -1396,6 +1474,32 @@ const resolvers = {
       const fileName = await generarContratoPDF(input);
       const url = `http://localhost:${PORT}/output/${fileName}`;
       return url;
+    },
+    updateUser: async (_, { id, input }) => {
+      const user = await User.findById(id);
+
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      if (
+        input.documentation &&
+        Array.isArray(input.documentation) &&
+        input.documentation.length > 0
+      ) {
+        const docData = input.documentation[0];
+
+        if (Array.isArray(docData.documents)) {
+          user.documentation.documents = docData.documents;
+        }
+        if (typeof docData.documentsAreGlobal !== 'undefined') {
+          user.documentation.documentsAreGlobal = docData.documentsAreGlobal;
+        }
+        user.markModified('documentation');
+      }
+
+      await user.save();
+      return true;
     },
   },
   Listing: {

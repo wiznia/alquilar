@@ -16,7 +16,7 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   nombre: { type: String, required: true },
   provincia: { type: String, required: true },
-  barrio: { type: String, required: true },
+  barrio: { type: String },
   localidad: { type: String },
   password: { type: String, required: true },
   potential_tenant: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
@@ -26,6 +26,17 @@ const userSchema = new mongoose.Schema({
   telefono: { type: Number },
   tipo_de_cuenta: { type: String, required: true },
   usuario: { type: String, required: true, unique: true },
+  documentation: {
+    documentsAreGlobal: { type: Boolean, default: false },
+    documents: [
+      {
+        id: String,
+        name: String,
+        url: String,
+        extension: String,
+      },
+    ],
+  },
 });
 
 const User = mongoose.model('User', userSchema);

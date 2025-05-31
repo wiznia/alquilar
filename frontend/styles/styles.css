@@ -111,6 +111,7 @@ textarea {
   width: 100%;
   min-height: 180px;
   resize: none;
+  line-height: 1.6;
 }
 
 input[type='text'],
@@ -156,12 +157,40 @@ input[type='checkbox'] {
   min-width: 25px;
   height: 25px;
   cursor: inherit;
-}
-input[type='checkbox']:checked {
-  background: var(--primary-bg)
-    url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMiIgaGVpZ2h0PSI5IiBmaWxsPSJub25lIj48cGF0aCBmaWxsPSIjZmZmIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0xMS44NTUuNjQ2YS41LjUgMCAwIDEgMCAuNzA4bC03IDdhLjUuNSAwIDAgMS0uNzA4IDBsLTMuNS0zLjVhLjUuNSAwIDAgMSAuNzA4LS43MDhMNC41IDcuMjkzIDExLjE0Ny42NDZhLjUwMS41MDEgMCAwIDEgLjcwOCAwWiIgY2xpcC1ydWxlPSJldmVub2RkIi8+PC9zdmc+)
-    no-repeat center center;
-  border-color: var(--primary-bg);
+  &:checked {
+    background: var(--primary-bg)
+      url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMiIgaGVpZ2h0PSI5IiBmaWxsPSJub25lIj48cGF0aCBmaWxsPSIjZmZmIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0xMS44NTUuNjQ2YS41LjUgMCAwIDEgMCAuNzA4bC03IDdhLjUuNSAwIDAgMS0uNzA4IDBsLTMuNS0zLjVhLjUuNSAwIDAgMSAuNzA4LS43MDhMNC41IDcuMjkzIDExLjE0Ny42NDZhLjUwMS41MDEgMCAwIDEgLjcwOCAwWiIgY2xpcC1ydWxlPSJldmVub2RkIi8+PC9zdmc+)
+      no-repeat center center;
+    border-color: var(--primary-bg);
+  }
+  &.switch {
+    background: none;
+    background-color: var(--primary-text);
+    border-radius: 16px;
+    min-width: 45px;
+    position: relative;
+    transition: background-color 250ms ease;
+    &::before {
+      content: '';
+      background: #fff;
+      border-radius: 100%;
+      border: 1px solid #d0d0d0;
+      width: 19px;
+      height: 19px;
+      display: block;
+      position: absolute;
+      top: 1px;
+      left: 0px;
+      margin: 0px 3px;
+      transition: left 250ms ease;
+    }
+    &&:checked {
+      background-color: var(--primary-bg);
+      &::before {
+        left: calc(100% - 27px);
+      }
+    }
+  }
 }
 /* End Checkbox */
 
@@ -524,6 +553,7 @@ main {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
 }
 
 .loader {

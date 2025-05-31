@@ -132,6 +132,10 @@ function ConfigListing() {
   };
 
   const handleAddPotentialTenant = async (tenantId) => {
+    if (!validateFormCheck()) {
+      return;
+    }
+
     try {
       await addPotentialTenant({
         variables: {
@@ -151,6 +155,10 @@ function ConfigListing() {
   };
 
   const handleRemovePotentialTenant = async (tenantId) => {
+    if (!validateFormCheck()) {
+      return;
+    }
+
     try {
       await removePotentialTenant({
         variables: {
@@ -169,6 +177,10 @@ function ConfigListing() {
   const handleAddCBU = async () => {
     const cleanedForm = removeTypename(form);
     setIsLoadingCBU(true);
+
+    if (!validateFormCheck()) {
+      return;
+    }
 
     try {
       await updateListing({
@@ -190,6 +202,10 @@ function ConfigListing() {
 
   const handleAddSena = async () => {
     const cleanedForm = removeTypename(form);
+
+    if (!validateFormCheck()) {
+      return;
+    }
     setIsLoadingSena(true);
 
     try {

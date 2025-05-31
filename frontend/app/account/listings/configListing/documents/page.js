@@ -37,6 +37,7 @@ function Documentation() {
   const [showUploadedContract, setShowUploadedContract] = useState(true);
   const [isLoadingContract, setIsLoadingContract] = useState(false);
   const [uploadContractSuccess, setUploadContractSuccess] = useState(false);
+  const [globalFiles, setGlobalFiles] = useState([]);
 
   const { data, loading, error, refetch } = useQuery(SINGLE_LISTING_QUERY, {
     variables: {
@@ -84,8 +85,13 @@ function Documentation() {
   });
 
   const displayFiles = [
-    ...uploadedFiles.map((f) => ({ ...f, __uploaded: true })),
-    ...newFiles.map((f) => ({ name: f.name, type: f.type, __uploaded: false })),
+    ...uploadedFiles.map((f) => ({ ...f, __uploaded: true, __global: false })),
+    ...newFiles.map((f) => ({
+      name: f.name,
+      type: f.type,
+      __uploaded: false,
+      __global: false,
+    })),
   ];
 
   const displayContract = [
@@ -97,14 +103,59 @@ function Documentation() {
     })),
   ];
 
-  const renderDocumentation = (documentation = [], user) => {
-    const sortedDocumentation = documentation.slice().sort((a, b) => {
+  const renderDocumentation = (
+    documentation = [],
+    user,
+    globalFiles = [],
+    documentsAreGlobal = false,
+  ) => {
+    let docsCopy = documentation.slice();
+    let userDocIndex = docsCopy.findIndex((doc) => doc.id === user?.id);
+
+    if (userDocIndex === -1) {
+      docsCopy.push({
+        id: user?.id,
+        nombre: user?.nombre,
+        apellido: user?.apellido,
+        documents: [],
+      });
+      userDocIndex = docsCopy.length - 1;
+    }
+
+    let userDoc = { ...docsCopy[userDocIndex] };
+
+    userDoc.documents = [...(userDoc.documents || [])];
+
+    if (documentsAreGlobal && globalFiles.length > 0) {
+      const docIds = new Set(userDoc.documents.map((d) => d.id || d.name));
+      userDoc.documents = [
+        ...userDoc.documents,
+        ...globalFiles.filter((d) => !docIds.has(d.id || d.name)),
+      ];
+    }
+
+    docsCopy[userDocIndex] = userDoc;
+
+    const sortedDocumentation = docsCopy.sort((a, b) => {
       if (a.id === user?.id) return -1;
       if (b.id === user?.id) return 1;
       return 0;
     });
 
     return sortedDocumentation.map((document) => {
+      let docs = document.documents || [];
+      if (
+        document.id === user?.id &&
+        documentsAreGlobal &&
+        globalFiles.length > 0
+      ) {
+        const docIds = new Set(docs.map((d) => d.id || d.name));
+        docs = [
+          ...docs,
+          ...globalFiles.filter((d) => !docIds.has(d.id || d.name)),
+        ];
+      }
+
       const title =
         user?.id === document.id ? 'Tu documentación' : 'Documentación de';
 
@@ -122,13 +173,13 @@ function Documentation() {
               :
             </h6>
           )}
-          {document.documents?.map((document) => (
-            <div key={document.id} className="account__item-photo-item">
+          {docs.map((doc) => (
+            <div key={doc.id || doc.name} className="account__item-photo-item">
               <span className="account__item-photo-extension">
-                {document.extension}
+                {doc.extension || (doc.type ? doc.type.split('/')[1] : '')}
               </span>
-              <span>{document.name}</span>
-              <Link href={document.url} target="_blank">
+              <span>{doc.name}</span>
+              <Link href={doc.url} target="_blank">
                 Ver
               </Link>
             </div>
@@ -139,8 +190,15 @@ function Documentation() {
   };
 
   useEffect(() => {
+    if (user && user?.documentation?.documentsAreGlobal) {
+      setGlobalFiles(user?.documentation?.documents || []);
+    } else {
+      setGlobalFiles([]);
+    }
+
     if (data?.getListingById) {
-      const userDocuments = data?.getListingById?.documentation.filter(
+      const { documentation, contract } = data?.getListingById;
+      const userDocuments = documentation.filter(
         (doc) => doc.id === user?.id,
       )[0];
 
@@ -150,16 +208,19 @@ function Documentation() {
       setUploadedFiles(userDocuments ? userDocuments.documents : []);
       setForm(data.getListingById);
 
-      if (data.getListingById?.contract?.id === user?.id) {
+      if (contract.id === user?.id) {
         setUploadedContract(
-          Array.isArray(data.getListingById?.contract?.documents)
-            ? data.getListingById.contract.documents
-            : [],
+          Array.isArray(contract?.documents) ? contract.documents : [],
         );
         setShowUploadedContract(false);
       }
     }
-  }, [data?.getListingById, user?.id, setForm]);
+  }, [
+    data?.getListingById,
+    user?.id,
+    setForm,
+    user?.documentation?.documentsAreGlobal,
+  ]);
 
   if (loading) {
     return (
@@ -203,6 +264,7 @@ function Documentation() {
               }
             >
               <input
+                ref={fileInputRef}
                 type="file"
                 multiple
                 onChange={(e) => handleUploadFile(e, setNewFiles)}
@@ -222,6 +284,7 @@ function Documentation() {
                           uploadedFiles,
                           setUploadedFiles,
                           setNewFiles,
+                          fileInputRef,
                         );
                       }}
                       className="account__item-photo-close"
@@ -250,6 +313,9 @@ function Documentation() {
                 </>
               )}
             </div>
+            {errors.documentation && (
+              <small className="error-message">{errors.documentation}</small>
+            )}
             {uploadSuccess && (
               <p className="success-message">
                 Documentos subidos exitósamente!
@@ -286,6 +352,12 @@ function Documentation() {
             </button>
           </div>
         )}
+        {renderDocumentation(
+          form?.documentation,
+          user,
+          globalFiles,
+          user?.documentation?.documentsAreGlobal,
+        )}
         {showUploadedContract ? (
           <div className="account__info-inner">
             <h6>Contrato:</h6>
@@ -313,6 +385,7 @@ function Documentation() {
               }
             >
               <input
+                ref={fileInputRef}
                 type="file"
                 multiple
                 onChange={(e) => handleUploadFile(e, setNewContract)}
@@ -332,6 +405,7 @@ function Documentation() {
                           uploadedContract,
                           setUploadedContract,
                           setNewContract,
+                          fileInputRef,
                         );
                       }}
                       className="account__item-photo-close"
@@ -415,7 +489,6 @@ function Documentation() {
             </div>
           </div>
         )}
-        {renderDocumentation(form?.documentation, user)}
       </div>
     </div>
   );

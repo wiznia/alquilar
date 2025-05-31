@@ -31,7 +31,11 @@ export function handleRemoveDisplayFile(
   uploadedFiles,
   setUploadedFiles,
   setNewFiles,
+  fileInputRef,
 ) {
+  if (fileInputRef.current) {
+    fileInputRef.current.value = '';
+  }
   if (index < uploadedFiles.length) {
     setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
   } else {

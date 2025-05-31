@@ -2,12 +2,14 @@ import { useState } from 'react';
 
 export default function ImageSlider({ listing, thumbnails }) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const handlePrevious = () => {
+  const handlePrevious = (e) => {
+    e.preventDefault();
     setCurrentIndex((prevIndex) =>
       prevIndex === 0 ? listing.fotos.length - 1 : prevIndex - 1,
     );
   };
-  const handleNext = () => {
+  const handleNext = (e) => {
+    e.preventDefault();
     setCurrentIndex((prevIndex) =>
       prevIndex === listing.fotos.length - 1 ? 0 : prevIndex + 1,
     );
@@ -37,7 +39,7 @@ export default function ImageSlider({ listing, thumbnails }) {
         {listing.fotos?.length > 1 && (
           <>
             <button
-              onClick={handleNext}
+              onClick={(e) => handleNext(e)}
               className="gallery__nav gallery__nav--right"
             >
               <svg
@@ -53,7 +55,7 @@ export default function ImageSlider({ listing, thumbnails }) {
               </svg>
             </button>
             <button
-              onClick={handlePrevious}
+              onClick={(e) => handlePrevious(e)}
               className="gallery__nav gallery__nav--left"
             >
               <svg

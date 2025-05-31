@@ -149,6 +149,15 @@ export const SINGLE_LISTING_QUERY = gql`
         telefono
         celular
         tipo_de_cuenta
+        documentation {
+          documentsAreGlobal
+          documents {
+            id
+            name
+            url
+            extension
+          }
+        }
       }
       payment {
         cbu
@@ -209,6 +218,15 @@ export const GET_USER = gql`
       condicion_fiscal
       direccion
       dni
+      documentation {
+        documentsAreGlobal
+        documents {
+          id
+          name
+          url
+          extension
+        }
+      }
       email
       id
       nombre
@@ -232,6 +250,15 @@ export const GET_USER_BY_ID = gql`
       celular
       condicion_fiscal
       dni
+      documentation {
+        documentsAreGlobal
+        documents {
+          id
+          name
+          url
+          extension
+        }
+      }
       email
       id
       nombre
@@ -637,6 +664,23 @@ export const UPLOAD_IMAGES = gql`
       url
       extension
     }
+  }
+`;
+
+export const UPLOAD_DOCUMENTS = gql`
+  mutation uploadDocuments($files: [Upload!]!, $userId: ID!) {
+    uploadDocuments(files: $files, userId: $userId) {
+      id
+      name
+      url
+      extension
+    }
+  }
+`;
+
+export const UPDATE_USER = gql`
+  mutation updateUser($id: ID!, $input: UpdateUserInput!) {
+    updateUser(id: $id, input: $input)
   }
 `;
 

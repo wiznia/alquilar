@@ -86,8 +86,8 @@ export const useFormValidation = (
     }));
   };
 
-  const validateFormCheck = () => {
-    const newErrors = validateForm(form, formType);
+  const validateFormCheck = (extraFields = {}) => {
+    const newErrors = validateForm(form, formType, extraFields);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };

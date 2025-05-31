@@ -17,6 +17,7 @@ import {
 } from '@/components/queries/queries';
 import { handleUploadFile, handleRemoveDisplayFile } from '@/lib/fileHandlers';
 import Link from 'next/link';
+import { useUnifiedSubmit } from '@/app/hooks/useHandleSubmit';
 
 function Documentation() {
   const { user } = useAuth();
@@ -30,6 +31,7 @@ function Documentation() {
   const [showUploadFiles, setShowUploadFiles] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [globalFiles, setGlobalFiles] = useState([]);
 
   const { data, loading, error, refetch } = useQuery(SINGLE_LISTING_QUERY, {
     variables: { id },
@@ -41,92 +43,94 @@ function Documentation() {
     'uploadDocuments',
   );
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-    if (!validateFormCheck()) return;
-    setIsLoading(true);
+  const getUnifiedSubmitHandler = useUnifiedSubmit({
+    user,
+    id,
+    uploadImage,
+    updateListing,
+    removeTypename,
+    refetch,
+    validateFormCheck,
+    fileInputRef,
+  });
 
-    try {
-      let uploadedDocuments = [...uploadedFiles];
-      let newUploadedUrls = [];
-
-      const onlyRealFiles = newFiles.filter(
-        (f) => f instanceof File || f instanceof Blob,
-      );
-
-      if (onlyRealFiles.length !== newFiles.length) {
-        console.warn(
-          'Non-File objects detected in newFiles:',
-          newFiles.filter((f) => !(f instanceof File || f instanceof Blob)),
-        );
-      }
-
-      if (onlyRealFiles.length > 0) {
-        const { data: uploadData } = await uploadImage({
-          variables: { files: onlyRealFiles, userId: user?.id, listingId: id },
-        });
-        newUploadedUrls = uploadData.uploadImage.map(
-          ({ id, name, url, extension }) => ({
-            id,
-            name,
-            url,
-            extension,
-          }),
-        );
-        uploadedDocuments = [...uploadedDocuments, ...newUploadedUrls];
-      }
-
-      const cleanedUploadedDocuments = removeTypename(uploadedDocuments);
-
-      await updateListing({
-        variables: {
-          id,
-          senderId: user?.id,
-          input: {
-            documentation: [
-              {
-                id: user?.id,
-                nombre: user?.nombre,
-                apellido: user?.apellido,
-                documents: cleanedUploadedDocuments,
-              },
-            ],
-            id,
-          },
-        },
-      });
-
-      setNewFiles([]);
-      setUploadedFiles(uploadedDocuments);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-      setShowUploadFiles(false);
-      setIsLoading(false);
-      setUploadSuccess(true);
-      refetch();
-    } catch (error) {
-      console.error('Error subiendo los documentos:', error);
-      setIsLoading(false);
-    }
-  }
+  const handleSubmit = getUnifiedSubmitHandler({
+    uploadedFiles,
+    setUploadedFiles,
+    newFiles,
+    setNewFiles,
+    setShowUpload: setShowUploadFiles,
+    setIsLoading,
+    setUploadSuccess,
+    type: 'documentation',
+  });
 
   const displayFiles = [
-    ...uploadedFiles.map((f) => ({ ...f, __uploaded: true })),
-    ...newFiles.map((f) => ({ name: f.name, type: f.type, __uploaded: false })),
+    ...uploadedFiles.map((f) => ({ ...f, __uploaded: true, __global: false })),
+    ...newFiles.map((f) => ({
+      name: f.name,
+      type: f.type,
+      __uploaded: false,
+      __global: false,
+    })),
   ];
 
-  const renderDocumentation = (documentation = [], user) => {
-    const docs = documentation.filter(
-      (document) => document.id === user?.id || document.id === form.owner.id,
-    );
-    const sortedDocumentation = docs.slice().sort((a, b) => {
+  const renderDocumentation = (
+    documentation = [],
+    user,
+    globalFiles = [],
+    documentsAreGlobal = false,
+  ) => {
+    let docsCopy = documentation.slice();
+    let userDocIndex = docsCopy.findIndex((doc) => doc.id === user?.id);
+
+    if (userDocIndex === -1) {
+      docsCopy.push({
+        id: user?.id,
+        nombre: user?.nombre,
+        apellido: user?.apellido,
+        documents: [],
+      });
+      userDocIndex = docsCopy.length - 1;
+    }
+
+    let userDoc = { ...docsCopy[userDocIndex] };
+
+    userDoc.documents = [...(userDoc.documents || [])];
+
+    if (documentsAreGlobal && globalFiles.length > 0) {
+      const docIds = new Set(userDoc.documents.map((d) => d.id || d.name));
+      userDoc.documents = [
+        ...userDoc.documents,
+        ...globalFiles.filter((d) => !docIds.has(d.id || d.name)),
+      ];
+    }
+
+    docsCopy[userDocIndex] = userDoc;
+
+    const sortedDocumentation = docsCopy.sort((a, b) => {
       if (a.id === user?.id) return -1;
       if (b.id === user?.id) return 1;
       return 0;
     });
 
     return sortedDocumentation.map((document) => {
+      let docs = document.documents || [];
+      if (
+        document.id === user?.id &&
+        documentsAreGlobal &&
+        globalFiles.length > 0
+      ) {
+        const docIds = new Set(docs.map((d) => d.id || d.name));
+        docs = [
+          ...docs,
+          ...globalFiles.filter((d) => !docIds.has(d.id || d.name)),
+        ];
+      }
+
       const title =
         user?.id === document.id ? 'Tu documentación' : 'Documentación de';
+
       return (
         <div className="account__info-inner" key={document.id}>
           {user?.id === document.id ? (
@@ -141,13 +145,13 @@ function Documentation() {
               :
             </h6>
           )}
-          {document.documents.map((document) => (
-            <div key={document.id} className="account__item-photo-item">
+          {docs.map((doc) => (
+            <div key={doc.id || doc.name} className="account__item-photo-item">
               <span className="account__item-photo-extension">
-                {document.extension}
+                {doc.extension || (doc.type ? doc.type.split('/')[1] : '')}
               </span>
-              <span>{document.name}</span>
-              <Link target="_blank" href={document.url}>
+              <span>{doc.name}</span>
+              <Link href={doc.url} target="_blank">
                 Ver
               </Link>
             </div>
@@ -158,6 +162,12 @@ function Documentation() {
   };
 
   useEffect(() => {
+    if (user && user?.documentation?.documentsAreGlobal) {
+      setGlobalFiles(user?.documentation?.documents || []);
+    } else {
+      setGlobalFiles([]);
+    }
+
     if (data?.getListingById) {
       const userDocuments = data?.getListingById?.documentation?.filter(
         (doc) => doc.id === user?.id,
@@ -202,7 +212,8 @@ function Documentation() {
         <h2>Configuración del inmueble</h2>
         <InlineNav id={id} page={page} user={user} />
         {showUploadFiles ? (
-          <>
+          <div className="account__info-inner">
+            <h6>Documentos:</h6>
             <p>
               Subí tu documentación para que el dueño la pueda evaluar. <br />
               Recordá que para alquilar necesitas:
@@ -220,9 +231,9 @@ function Documentation() {
               }
             >
               <input
+                ref={fileInputRef}
                 type="file"
                 multiple
-                ref={fileInputRef}
                 onChange={(e) => handleUploadFile(e, setNewFiles)}
               />
               {displayFiles.length > 0 ? (
@@ -240,6 +251,7 @@ function Documentation() {
                           uploadedFiles,
                           setUploadedFiles,
                           setNewFiles,
+                          fileInputRef,
                         );
                       }}
                       className="account__item-photo-close"
@@ -268,6 +280,9 @@ function Documentation() {
                 </>
               )}
             </div>
+            {errors.documentation && (
+              <small className="error-message">{errors.documentation}</small>
+            )}
             {uploadSuccess && (
               <p className="success-message">
                 ¡Documentos subidos exitosamente!
@@ -296,13 +311,19 @@ function Documentation() {
                 Cancelar
               </button>
             </div>
-          </>
+          </div>
         ) : (
           <div className="button-container">
             <button className="button" onClick={() => setShowUploadFiles(true)}>
               Editar documentación
             </button>
           </div>
+        )}
+        {renderDocumentation(
+          form?.documentation,
+          user,
+          globalFiles,
+          user?.documentation?.documentsAreGlobal,
         )}
         {data?.getListingById?.contract?.documents?.length > 0 && (
           <div className="account__info-inner">
@@ -318,7 +339,6 @@ function Documentation() {
             </div>
           </div>
         )}
-        {renderDocumentation(form?.documentation, user)}
       </div>
     </div>
   );

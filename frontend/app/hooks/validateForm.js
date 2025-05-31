@@ -1,4 +1,4 @@
-export const validateForm = (form, formType) => {
+export const validateForm = (form, formType, extraFields = {}) => {
   let errors = {};
 
   if (formType === 'register' || formType === 'login') {
@@ -29,7 +29,7 @@ export const validateForm = (form, formType) => {
       errors.terms = 'Tenés que aceptar los términos y condiciones.';
   }
 
-  if (formType === 'createListing') {
+  if (formType === 'createListing' || formType === 'updateListing') {
     if (!form.tipo_de_alquiler) {
       errors.tipo_de_alquiler = 'Tenés que seleccionar un tipo de operación.';
     }
@@ -107,7 +107,18 @@ export const validateForm = (form, formType) => {
     }
   }
 
+  if (formType === 'sendSena') {
+    if (!form.sena) {
+      errors.sena = 'Tenés que ingresar un monto mayor a 0.';
+    }
+  }
+
   if (formType === 'uploadDocuments') {
+    const uploadedFiles = extraFields.uploadedFiles || [];
+    const newFiles = extraFields.newFiles || [];
+    if (uploadedFiles.length + newFiles.length === 0) {
+      errors.documentation = 'Tenés que subir al menos un archivo.';
+    }
   }
 
   if (formType === 'generateContract') {
