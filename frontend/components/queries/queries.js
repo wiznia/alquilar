@@ -164,6 +164,7 @@ export const SINGLE_LISTING_QUERY = gql`
         alias
       }
       potential_tenant
+      potentialTenantAgreed
       precio
       provincia
       sena
@@ -638,6 +639,7 @@ export const UPDATE_LISTING = gql`
       }
       id
       moneda
+      potentialTenantAgreed
       precio
       provincia
       superficie_cubierta

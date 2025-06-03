@@ -4,17 +4,17 @@ import AccountSidebar from '@/components/AccountSidebar';
 import Breadcrumb from '@/components/Breadcrumb';
 import {
   SINGLE_LISTING_QUERY,
+  GET_USER_BY_ID,
   UPDATE_LISTING,
   UPLOAD_IMAGES,
 } from '@/components/queries/queries';
-import { useSearchParams } from 'next/navigation';
-import { useMutation, useQuery } from '@apollo/client';
+import { useSearchParams, usePathname } from 'next/navigation';
+import { useMutation, useQuery, useLazyQuery } from '@apollo/client';
 import { useAuth } from '@/components/AuthContext';
 import { useFormValidation } from '@/app/hooks/useFormValidation';
 import Loading from '@/components/Loading';
 import { Suspense, useEffect, useRef, useState } from 'react';
 import InlineNav from '@/components/InlineNav';
-import { usePathname } from 'next/navigation';
 import { handleUploadFile, handleRemoveDisplayFile } from '@/lib/fileHandlers';
 import removeTypename from '@/lib/removeTypename';
 import Link from 'next/link';
@@ -40,10 +40,9 @@ function Documentation() {
   const [globalFiles, setGlobalFiles] = useState([]);
 
   const { data, loading, error, refetch } = useQuery(SINGLE_LISTING_QUERY, {
-    variables: {
-      id,
-    },
+    variables: { id },
   });
+
   const [uploadImage] = useMutation(UPLOAD_IMAGES);
   const [updateListing] = useMutation(UPDATE_LISTING);
   const { form, setForm, errors, validateFormCheck } = useFormValidation(
@@ -103,91 +102,89 @@ function Documentation() {
     })),
   ];
 
-  const renderDocumentation = (
-    documentation = [],
-    user,
-    globalFiles = [],
-    documentsAreGlobal = false,
-  ) => {
-    let docsCopy = documentation.slice();
-    let userDocIndex = docsCopy.findIndex((doc) => doc.id === user?.id);
+  const [fetchTenant] = useLazyQuery(GET_USER_BY_ID);
+  const [tenantsDocs, setTenantsDocs] = useState([]);
+  const [tenantLoading, setTenantLoading] = useState(false);
+  const potentialTenantIds = data?.getListingById?.potential_tenant || [];
+  const listingDocumentationArr = data?.getListingById?.documentation || [];
 
-    if (userDocIndex === -1) {
-      docsCopy.push({
-        id: user?.id,
-        nombre: user?.nombre,
-        apellido: user?.apellido,
-        documents: [],
-      });
-      userDocIndex = docsCopy.length - 1;
-    }
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchAllTenants() {
+      setTenantLoading(true);
+      const tenants = [];
 
-    let userDoc = { ...docsCopy[userDocIndex] };
+      for (const tenantId of potentialTenantIds) {
+        try {
+          const listingDocsObj = listingDocumentationArr.find(
+            (doc) => doc.id === tenantId,
+          );
+          const listingDocs = Array.isArray(listingDocsObj?.documents)
+            ? listingDocsObj.documents
+            : [];
 
-    userDoc.documents = [...(userDoc.documents || [])];
+          const { data: tenantRes } = await fetchTenant({
+            variables: { id: tenantId },
+            fetchPolicy: 'network-only',
+          });
+          const tenant = tenantRes?.getUser;
+          if (tenant) {
+            const documentation = tenant.documentation || {};
+            let globalDocs = [];
+            if (
+              documentation.documentsAreGlobal &&
+              Array.isArray(documentation.documents)
+            ) {
+              globalDocs = documentation.documents;
+            }
 
-    if (documentsAreGlobal && globalFiles.length > 0) {
-      const docIds = new Set(userDoc.documents.map((d) => d.id || d.name));
-      userDoc.documents = [
-        ...userDoc.documents,
-        ...globalFiles.filter((d) => !docIds.has(d.id || d.name)),
-      ];
-    }
+            const ids = new Set(listingDocs.map((d) => d.id || d.name));
+            const mergedDocs = [
+              ...listingDocs,
+              ...globalDocs.filter((d) => !ids.has(d.id || d.name)),
+            ];
 
-    docsCopy[userDocIndex] = userDoc;
-
-    const sortedDocumentation = docsCopy.sort((a, b) => {
-      if (a.id === user?.id) return -1;
-      if (b.id === user?.id) return 1;
-      return 0;
-    });
-
-    return sortedDocumentation.map((document) => {
-      let docs = document.documents || [];
-      if (
-        document.id === user?.id &&
-        documentsAreGlobal &&
-        globalFiles.length > 0
-      ) {
-        const docIds = new Set(docs.map((d) => d.id || d.name));
-        docs = [
-          ...docs,
-          ...globalFiles.filter((d) => !docIds.has(d.id || d.name)),
-        ];
+            if (mergedDocs.length > 0) {
+              tenants.push({
+                id: tenant.id,
+                nombre: tenant.nombre,
+                apellido: tenant.apellido,
+                docs: mergedDocs,
+              });
+            }
+          }
+        } catch (e) {
+          console.error(e);
+        }
       }
+      if (isMounted) setTenantsDocs(tenants);
+      setTenantLoading(false);
+    }
+    if (potentialTenantIds.length > 0) {
+      fetchAllTenants();
+    } else {
+      setTenantsDocs([]);
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [
+    JSON.stringify(potentialTenantIds),
+    JSON.stringify(listingDocumentationArr),
+  ]);
 
-      const title =
-        user?.id === document.id ? 'Tu documentación' : 'Documentación de';
-
-      return (
-        <div className="account__info-inner" key={document.id}>
-          {user?.id === document.id ? (
-            <h6>{title}:</h6>
-          ) : (
-            <h6>
-              {title}{' '}
-              <Link
-                href={`/user/${document.id}`}
-                className="dark"
-              >{`${document.nombre} ${document.apellido}`}</Link>
-              :
-            </h6>
-          )}
-          {docs.map((doc) => (
-            <div key={doc.id || doc.name} className="account__item-photo-item">
-              <span className="account__item-photo-extension">
-                {doc.extension || (doc.type ? doc.type.split('/')[1] : '')}
-              </span>
-              <span>{doc.name}</span>
-              <Link href={doc.url} target="_blank">
-                Ver
-              </Link>
-            </div>
-          ))}
-        </div>
-      );
-    });
-  };
+  const documentationArr = data?.getListingById?.documentation || [];
+  const ownerDocObj = documentationArr.find((doc) => doc.id === user?.id);
+  const ownerRegularDocs = ownerDocObj?.documents || [];
+  const ownerGlobalDocs =
+    user?.documentation?.documentsAreGlobal && user?.documentation?.documents
+      ? user.documentation.documents
+      : [];
+  const ownerDocIds = new Set(ownerRegularDocs.map((d) => d.id || d.name));
+  const allOwnerDocs = [
+    ...ownerRegularDocs,
+    ...ownerGlobalDocs.filter((d) => !ownerDocIds.has(d.id || d.name)),
+  ];
 
   useEffect(() => {
     if (user && user?.documentation?.documentsAreGlobal) {
@@ -222,7 +219,7 @@ function Documentation() {
     user?.documentation?.documentsAreGlobal,
   ]);
 
-  if (loading) {
+  if (loading || tenantLoading) {
     return (
       <Loading>
         <h4>Cargando inmueble...</h4>
@@ -246,7 +243,7 @@ function Documentation() {
       <AccountSidebar />
       <div className="account__info">
         <Breadcrumb
-          direccion={data?.getListingById?.direccion}
+          direccion={form?.direccion}
           title={user?.tipo_de_cuenta === 'Dueño' ? 'inmuebles' : 'alquileres'}
           user={user}
         />
@@ -352,12 +349,55 @@ function Documentation() {
             </button>
           </div>
         )}
-        {renderDocumentation(
-          form?.documentation,
-          user,
-          globalFiles,
-          user?.documentation?.documentsAreGlobal,
-        )}
+
+        <div className="account__info-inner" key={user?.id}>
+          <h6>Tu documentación:</h6>
+          {allOwnerDocs.length === 0 ? (
+            <p>No has subido documentación.</p>
+          ) : (
+            allOwnerDocs.map((doc) => (
+              <div
+                key={doc.id || doc.name}
+                className="account__item-photo-item"
+              >
+                <span className="account__item-photo-extension">
+                  {doc.extension || (doc.type ? doc.type.split('/')[1] : '')}
+                </span>
+                <span>{doc.name}</span>
+                <Link href={doc.url} target="_blank">
+                  Ver
+                </Link>
+              </div>
+            ))
+          )}
+        </div>
+
+        {tenantsDocs.map((tenant) => (
+          <div className="account__info-inner" key={tenant.id}>
+            <h6>
+              Documentación de{' '}
+              <Link href={`/user/${tenant.id}`} className="dark">
+                {tenant.nombre} {tenant.apellido}
+              </Link>
+              :
+            </h6>
+            {tenant.docs.map((doc) => (
+              <div
+                key={doc.id || doc.name}
+                className="account__item-photo-item"
+              >
+                <span className="account__item-photo-extension">
+                  {doc.extension || (doc.type ? doc.type.split('/')[1] : '')}
+                </span>
+                <span>{doc.name}</span>
+                <Link href={doc.url} target="_blank">
+                  Ver
+                </Link>
+              </div>
+            ))}
+          </div>
+        ))}
+
         {showUploadedContract ? (
           <div className="account__info-inner">
             <h6>Contrato:</h6>
@@ -475,17 +515,15 @@ function Documentation() {
             </button>
           </div>
         )}
-        {data?.getListingById?.contract?.documents?.length > 0 && (
+        {form?.contract?.documents?.length > 0 && (
           <div className="account__info-inner">
             <h6>Tu contrato de alquiler:</h6>
             <div className="account__item-photo-item">
               <span className="account__item-photo-extension">
-                {data?.getListingById?.contract?.documents[0]?.extension}
+                {form?.contract?.documents[0]?.extension}
               </span>
-              <span>{data?.getListingById?.contract?.documents[0]?.name}</span>
-              <Link href={data?.getListingById?.contract?.documents[0]?.url}>
-                Ver
-              </Link>
+              <span>{form?.contract?.documents[0]?.name}</span>
+              <Link href={form?.contract?.documents[0]?.url}>Ver</Link>
             </div>
           </div>
         )}

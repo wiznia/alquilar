@@ -31,13 +31,14 @@ function Documentation() {
   const [showUploadFiles, setShowUploadFiles] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
-  const [globalFiles, setGlobalFiles] = useState([]);
+  const [formLoaded, setFormLoaded] = useState(false);
 
   const { data, loading, error, refetch } = useQuery(SINGLE_LISTING_QUERY, {
     variables: { id },
   });
   const [uploadImage] = useMutation(UPLOAD_IMAGES);
-  const [updateListing] = useMutation(UPDATE_LISTING);
+  const [updateListing, { loading: updateLoading }] =
+    useMutation(UPDATE_LISTING);
   const { form, setForm, errors, validateFormCheck } = useFormValidation(
     data?.getListingById,
     'uploadDocuments',
@@ -75,111 +76,55 @@ function Documentation() {
     })),
   ];
 
-  const renderDocumentation = (
-    documentation = [],
-    user,
-    globalFiles = [],
-    documentsAreGlobal = false,
-  ) => {
-    let docsCopy = documentation.slice();
-    let userDocIndex = docsCopy.findIndex((doc) => doc.id === user?.id);
+  const documentationArr = data?.getListingById?.documentation || [];
+  const ownerUser = data?.getListingById?.owner;
 
-    if (userDocIndex === -1) {
-      docsCopy.push({
-        id: user?.id,
-        nombre: user?.nombre,
-        apellido: user?.apellido,
-        documents: [],
-      });
-      userDocIndex = docsCopy.length - 1;
-    }
+  function mergeDocs(primary, global) {
+    const ids = new Set(primary.map((d) => d.id || d.name));
+    return [...primary, ...global.filter((d) => !ids.has(d.id || d.name))];
+  }
 
-    let userDoc = { ...docsCopy[userDocIndex] };
+  const userDocObj = documentationArr.find((doc) => doc.id === user?.id);
+  const userRegularDocs = userDocObj?.documents || [];
+  const userGlobalDocs =
+    user?.documentation?.documentsAreGlobal && user?.documentation?.documents
+      ? user.documentation.documents
+      : [];
+  const allUserDocs = mergeDocs(userRegularDocs, userGlobalDocs);
 
-    userDoc.documents = [...(userDoc.documents || [])];
+  const ownerDocObj = documentationArr.find((doc) => doc.id === ownerUser?.id);
+  const ownerRegularDocs = ownerDocObj?.documents || [];
+  const ownerGlobalDocs =
+    ownerUser?.documentation?.documentsAreGlobal &&
+    ownerUser?.documentation?.documents
+      ? ownerUser.documentation.documents
+      : [];
+  const allOwnerDocs = mergeDocs(ownerRegularDocs, ownerGlobalDocs);
 
-    if (documentsAreGlobal && globalFiles.length > 0) {
-      const docIds = new Set(userDoc.documents.map((d) => d.id || d.name));
-      userDoc.documents = [
-        ...userDoc.documents,
-        ...globalFiles.filter((d) => !docIds.has(d.id || d.name)),
-      ];
-    }
-
-    docsCopy[userDocIndex] = userDoc;
-
-    const sortedDocumentation = docsCopy.sort((a, b) => {
-      if (a.id === user?.id) return -1;
-      if (b.id === user?.id) return 1;
-      return 0;
+  const handleSubmitContract = async () => {
+    await updateListing({
+      variables: {
+        id,
+        input: {
+          potentialTenantAgreed: !data?.getListingById?.potentialTenantAgreed,
+        },
+        senderId: user?.id,
+      },
     });
-
-    return sortedDocumentation.map((document) => {
-      let docs = document.documents || [];
-      if (
-        document.id === user?.id &&
-        documentsAreGlobal &&
-        globalFiles.length > 0
-      ) {
-        const docIds = new Set(docs.map((d) => d.id || d.name));
-        docs = [
-          ...docs,
-          ...globalFiles.filter((d) => !docIds.has(d.id || d.name)),
-        ];
-      }
-
-      const title =
-        user?.id === document.id ? 'Tu documentación' : 'Documentación de';
-
-      return (
-        <div className="account__info-inner" key={document.id}>
-          {user?.id === document.id ? (
-            <h6>{title}:</h6>
-          ) : (
-            <h6>
-              {title}{' '}
-              <Link
-                href={`/user/${document.id}`}
-                className="dark"
-              >{`${document.nombre} ${document.apellido}`}</Link>
-              :
-            </h6>
-          )}
-          {docs.map((doc) => (
-            <div key={doc.id || doc.name} className="account__item-photo-item">
-              <span className="account__item-photo-extension">
-                {doc.extension || (doc.type ? doc.type.split('/')[1] : '')}
-              </span>
-              <span>{doc.name}</span>
-              <Link href={doc.url} target="_blank">
-                Ver
-              </Link>
-            </div>
-          ))}
-        </div>
-      );
-    });
+    await refetch();
   };
 
   useEffect(() => {
-    if (user && user?.documentation?.documentsAreGlobal) {
-      setGlobalFiles(user?.documentation?.documents || []);
-    } else {
-      setGlobalFiles([]);
-    }
-
-    if (data?.getListingById) {
-      const userDocuments = data?.getListingById?.documentation?.filter(
-        (doc) => doc.id === user?.id,
-      )[0];
-
+    if (!formLoaded && data?.getListingById && user?.id) {
+      const userDocuments = documentationArr.find((doc) => doc.id === user?.id);
       if (userDocuments?.documents?.length > 0) {
         setShowUploadFiles(false);
       }
       setUploadedFiles(userDocuments ? userDocuments.documents : []);
       setForm(data.getListingById);
+      setFormLoaded(true);
     }
-  }, [data?.getListingById, user?.id]);
+  }, [data?.getListingById, user?.id, documentationArr, setForm, formLoaded]);
 
   if (loading) {
     return (
@@ -319,15 +264,69 @@ function Documentation() {
             </button>
           </div>
         )}
-        {renderDocumentation(
-          form?.documentation,
-          user,
-          globalFiles,
-          user?.documentation?.documentsAreGlobal,
+
+        <div className="account__info-inner" key={user?.id}>
+          <h6>Tu documentación:</h6>
+          {allUserDocs.map((doc) => (
+            <div key={doc.id || doc.name} className="account__item-photo-item">
+              <span className="account__item-photo-extension">
+                {doc.extension || (doc.type ? doc.type.split('/')[1] : '')}
+              </span>
+              <span>{doc.name}</span>
+              <Link href={doc.url} target="_blank">
+                Ver
+              </Link>
+            </div>
+          ))}
+        </div>
+
+        {ownerUser && (
+          <div className="account__info-inner" key={ownerUser.id}>
+            <h6>
+              Documentación de{' '}
+              <Link href={`/user/${ownerUser.id}`} className="dark">
+                {ownerUser.nombre} {ownerUser.apellido}
+              </Link>
+              :
+            </h6>
+            {allOwnerDocs.map((doc) => (
+              <div
+                key={doc.id || doc.name}
+                className="account__item-photo-item"
+              >
+                <span className="account__item-photo-extension">
+                  {doc.extension || (doc.type ? doc.type.split('/')[1] : '')}
+                </span>
+                <span>{doc.name}</span>
+                <Link href={doc.url} target="_blank">
+                  Ver
+                </Link>
+              </div>
+            ))}
+          </div>
         )}
+
         {data?.getListingById?.contract?.documents?.length > 0 && (
           <div className="account__info-inner">
             <h6>Tu contrato de alquiler:</h6>
+            {form?.potentialTenantAgreed !== true ? (
+              <p>
+                Confirmá que todos tus datos estén bien y que no haya ningún
+                error. Si hay algun problema, comunicate con el{' '}
+                <Link
+                  className="dark"
+                  href={`/user/${data?.getListingById?.owner?.id}`}
+                >
+                  dueño
+                </Link>
+                .
+              </p>
+            ) : (
+              <p>
+                Confirmaste tus datos y ya podés pagar la seña para reservar
+                este inmueble.
+              </p>
+            )}
             <div className="account__item-photo-item">
               <span className="account__item-photo-extension">
                 {data?.getListingById?.contract?.documents[0]?.extension}
@@ -336,6 +335,21 @@ function Documentation() {
               <Link href={data?.getListingById?.contract?.documents[0]?.url}>
                 Ver
               </Link>
+            </div>
+            <div className="button-container">
+              <button
+                onClick={handleSubmitContract}
+                className="button"
+                disabled={updateLoading}
+              >
+                {updateLoading ? (
+                  <span className="loader"></span>
+                ) : data?.getListingById?.potentialTenantAgreed === true ? (
+                  'Desconfirmar datos'
+                ) : (
+                  'Confirmar datos'
+                )}
+              </button>
             </div>
           </div>
         )}

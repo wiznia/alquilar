@@ -67,6 +67,7 @@ const listingSchema = new mongoose.Schema({
     alias: { type: String },
   },
   potential_tenant: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  potentialTenantAgreed: { type: Boolean },
   precio: { type: Number, required: true },
   provincia: { type: String, required: true },
   sena: { type: Number },

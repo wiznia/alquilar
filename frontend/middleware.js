@@ -127,10 +127,6 @@ export async function middleware(request) {
         });
         const { data: listingData } = await listingRes.json();
         const listing = listingData?.getListingById;
-        console.log(
-          listing.potential_tenant,
-          listing.potential_tenant.includes(userId),
-        );
 
         if (!listing || !listing.potential_tenant?.includes(userId)) {
           return NextResponse.redirect(new URL('/not-authorized', request.url));

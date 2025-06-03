@@ -67,27 +67,6 @@ export default function InlineNav({ id, page, user }) {
             <h6>Documentación</h6>
           </Link>
         </li>
-        <li
-          className={
-            page === 'payments'
-              ? 'inline-nav__item--active'
-              : 'inline-nav__item'
-          }
-        >
-          <Link
-            href={{
-              pathname:
-                user?.tipo_de_cuenta === 'Dueño'
-                  ? '/account/listings/configListing/payments'
-                  : '/account/alquileres/configListing/payments',
-              query: {
-                id,
-              },
-            }}
-          >
-            <h6>Pagos</h6>
-          </Link>
-        </li>
       </ul>
     </nav>
   );

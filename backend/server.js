@@ -154,6 +154,7 @@ const typeDefs = `
     owner: User!
     payment: PaymentData
     potential_tenant: [ID]
+    potentialTenantAgreed: Boolean
     precio: Float!
     provincia: String!
     sena: Float
@@ -299,6 +300,7 @@ const typeDefs = `
     owner: ID
     payment: PaymentInput
     potential_tenant: [ID]
+    potentialTenantAgreed: Boolean
     precio: Float
     provincia: String
     sena: Float
@@ -984,12 +986,12 @@ const resolvers = {
           sender.tipo_de_cuenta === 'Dueño'
             ? `${process.env.FRONTEND_URL}/account/alquileres/configListing/documents?id=${id}`
             : `${process.env.FRONTEND_URL}/account/listings/configListing/documents?id=${id}`;
+        const listing = await Listing.findById(id);
 
         if (input.documentation) {
           const incoming = Array.isArray(input.documentation)
             ? input.documentation[0]
             : input.documentation;
-          const listing = await Listing.findById(id);
           const existingDocs = Array.isArray(listing.documentation)
             ? listing.documentation
             : [];
@@ -1005,7 +1007,7 @@ const resolvers = {
           const CBUContent =
             !isPaymentConfigured &&
             listing.contract?.documents &&
-            listing.contract?.potentialTenantAgreed &&
+            listing.potentialTenantAgreed &&
             sender.tipo_de_cuenta !== 'Dueño'
               ? ' Configurá tu seña o CBU para recibir la reserva del potencial inquilino.'
               : '';
@@ -1039,7 +1041,6 @@ const resolvers = {
           const incomingContract = Array.isArray(input.contract)
             ? input.contract[0]
             : input.contract;
-          const listing = await Listing.findById(id);
           updatedFields.contract = incomingContract;
 
           notificationContent = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> subió el contrato de alquiler al <a href=${inmuebleURL}>inmueble</a>.`;
@@ -1052,6 +1053,30 @@ const resolvers = {
               id,
             );
           });
+        }
+
+        if (input.potentialTenantAgreed === false) {
+          updatedFields.potentialTenantAgreed = input.potentialTenantAgreed;
+
+          notificationContent = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> rechazó el contrato de alquiler del <a href=${inmuebleURL}>inmueble</a>.`;
+          handleNotification(
+            senderId,
+            listing.owner,
+            notificationContent,
+            'listing',
+            id,
+          );
+        } else {
+          updatedFields.potentialTenantAgreed = input.potentialTenantAgreed;
+
+          notificationContent = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> aceptó el contrato de alquiler del <a href=${inmuebleURL}>inmueble</a>.`;
+          handleNotification(
+            senderId,
+            listing.owner,
+            notificationContent,
+            'listing',
+            id,
+          );
         }
       }
 
@@ -1069,7 +1094,8 @@ const resolvers = {
           !(key in updatedFields) &&
           key !== 'documentation' &&
           key !== 'contract' &&
-          key !== 'fotos'
+          key !== 'fotos' &&
+          key !== 'potentialTenantAgreed'
         ) {
           updatedFields[key] = value;
         }

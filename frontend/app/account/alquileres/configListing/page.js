@@ -85,7 +85,14 @@ function ConfigListing() {
                   </Link>
                 </div>
               ) : (
-                <div>Tenes que pagaraprata.</div>
+                <>
+                  <p>
+                    Enviá la transferencia al siguiente CBU a nombre de{' '}
+                    {data?.getListingById?.owner?.nombre}{' '}
+                    {data?.getListingById?.owner?.apellido}:
+                  </p>
+                  <p>{data?.getListingById?.payment?.cbu}</p>
+                </>
               )}
             </div>
           )}
