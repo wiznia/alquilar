@@ -2,6 +2,7 @@ import '../styles/styles.css';
 import ApolloProviderWrapper from '../components/ApolloProviderWrapper';
 import Page from '../components/Page';
 import { AuthProvider } from '../components/AuthContext';
+import { ToastProvider } from '@/components/ToastContext';
 
 export default function RootLayout({ children, auth, modal }) {
   return (
@@ -13,9 +14,11 @@ export default function RootLayout({ children, auth, modal }) {
         <ApolloProviderWrapper>
           <AuthProvider>
             <Page>
-              {children}
-              {auth}
-              {modal}
+              <ToastProvider>
+                {children}
+                {auth}
+                {modal}
+              </ToastProvider>
             </Page>
           </AuthProvider>
         </ApolloProviderWrapper>

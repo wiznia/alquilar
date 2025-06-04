@@ -4,6 +4,7 @@ import { validateForm } from './validateForm';
 export const useFormValidation = (
   initialState,
   formType,
+  defaultFormType,
   locationHandlers = {},
 ) => {
   const [form, setForm] = useState(initialState);
@@ -86,8 +87,9 @@ export const useFormValidation = (
     }));
   };
 
-  const validateFormCheck = (extraFields = {}) => {
-    const newErrors = validateForm(form, formType, extraFields);
+  const validateFormCheck = (extraFields = {}, customFormType) => {
+    const typeToUse = customFormType || defaultFormType;
+    const newErrors = validateForm(form, typeToUse, extraFields);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };

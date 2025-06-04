@@ -65,7 +65,7 @@ function ConfigListing() {
             </p>
           </div>
         )}
-        {data?.getListingById?.sena &&
+        {data?.getListingById?.sena > 0 &&
           data?.getListingById?.contract?.documents.length > 0 && (
             <div className="account__info-inner">
               <h6>Seña:</h6>

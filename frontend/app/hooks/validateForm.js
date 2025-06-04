@@ -107,17 +107,19 @@ export const validateForm = (form, formType, extraFields = {}) => {
     }
   }
 
-  if (formType === 'sendSena') {
-    if (!form.sena) {
-      errors.sena = 'Tenés que ingresar un monto mayor a 0.';
-    }
-  }
-
   if (formType === 'uploadDocuments') {
     const uploadedFiles = extraFields.uploadedFiles || [];
     const newFiles = extraFields.newFiles || [];
     if (uploadedFiles.length + newFiles.length === 0) {
       errors.documentation = 'Tenés que subir al menos un archivo.';
+    }
+  }
+
+  if (formType === 'addCBU') {
+    if (!form.payment?.cbu) {
+      errors['payment.cbu'] = 'Tenés que ingresar tu CBU.';
+    } else if (!/^\d{22}$/.test(form.payment.cbu)) {
+      errors['payment.cbu'] = 'El CBU debe tener 22 dígitos numéricos.';
     }
   }
 

@@ -23,9 +23,11 @@ import { useFormValidation } from '@/app/hooks/useFormValidation';
 import throttle from '@/lib/throttle';
 import { usePathname } from 'next/navigation';
 import removeTypename from '@/lib/removeTypename';
+import { useToast } from '@/components/ToastContext';
 
 function ConfigListing() {
   const { user } = useAuth();
+  const showToast = useToast();
   const id = useSearchParams().get('id');
   const pathname = usePathname();
   const page = pathname.split('/').findLast((element) => element);
@@ -88,10 +90,15 @@ function ConfigListing() {
           if (popup && popup.closed) {
             clearInterval(popupInterval);
             await refetch();
+            showToast('Conectaste tu cuenta de Mercado Pago!');
           }
         }, 500);
       }
     } catch (error) {
+      showToast(
+        `Hubo un error al conectar tu cuenta de Mercado Pago: ${error}`,
+        'error',
+      );
       console.error('Error conectando con Mercado Pago:', error.message);
     }
   };
@@ -104,7 +111,12 @@ function ConfigListing() {
         },
       });
       await refetch();
+      showToast('Desonectaste tu cuenta de Mercado Pago!');
     } catch (error) {
+      showToast(
+        `Hubo un error al desconectar tu cuenta de Mercado Pago: ${error}`,
+        'error',
+      );
       console.error('Error deleting listing:', error);
     }
   };
@@ -124,8 +136,15 @@ function ConfigListing() {
       });
       setPaymentLink(data.createPaymentLink);
       setIsLoadingMP(false);
+      if (data?.getListingById?.mpPaymentLink !== undefined) {
+        showToast('Vinculaste tu cuenta de Mercado Pago!');
+      }
       await refetch();
     } catch (error) {
+      showToast(
+        `Hubo un error al vincular tu cuenta de Mercado Pago: ${error}`,
+        'error',
+      );
       console.error('Error creating payment link:', error.message);
       setIsLoadingMP(false);
     }
@@ -147,9 +166,14 @@ function ConfigListing() {
         },
       });
       setSearchIsActive(false);
+      showToast('Agregaste un potencial inquilino al inmueble!');
       refetch();
     } catch (error) {
       console.error('Error agregando potencial inquilino:', error.message);
+      showToast(
+        `Hubo un error al agregar un potencial inquilino: ${error}`,
+        'error',
+      );
       setSearchIsActive(false);
     }
   };
@@ -169,18 +193,23 @@ function ConfigListing() {
         },
       });
       refetch();
+      showToast('Removiste a un potencial inquilino al inmueble!');
     } catch (error) {
+      showToast(
+        `Hubo un error al remover al potencial inquilino: ${error}`,
+        'error',
+      );
       console.error('Error removiendo potencial inquilino:', error.message);
     }
   };
 
   const handleAddCBU = async () => {
     const cleanedForm = removeTypename(form);
-    setIsLoadingCBU(true);
 
-    if (!validateFormCheck()) {
+    if (!validateFormCheck(undefined, 'addCBU')) {
       return;
     }
+    setIsLoadingCBU(true);
 
     try {
       await updateListing({
@@ -194,8 +223,13 @@ function ConfigListing() {
         },
       });
       setIsLoadingCBU(false);
+      showToast('Agregaste tu CBU al inmueble!');
     } catch (error) {
       console.error('Error agregando cbu:', error.message);
+      showToast(
+        `Hubo un error al agregar el CBU a tu inmueble: ${error}`,
+        'error',
+      );
       setIsLoadingCBU(false);
     }
   };
@@ -203,7 +237,7 @@ function ConfigListing() {
   const handleAddSena = async () => {
     const cleanedForm = removeTypename(form);
 
-    if (!validateFormCheck()) {
+    if (!validateFormCheck(undefined, 'sendSena')) {
       return;
     }
     setIsLoadingSena(true);
@@ -222,9 +256,14 @@ function ConfigListing() {
         handleCreatePaymentLink();
       }
       setIsLoadingSena(false);
+      showToast('Agregaste una seña a tu inmueble!');
       refetch();
     } catch (error) {
       console.error('Error agregando seña:', error.message);
+      showToast(
+        `Hubo un error al agregar la seña a tu inmueble: ${error}`,
+        'error',
+      );
       setIsLoadingSena(false);
     }
   };
@@ -489,6 +528,9 @@ function ConfigListing() {
               placeholder="Ingresá el CBU de 22 dígitos"
               value={form?.payment?.cbu || ''}
             />
+            {errors['payment.cbu'] && (
+              <small className="error-message">{errors['payment.cbu']}</small>
+            )}
             <div className="button-container">
               <button
                 className="button"

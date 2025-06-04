@@ -17,9 +17,11 @@ import throttle from '@/lib/throttle';
 import Loading from '@/components/Loading';
 import Link from 'next/link';
 import Select from '@/components/Select';
+import { useToast } from '@/components/ToastContext';
 
 export default function Calendar() {
   const { user } = useAuth();
+  const showToast = useToast();
   const isOwner = user?.tipo_de_cuenta === 'Dueño';
   const formRef = useRef(null);
   const daysOfWeek = ['DOM', 'LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB'];
@@ -181,10 +183,15 @@ export default function Calendar() {
         if (formRef.current) {
           formRef.current.reset();
         }
+        showToast('Evento agregado con éxito!');
         refetch();
       }
     } catch (error) {
       setIsLoading(false);
+      showToast(
+        `Hubo un error al agregar un evento al calendario: ${error}`,
+        'error',
+      );
       console.error('Error creando el evento de calendario:', error);
     }
   };

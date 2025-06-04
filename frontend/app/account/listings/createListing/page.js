@@ -16,10 +16,12 @@ import {
 } from '@/components/queries/queries';
 import { useRouter } from 'next/navigation';
 import { handleUploadFile, handleRemoveFile } from '@/lib/fileHandlers';
+import { useToast } from '@/components/ToastContext';
 
 export default function Page() {
   const router = useRouter();
   const { user } = useAuth();
+  const showToast = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingSave, setIsLoadingSave] = useState(false);
   const [inputFiles, setInputFiles] = useState([]);
@@ -106,6 +108,7 @@ export default function Page() {
     const estadoValue = buttonType === 'save' ? 'Borrador' : 'Activo';
 
     if (estadoValue === 'Borrador') {
+      showToast('Cambios guardados con éxito!');
       setIsLoadingSave(true);
     } else {
       setIsLoading(true);
@@ -152,9 +155,11 @@ export default function Page() {
 
       if (estadoValue === 'Activo') {
         router.push('/account/listings');
+        showToast('Inmueble creado con éxito!');
       }
     } catch (error) {
       console.error('Listing error:', error);
+      showToast(`Hubo un error al crear el inmueble: ${error}`, 'error');
       setIsLoading(false);
       setIsLoadingSave(false);
     }

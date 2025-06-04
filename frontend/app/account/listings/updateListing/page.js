@@ -17,10 +17,12 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/components/AuthContext';
 import Loading from '@/components/Loading';
 import { handleUploadFile, handleRemoveFile } from '@/lib/fileHandlers';
+import { useToast } from '@/components/ToastContext';
 
 function UpdateListingContent() {
   const router = useRouter();
   const { user } = useAuth();
+  const showToast = useToast();
   const id = useSearchParams().get('id');
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingSave, setIsLoadingSave] = useState(false);
@@ -89,6 +91,7 @@ function UpdateListingContent() {
 
     if (buttonType === 'save') {
       setIsLoadingSave(true);
+      showToast('Cambios guardados con éxito!');
     } else {
       setIsLoading(true);
     }
@@ -139,9 +142,11 @@ function UpdateListingContent() {
 
       if (buttonType === 'publish') {
         router.push('/account/listings');
+        showToast('Inmueble actualizado con éxito!');
       }
     } catch (error) {
       console.error('Listing error:', error);
+      showToast(`Hubo un error al crear el inmueble: ${error}`, 'error');
       setIsLoading(false);
       setIsLoadingSave(false);
     }

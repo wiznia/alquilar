@@ -8,10 +8,12 @@ import { useMutation } from '@apollo/client';
 import { useRouter } from 'next/navigation';
 import { useFormValidation } from '@/app/hooks/useFormValidation';
 import { useAuth } from '@/components/AuthContext';
+import { useToast } from '@/components/ToastContext';
 
 export default function Page() {
   const [isLoading, setIsLoading] = useState(false);
   const { login, setCookie } = useAuth();
+  const showToast = useToast();
   const initialState = {
     email: '',
     password: '',
@@ -35,7 +37,8 @@ export default function Page() {
         setIsLoading(false);
         setCookie('authToken', data.login.token, 7);
         await login();
-        router.push('/account/settings');
+        showToast('Login exitoso!');
+        router.back();
       }
     } catch (error) {
       console.error('Login error:', error);

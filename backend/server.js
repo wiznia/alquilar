@@ -987,6 +987,7 @@ const resolvers = {
             ? `${process.env.FRONTEND_URL}/account/alquileres/configListing/documents?id=${id}`
             : `${process.env.FRONTEND_URL}/account/listings/configListing/documents?id=${id}`;
         const listing = await Listing.findById(id);
+        const isPaymentConfigured = !!listing.payment.cbu || !!listing.sena;
 
         if (input.documentation) {
           const incoming = Array.isArray(input.documentation)
@@ -1003,7 +1004,6 @@ const resolvers = {
           const mergedDocs = [...otherDocs, incoming];
           updatedFields.documentation = mergedDocs;
 
-          const isPaymentConfigured = !!listing.payment.cbu || !!listing.sena;
           const CBUContent =
             !isPaymentConfigured &&
             listing.contract?.documents &&
@@ -1055,7 +1055,10 @@ const resolvers = {
           });
         }
 
-        if (input.potentialTenantAgreed === false) {
+        if (
+          input.potentialTenantAgreed === false &&
+          sender.tipo_de_cuenta !== 'Dueño'
+        ) {
           updatedFields.potentialTenantAgreed = input.potentialTenantAgreed;
 
           notificationContent = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> rechazó el contrato de alquiler del <a href=${inmuebleURL}>inmueble</a>.`;
@@ -1066,7 +1069,10 @@ const resolvers = {
             'listing',
             id,
           );
-        } else {
+        } else if (
+          input.potentialTenantAgreed === true &&
+          sender.tipo_de_cuenta !== 'Dueño'
+        ) {
           updatedFields.potentialTenantAgreed = input.potentialTenantAgreed;
 
           notificationContent = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> aceptó el contrato de alquiler del <a href=${inmuebleURL}>inmueble</a>.`;
@@ -1423,8 +1429,13 @@ const resolvers = {
       _,
       { listingId, senderId, receiverId, type },
     ) => {
+      const receiverObjectId = new mongoose.Types.ObjectId(String(receiverId));
       await Listing.findByIdAndUpdate(listingId, {
-        $pull: { potential_tenant: receiverId },
+        $pull: {
+          potential_tenant: receiverId,
+          documentation: { id: receiverObjectId },
+        },
+        $unset: { potentialTenantAgreed: false },
       });
 
       await User.findByIdAndUpdate(receiverId, {

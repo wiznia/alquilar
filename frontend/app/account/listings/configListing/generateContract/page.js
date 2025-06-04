@@ -15,12 +15,14 @@ import {
 } from '@/components/queries/queries';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/components/AuthContext';
+import { useToast } from '@/components/ToastContext';
 
 function GenerateContract() {
   const [isLoading, setIsLoading] = useState(false);
   const [inquilinoSelect, setInquilinoSelect] = useState('');
   const [contractUrl, setContractUrl] = useState('');
   const { user } = useAuth();
+  const showToast = useToast();
   const pathname = usePathname();
   const page = pathname.split('/').findLast((element) => element);
   const id = useSearchParams().get('id');
@@ -91,9 +93,14 @@ function GenerateContract() {
       });
       const contractUrl = data.generateContract;
       setContractUrl(contractUrl);
+      showToast('Generaste tu contrato de alquiler!');
       setIsLoading(false);
     } catch (error) {
       console.error('No se pudo generar el contrato:', error);
+      showToast(
+        `Ocurrió un error al intentar generar tu contrato de alquiler: ${error}`,
+        'error',
+      );
       setIsLoading(false);
     }
   };

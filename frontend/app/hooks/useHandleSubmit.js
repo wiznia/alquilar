@@ -1,3 +1,4 @@
+import { useToast } from '@/components/ToastContext';
 import { useCallback } from 'react';
 
 export function useUnifiedSubmit({
@@ -13,6 +14,7 @@ export function useUnifiedSubmit({
   fileInputRef,
   globalDocsEnabled,
 }) {
+  const showToast = useToast();
   const getUnifiedSubmitHandler = useCallback(
     ({
       uploadedFiles,
@@ -131,6 +133,11 @@ export function useUnifiedSubmit({
                 input,
               },
             });
+            if (type === 'documentation') {
+              showToast('Documentos subidos con éxito!');
+            } else {
+              showToast('Contrato subido con éxito!');
+            }
             refetch();
           } else if (
             type === 'userDocumentation' &&
@@ -142,6 +149,7 @@ export function useUnifiedSubmit({
                 input,
               },
             });
+            showToast('Documentos subidos con éxito!');
           }
 
           setNewFiles([]);

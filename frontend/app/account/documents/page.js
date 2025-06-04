@@ -145,9 +145,6 @@ function Documents() {
               </>
             )}
           </div>
-          {uploadSuccess && (
-            <p className="success-message">Documentos subidos exitósamente!</p>
-          )}
           <div className="button-container">
             <button
               onClick={handleSubmit}

@@ -4,6 +4,7 @@ import { useFormValidation } from '@/app/hooks/useFormValidation';
 import { SEND_EMAIL, SEND_MESSAGE } from '../components/queries/queries';
 import { useAuth } from '../components/AuthContext';
 import { useRef, useState } from 'react';
+import { useToast } from './ToastContext';
 
 export default function ContactForm({
   contactCard,
@@ -16,6 +17,7 @@ export default function ContactForm({
   const formRef = useRef(null);
   const accountType = `${tipoDeCuenta.charAt(0).toLowerCase()}${tipoDeCuenta.slice(1)}`;
   const { user } = useAuth();
+  const showToast = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [sendMessage] = useMutation(SEND_MESSAGE);
   const [sendEmail] = useMutation(SEND_EMAIL);
@@ -49,11 +51,13 @@ export default function ContactForm({
         if (data?.sendMessage) {
           setIsSentForm(true);
           setIsLoading(false);
+          showToast('Mensaje enviado con éxito!');
           formRef.current.reset();
           if (formRef.current) formRef.current.value = '';
         }
       } catch (error) {
         setIsLoading(false);
+        showToast(`Hubo un error al enviar el mensaje ${error}`);
         console.error('Error sending message:', error);
       }
     } else {
@@ -68,11 +72,13 @@ export default function ContactForm({
         if (data?.sendEmail) {
           setIsSentForm(true);
           setIsLoading(false);
+          showToast('Mensaje enviado con éxito!');
           formRef.current.reset();
           if (formRef.current) formRef.current.value = '';
         }
       } catch (error) {
         setIsLoading(false);
+        showToast(`Hubo un error al enviar el mensaje ${error}`, 'error');
         console.error('Error sending message:', error);
       }
     }
@@ -182,13 +188,7 @@ export default function ContactForm({
           {errors.asunto && (
             <small className="error-message">{errors.asunto}</small>
           )}
-          {isSentForm && (
-            <p className="success-message">Mensaje enviado con éxito!</p>
-          )}
           <div className="button-container">
-            <button className="button button--secondary">
-              Ver disponibilidad horaria
-            </button>
             <button className="button">
               {isLoading ? (
                 <span className="loader"></span>

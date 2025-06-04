@@ -9,6 +9,7 @@ import { useAuth } from '@/components/AuthContext';
 import { useState } from 'react';
 import { useLocationData } from '@/app/hooks/useLocationData';
 import Select from '@/components/Select';
+import { useToast } from '@/components/ToastContext';
 
 export default function Page() {
   const [isLoading, setIsLoading] = useState(false);
@@ -46,6 +47,7 @@ export default function Page() {
     });
   const [register] = useMutation(REGISTER);
   const router = useRouter();
+  const showToast = useToast();
 
   const handleRegisterSubmit = async () => {
     if (!validateFormCheck()) return;
@@ -60,8 +62,9 @@ export default function Page() {
 
       if (data?.register?.token) {
         setIsLoading(false);
+        showToast('Login exitoso!');
         await handleRegister(data.register.token);
-        router.push('/account');
+        router.back();
       }
     } catch (error) {
       console.error('Registration error:', error);
