@@ -112,6 +112,7 @@ export const SINGLE_LISTING_QUERY = gql`
           url
           extension
         }
+        potentialTenantAgreed
       }
       descripcion
       direccion
@@ -164,7 +165,6 @@ export const SINGLE_LISTING_QUERY = gql`
         alias
       }
       potential_tenant
-      potentialTenantAgreed
       precio
       provincia
       sena
@@ -627,6 +627,18 @@ export const UPDATE_LISTING = gql`
       ammenities
       banos
       barrio
+      contract {
+        id
+        nombre
+        apellido
+        documents {
+          id
+          name
+          url
+          extension
+        }
+        potentialTenantAgreed
+      }
       descripcion
       direccion
       dormitorios
@@ -639,7 +651,6 @@ export const UPDATE_LISTING = gql`
       }
       id
       moneda
-      potentialTenantAgreed
       precio
       provincia
       superficie_cubierta

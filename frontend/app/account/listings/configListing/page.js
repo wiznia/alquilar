@@ -217,9 +217,11 @@ function ConfigListing() {
           id,
           input: {
             payment: {
+              ...(data?.getListingById?.payment || {}),
               cbu: cleanedForm.payment.cbu,
             },
           },
+          senderId: user?.id,
         },
       });
       setIsLoadingCBU(false);
@@ -249,6 +251,7 @@ function ConfigListing() {
           input: {
             sena: cleanedForm.sena,
           },
+          senderId: user?.id,
         },
       });
 

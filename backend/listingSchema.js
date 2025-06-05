@@ -65,9 +65,10 @@ const listingSchema = new mongoose.Schema({
   payment: {
     cbu: { type: String },
     alias: { type: String },
+    status: { type: String },
+    mpPaymentId: { type: Number },
   },
   potential_tenant: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-  potentialTenantAgreed: { type: Boolean },
   precio: { type: Number, required: true },
   provincia: { type: String, required: true },
   sena: { type: Number },

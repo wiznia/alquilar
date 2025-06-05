@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 export default function Listing({ listing, user }) {
-  const { direccion, provincia, barrio, estado } = listing;
+  const { direccion, provincia, barrio, estado, id } = listing;
 
   let pillColor = '';
   switch (estado[0]) {
@@ -28,7 +28,9 @@ export default function Listing({ listing, user }) {
   return (
     <div className="shadow account-listing">
       <div className="account-listing__info">
-        <h6>{direccion}</h6>
+        <h6>
+          <Link href={`/listing/${id}`}>{direccion}</Link>
+        </h6>
         <p>
           {barrio}, {provincia}
         </p>

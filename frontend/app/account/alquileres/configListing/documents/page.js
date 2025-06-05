@@ -18,9 +18,11 @@ import {
 import { handleUploadFile, handleRemoveDisplayFile } from '@/lib/fileHandlers';
 import Link from 'next/link';
 import { useUnifiedSubmit } from '@/app/hooks/useHandleSubmit';
+import { useToast } from '@/components/ToastContext';
 
 function Documentation() {
   const { user } = useAuth();
+  const showToast = useToast();
   const pathname = usePathname();
   const fileInputRef = useRef(null);
   const page = pathname.split('/').findLast((element) => element);
@@ -102,15 +104,22 @@ function Documentation() {
   const allOwnerDocs = mergeDocs(ownerRegularDocs, ownerGlobalDocs);
 
   const handleSubmitContract = async () => {
+    const potentialTenantAgreed =
+      !data?.getListingById?.contract?.potentialTenantAgreed;
     await updateListing({
       variables: {
         id,
         input: {
-          potentialTenantAgreed: !data?.getListingById?.potentialTenantAgreed,
+          contract: {
+            potentialTenantAgreed,
+          },
         },
         senderId: user?.id,
       },
     });
+    showToast(
+      `${potentialTenantAgreed === true ? 'Confirmaste' : 'Desconfirmaste'} tus datos en el contrato.`,
+    );
     await refetch();
   };
 
@@ -309,7 +318,7 @@ function Documentation() {
         {data?.getListingById?.contract?.documents?.length > 0 && (
           <div className="account__info-inner">
             <h6>Tu contrato de alquiler:</h6>
-            {form?.potentialTenantAgreed !== true ? (
+            {data?.getListingById?.potentialTenantAgreed !== true && (
               <p>
                 Confirmá que todos tus datos estén bien y que no haya ningún
                 error. Si hay algun problema, comunicate con el{' '}
@@ -320,11 +329,6 @@ function Documentation() {
                   dueño
                 </Link>
                 .
-              </p>
-            ) : (
-              <p>
-                Confirmaste tus datos y ya podés pagar la seña para reservar
-                este inmueble.
               </p>
             )}
             <div className="account__item-photo-item">
@@ -344,7 +348,8 @@ function Documentation() {
               >
                 {updateLoading ? (
                   <span className="loader"></span>
-                ) : data?.getListingById?.potentialTenantAgreed === true ? (
+                ) : data?.getListingById?.contract?.potentialTenantAgreed ===
+                  true ? (
                   'Desconfirmar datos'
                 ) : (
                   'Confirmar datos'

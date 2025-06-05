@@ -125,6 +125,7 @@ const typeDefs = `
     nombre: String
     apellido: String
     documents: [FileInput]
+    potentialTenantAgreed: Boolean
   }
 
   input MercadoPagoInput {
@@ -154,7 +155,6 @@ const typeDefs = `
     owner: User!
     payment: PaymentData
     potential_tenant: [ID]
-    potentialTenantAgreed: Boolean
     precio: Float!
     provincia: String!
     sena: Float
@@ -300,7 +300,6 @@ const typeDefs = `
     owner: ID
     payment: PaymentInput
     potential_tenant: [ID]
-    potentialTenantAgreed: Boolean
     precio: Float
     provincia: String
     sena: Float
@@ -978,6 +977,9 @@ const resolvers = {
       const updatedFields = {};
       let notificationContent = null;
 
+      const listing = await Listing.findById(id);
+      if (!listing) throw new Error('Listing not found');
+
       if (senderId) {
         const sender = await User.findById(senderId).select(
           'nombre apellido tipo_de_cuenta',
@@ -986,47 +988,55 @@ const resolvers = {
           sender.tipo_de_cuenta === 'Dueño'
             ? `${process.env.FRONTEND_URL}/account/alquileres/configListing/documents?id=${id}`
             : `${process.env.FRONTEND_URL}/account/listings/configListing/documents?id=${id}`;
-        const listing = await Listing.findById(id);
-        const isPaymentConfigured = !!listing.payment.cbu || !!listing.sena;
 
+        const isPaymentConfigured = !!listing.payment?.cbu || !!listing.sena;
+
+        // 📄 Documentación
         if (input.documentation) {
-          const incoming = Array.isArray(input.documentation)
-            ? input.documentation[0]
-            : input.documentation;
+          const incomingDocs = Array.isArray(input.documentation)
+            ? input.documentation
+            : [input.documentation];
+
           const existingDocs = Array.isArray(listing.documentation)
             ? listing.documentation
             : [];
-          const getId = (obj) =>
-            obj && obj.id ? obj.id.toString() : undefined;
-          const otherDocs = existingDocs.filter(
-            (doc) => getId(doc) !== getId(incoming),
+
+          const existingDocsMap = new Map(
+            existingDocs.map((doc) => [doc.id.toString(), doc]),
           );
-          const mergedDocs = [...otherDocs, incoming];
-          updatedFields.documentation = mergedDocs;
+
+          incomingDocs.forEach((doc) => {
+            existingDocsMap.set(doc.id.toString(), doc);
+          });
+
+          updatedFields.documentation = Array.from(existingDocsMap.values());
 
           const CBUContent =
             !isPaymentConfigured &&
             listing.contract?.documents &&
-            listing.potentialTenantAgreed &&
+            listing.contract?.potentialTenantAgreed &&
             sender.tipo_de_cuenta !== 'Dueño'
               ? ' Configurá tu seña o CBU para recibir la reserva del potencial inquilino.'
               : '';
+
           const contractContent =
             listing?.contract?.documents.length === 0 &&
             sender.tipo_de_cuenta !== 'Dueño'
               ? ' Ya podés subir tu modelo de contrato de alquiler para que sea revisado por el inquilino.'
               : '';
-          notificationContent = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> subió documentación al <a href=${inmuebleURL}>inmueble</a>.${CBUContent} ${contractContent}`;
+
+          notificationContent = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> subió documentación a <a href=${inmuebleURL}>${listing.direccion}</a>.${CBUContent} ${contractContent}`;
+
           if (sender.tipo_de_cuenta === 'Dueño') {
-            listing.potential_tenant.forEach((tenant) => {
+            listing.potential_tenant.forEach((tenant) =>
               handleNotification(
                 senderId,
                 tenant,
                 notificationContent,
                 'listing',
                 id,
-              );
-            });
+              ),
+            );
           } else {
             handleNotification(
               senderId,
@@ -1037,55 +1047,104 @@ const resolvers = {
             );
           }
         }
+
+        // 📃 Contrato
         if (input.contract) {
           const incomingContract = Array.isArray(input.contract)
             ? input.contract[0]
             : input.contract;
-          updatedFields.contract = incomingContract;
 
-          notificationContent = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> subió el contrato de alquiler al <a href=${inmuebleURL}>inmueble</a>.`;
-          listing.potential_tenant.forEach((tenant) => {
+          const existingContract = listing.contract?.toObject?.() || {};
+          const mergedContract = {
+            ...existingContract,
+            ...incomingContract,
+          };
+          updatedFields.contract = mergedContract;
+
+          // Notificación por subida de contrato
+          const includesContractUpload =
+            incomingContract.nombre ||
+            incomingContract.apellido ||
+            incomingContract.documents?.length;
+
+          if (includesContractUpload) {
+            notificationContent = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> subió el contrato de alquiler a <a href=${inmuebleURL}>${listing.direccion}</a>.`;
+
+            listing.potential_tenant.forEach((tenant) =>
+              handleNotification(
+                senderId,
+                tenant,
+                notificationContent,
+                'listing',
+                id,
+              ),
+            );
+          }
+
+          // Notificación por aceptación/rechazo
+          if (
+            typeof incomingContract.potentialTenantAgreed === 'boolean' &&
+            sender.tipo_de_cuenta !== 'Dueño'
+          ) {
+            if (incomingContract.potentialTenantAgreed === true) {
+              const CBUContent =
+                !isPaymentConfigured && listing.contract?.documents
+                  ? ' Configurá tu seña o CBU para recibir la reserva del potencial inquilino.'
+                  : '';
+              notificationContent = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> aceptó el contrato de alquiler de <a href=${inmuebleURL}>${listing.direccion}</a>. ${CBUContent}`;
+            } else {
+              notificationContent = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> rechazó el contrato de alquiler de <a href=${inmuebleURL}>${listing.direccion}</a>.`;
+            }
+
+            handleNotification(
+              senderId,
+              listing.owner,
+              notificationContent,
+              'listing',
+              id,
+            );
+          }
+        }
+
+        // 💸 Payment
+        if (input.payment) {
+          const existingPayment = listing.payment?.toObject?.() || {};
+          updatedFields.payment = {
+            ...existingPayment,
+            ...input.payment,
+          };
+        }
+
+        // 🪪 Sena
+        if (input.sena && !input.payment?.cbu) {
+          notificationContent = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> configuró el valor de la seña de <a href=${process.env.FRONTEND_URL}/account/alquileres/configListing?id=${listing.id}>${listing.direccion}</a>.`;
+          listing.potential_tenant.forEach((tenant) =>
             handleNotification(
               senderId,
               tenant,
               notificationContent,
               'listing',
               id,
-            );
-          });
+            ),
+          );
         }
 
-        if (
-          input.potentialTenantAgreed === false &&
-          sender.tipo_de_cuenta !== 'Dueño'
-        ) {
-          updatedFields.potentialTenantAgreed = input.potentialTenantAgreed;
-
-          notificationContent = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> rechazó el contrato de alquiler del <a href=${inmuebleURL}>inmueble</a>.`;
-          handleNotification(
-            senderId,
-            listing.owner,
-            notificationContent,
-            'listing',
-            id,
-          );
-        } else if (
-          input.potentialTenantAgreed === true &&
-          sender.tipo_de_cuenta !== 'Dueño'
-        ) {
-          updatedFields.potentialTenantAgreed = input.potentialTenantAgreed;
-
-          notificationContent = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> aceptó el contrato de alquiler del <a href=${inmuebleURL}>inmueble</a>.`;
-          handleNotification(
-            senderId,
-            listing.owner,
-            notificationContent,
-            'listing',
-            id,
+        // 🏦 CBU
+        if (input.payment?.cbu && !input.sena) {
+          notificationContent = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> configuró su CBU para <a href=${process.env.FRONTEND_URL}/account/alquileres/configListing?id=${listing.id}>${listing.direccion}</a>.`;
+          listing.potential_tenant.forEach((tenant) =>
+            handleNotification(
+              senderId,
+              tenant,
+              notificationContent,
+              'listing',
+              id,
+            ),
           );
         }
       }
 
+      // 🖼 Fotos
       if (input.fotos) {
         updatedFields.fotos = input.fotos.map((file) => ({
           id: file.id,
@@ -1095,13 +1154,13 @@ const resolvers = {
         }));
       }
 
+      // 🔁 Resto de campos simples
       Object.entries(input).forEach(([key, value]) => {
         if (
-          !(key in updatedFields) &&
-          key !== 'documentation' &&
-          key !== 'contract' &&
-          key !== 'fotos' &&
-          key !== 'potentialTenantAgreed'
+          !['documentation', 'contract', 'fotos', 'payment', 'sena'].includes(
+            key,
+          ) &&
+          !(key in updatedFields)
         ) {
           updatedFields[key] = value;
         }
@@ -1346,6 +1405,18 @@ const resolvers = {
       return true;
     },
     connectMercadoPago: async (_, { listingId }) => {
+      if (process.env.NODE_ENV === 'development') {
+        await Listing.findByIdAndUpdate(listingId, {
+          mercadoPago: {
+            userId: 'TEST_USER_ID',
+            accessToken: process.env.MERCADO_PAGO_TEST_ACCESS_TOKEN,
+            tokenExpiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+          },
+        });
+
+        return null;
+      }
+
       const listing = await Listing.findById(listingId);
       if (!listing) throw new Error('Listing not found');
 
@@ -1381,12 +1452,13 @@ const resolvers = {
           body: JSON.stringify({
             items: [
               {
-                title: 'Payment via Application',
+                title: `Reserva del inmueble ${listing.direccion}`,
                 quantity: 1,
                 currency_id: 'ARS',
                 unit_price: parseFloat(value),
               },
             ],
+            external_reference: listingId,
           }),
         },
       );
@@ -1399,17 +1471,22 @@ const resolvers = {
       const data = await response.json();
 
       await Listing.findByIdAndUpdate(listingId, {
-        mpPaymentLink: data.init_point,
+        mpPaymentLink:
+          process.env.NODE_ENV === 'development'
+            ? data.sandbox_init_point
+            : data.init_point,
         sena: value,
       });
 
-      return data.init_point;
+      return process.env.NODE_ENV === 'development'
+        ? data.sandbox_init_point
+        : data.init_point;
     },
     addPotentialTenant: async (
       _,
       { tenantId, listingId, senderId, receiverId, type },
     ) => {
-      await Listing.findByIdAndUpdate(listingId, {
+      const listing = await Listing.findByIdAndUpdate(listingId, {
         $addToSet: { potential_tenant: tenantId },
       });
 
@@ -1419,7 +1496,7 @@ const resolvers = {
 
       const sender = await User.findById(senderId).select('nombre apellido');
 
-      const content = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> te dio acceso como potencial inquilino en su <a href=${process.env.FRONTEND_URL}/listing/${listingId}>inmueble</a>.<a class="button button--small" href=${process.env.FRONTEND_URL}/account/alquileres/configListing?id=${listingId}>Ir a la configuración</a>`;
+      const content = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> te dio acceso como potencial inquilino en <a href=${process.env.FRONTEND_URL}/listing/${listingId}>${listing.direccion}</a>.<a class="button button--small" href=${process.env.FRONTEND_URL}/account/alquileres/configListing?id=${listingId}>Ir a la configuración</a>`;
 
       await handleNotification(senderId, receiverId, content, type, listingId);
 
@@ -1430,12 +1507,12 @@ const resolvers = {
       { listingId, senderId, receiverId, type },
     ) => {
       const receiverObjectId = new mongoose.Types.ObjectId(String(receiverId));
-      await Listing.findByIdAndUpdate(listingId, {
+      const listing = await Listing.findByIdAndUpdate(listingId, {
         $pull: {
           potential_tenant: receiverId,
           documentation: { id: receiverObjectId },
         },
-        $unset: { potentialTenantAgreed: false },
+        $unset: { contract: { potentialTenantAgreed: false } },
       });
 
       await User.findByIdAndUpdate(receiverId, {
@@ -1443,7 +1520,7 @@ const resolvers = {
       });
 
       const sender = await User.findById(senderId).select('nombre apellido');
-      const content = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> removió tu acceso como potencial inquilino en su <a href=${process.env.FRONTEND_URL}/listing/${listingId}>inmueble</a>.`;
+      const content = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> removió tu acceso como potencial inquilino en <a href=${process.env.FRONTEND_URL}/listing/${listingId}>${listing.direccion}</a>.`;
 
       await handleNotification(senderId, receiverId, content, type, listingId);
 
@@ -1464,6 +1541,7 @@ const resolvers = {
       const actualSenderId = decoded.userId;
       const sender =
         await User.findById(actualSenderId).select('nombre apellido');
+      const listing = await Listing.findById(listingId);
 
       if (!sender) {
         throw new Error('Sender user not found');
@@ -1473,7 +1551,7 @@ const resolvers = {
       const day = new Date(date).getDate();
       const month = new Date(date).getMonth() + 1;
       const fullMonth = month.toString().padStart(2, '0');
-      const content = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> agendó una visita a su inmueble para el día ${day}/${fullMonth}`;
+      const content = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> agendó una <a href="/account/calendar"}>visita</a> a ${listing.direccion} para el día ${day}/${fullMonth}`;
 
       await Promise.all(
         receiverId.map(async (receiver) => {
@@ -1615,6 +1693,48 @@ app.get('/api/mercado-pago/callback', async (req, res) => {
     res.redirect(
       `${process.env.FRONTEND_URL}/mp/failure?error=${encodeURIComponent(error)}`,
     );
+  }
+});
+
+app.post('/webhook/mercadopago', async (req, res) => {
+  const { id, topic, type, data } = req.body;
+
+  if (topic === 'payment' || type === 'payment') {
+    const paymentId = data && data.id ? data.id : id;
+    const ACCESS_TOKEN = process.env.MERCADO_PAGO_TEST_ACCESS_TOKEN;
+
+    try {
+      const paymentUrl = `https://api.mercadopago.com/v1/payments/${paymentId}`;
+      const response = await fetch(paymentUrl, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${ACCESS_TOKEN}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `Mercado Pago API error: ${response.status} ${response.statusText}`,
+        );
+      }
+
+      const paymentInfo = await response.json();
+      const listingId = paymentInfo.external_reference;
+      await Listing.findByIdAndUpdate(listingId, {
+        $set: {
+          'payment.status': paymentInfo.status,
+          'payment.mpPaymentId': paymentInfo.id,
+        },
+      });
+
+      console.log('Received payment info:', paymentInfo);
+      res.sendStatus(200);
+    } catch (err) {
+      console.error('Error fetching payment info from Mercado Pago:', err);
+      res.sendStatus(500);
+    }
+  } else {
+    res.sendStatus(200);
   }
 });
 

@@ -8,7 +8,7 @@ import React, {
 } from 'react';
 
 const ToastContext = createContext();
-const DEFAULT_TOAST_DURATION = 5000;
+const DEFAULT_TOAST_DURATION = 3000;
 
 function Toast({ message, status = '', onRemove }) {
   const [visible, setVisible] = useState(false);

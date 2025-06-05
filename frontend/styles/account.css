@@ -213,6 +213,10 @@ fieldset {
   flex-direction: column;
   align-items: flex-start;
   gap: 5px;
+  h6 a {
+    color: var(--primary-titles);
+    text-decoration: none;
+  }
 }
 
 .account-listing__buttons {
