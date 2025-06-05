@@ -13,6 +13,7 @@
     "@vis.gl/react-google-maps": "^1.5.1",
     "apollo-upload-client": "^18.0.1",
     "graphql": "^16.10.0",
+    "graphql-ws": "^5.16.2",
     "jose": "^6.0.11",
     "next": "^15.2.2",
     "react": "^19.0.0",

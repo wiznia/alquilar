@@ -868,3 +868,13 @@ export const GENERATE_CONTRACT = gql`
     generateContract(input: $input)
   }
 `;
+
+export const SUBSCRIBE_NEW_NOTIFICATION = gql`
+  subscription NewNotification($userId: ID!) {
+    newNotification(userId: $userId) {
+      id
+      content
+      createdAt
+    }
+  }
+`;
