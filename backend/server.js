@@ -2,27 +2,24 @@ import express from 'express';
 import cors from 'cors';
 import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
+import http from 'http';
+import { useServer } from 'graphql-ws/lib/use/ws';
+import { WebSocketServer } from 'ws';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import path from 'path';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import cloudinary from 'cloudinary';
 import { graphqlUploadExpress } from 'graphql-upload';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import Listing from './listingSchema.js';
 import cron from 'node-cron';
+import { pubsub } from './pubsub.js';
 
 import typeDefs from './typeDefs.js';
 import resolvers from './resolvers.js';
 
 dotenv.config();
-
-cloudinary.v2.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_KEY,
-  api_secret: process.env.CLOUDINARY_SECRET,
-});
 
 mongoose
   .connect(process.env.DATABASE_URL, {})
@@ -35,6 +32,7 @@ const corsOptions = {
 };
 
 const app = express();
+const httpServer = http.createServer(app);
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use(cookieParser());
@@ -157,24 +155,36 @@ app.post('/webhook/mercadopago', async (req, res) => {
 
 //cron.schedule('*/2 * * * *', notifyPastEvents);
 
-const schema = makeExecutableSchema({
+const server = new ApolloServer({
   typeDefs,
   resolvers,
-});
-
-const server = new ApolloServer({
-  schema,
 });
 
 await server.start();
 
 app.use(
   expressMiddleware(server, {
-    context: async ({ req, res }) => ({ req, res }),
+    context: async ({ req, res }) => ({ req, res, pubsub }),
   }),
 );
 
+const wsServer = new WebSocketServer({
+  server: httpServer,
+  path: '/graphql',
+});
+
+const schema = makeExecutableSchema({ typeDefs, resolvers });
+
+useServer(
+  {
+    schema,
+    context: async () => ({ pubsub }),
+  },
+  wsServer,
+);
+
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
   console.log(`🚀 Server ready at http://localhost:${PORT}`);
+  console.log(`Subscriptions ready at ws://localhost:${PORT}`);
 });

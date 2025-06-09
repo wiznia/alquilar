@@ -1,6 +1,14 @@
 'use client';
 
-import { ApolloProvider, ApolloClient, InMemoryCache } from '@apollo/client';
+import {
+  ApolloProvider,
+  ApolloClient,
+  InMemoryCache,
+  split,
+} from '@apollo/client';
+import { createClient } from 'graphql-ws';
+import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
+import { getMainDefinition } from '@apollo/client/utilities';
 import { setContext } from '@apollo/client/link/context';
 import createUploadLink from 'apollo-upload-client/createUploadLink.mjs';
 
@@ -27,8 +35,34 @@ const authLink = setContext((_, prevContext) => {
   };
 });
 
+const wsLink = new GraphQLWsLink(
+  createClient({
+    url: process.env.NEXT_PUBLIC_WS_URL,
+    connectionParams: () => {
+      const token = getTokenFromCookie();
+      return {
+        headers: {
+          authorization: token ? `Bearer ${token}` : '',
+        },
+      };
+    },
+  }),
+);
+
+const splitLink = split(
+  ({ query }) => {
+    const definition = getMainDefinition(query);
+    return (
+      definition.kind === 'OperationDefinition' &&
+      definition.operation === 'subscription'
+    );
+  },
+  wsLink,
+  authLink.concat(uploadLink),
+);
+
 const client = new ApolloClient({
-  link: authLink.concat(uploadLink),
+  link: splitLink,
   cache: new InMemoryCache({
     typePolicies: {
       SingleMessage: {

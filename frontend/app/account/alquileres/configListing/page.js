@@ -2,20 +2,25 @@
 
 import AccountSidebar from '@/components/AccountSidebar';
 import Breadcrumb from '@/components/Breadcrumb';
-import { SINGLE_LISTING_QUERY } from '@/components/queries/queries';
+import {
+  SINGLE_LISTING_QUERY,
+  UPDATE_LISTING,
+} from '@/components/queries/queries';
 import { useSearchParams } from 'next/navigation';
-import { useQuery } from '@apollo/client';
+import { useMutation, useQuery } from '@apollo/client';
 import { useAuth } from '@/components/AuthContext';
 import Loading from '@/components/Loading';
-import { Suspense } from 'react';
+import { Suspense, useState } from 'react';
 import InlineNav from '@/components/InlineNav';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { useFormValidation } from '@/app/hooks/useFormValidation';
 
 function ConfigListing() {
   const { user } = useAuth();
   const id = useSearchParams().get('id');
   const pathname = usePathname();
+  const [isLoading, setIsLoading] = useState(false);
   const page = pathname.split('/').findLast((element) => element);
   const { data, loading, error } = useQuery(SINGLE_LISTING_QUERY, {
     variables: {
@@ -25,6 +30,37 @@ function ConfigListing() {
   const userDocumentation = data?.getListingById?.documentation.filter(
     (documentation) => documentation.id === user?.id,
   );
+  const { form, setForm, errors, validateFormCheck } = useFormValidation(
+    data?.getListingById,
+    'updateListing',
+  );
+  const [updateListing] = useMutation(UPDATE_LISTING);
+
+  const handlePaidReservation = async (e) => {
+    e.preventDefault();
+
+    if (!validateFormCheck()) {
+      return;
+    }
+
+    setIsLoading(true);
+
+    await updateListing({
+      variables: {
+        id,
+        input: {
+          ...form,
+          payment: {
+            paymentDone: true,
+          },
+          id,
+        },
+        senderId: user?.id,
+      },
+    });
+
+    setIsLoading(false);
+  };
 
   if (loading) {
     return (
@@ -73,7 +109,7 @@ function ConfigListing() {
                 Este es el monto que tenés que pagar para reservar este
                 inmueble.
               </p>
-              <p>${data?.getListingById?.sena}</p>
+              <h6>${data?.getListingById?.sena}</h6>
               {data?.getListingById?.mpPaymentLink ? (
                 <div className="button-container">
                   <Link
@@ -91,7 +127,22 @@ function ConfigListing() {
                     {data?.getListingById?.owner?.nombre}{' '}
                     {data?.getListingById?.owner?.apellido}:
                   </p>
-                  <p>{data?.getListingById?.payment?.cbu}</p>
+                  <h6>{data?.getListingById?.payment?.cbu}</h6>
+                  {data?.getListingById?.payment?.paymentDone !== true && (
+                    <div className="button-container">
+                      <button
+                        className="button"
+                        onClick={handlePaidReservation}
+                        disabled={isLoading}
+                      >
+                        {isLoading ? (
+                          <span className="loader"></span>
+                        ) : (
+                          <span>Ya pagué</span>
+                        )}
+                      </button>
+                    </div>
+                  )}
                 </>
               )}
             </div>

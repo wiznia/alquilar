@@ -141,6 +141,9 @@ const typeDefs = `
   type PaymentData {
     cbu: String
     alias: String
+    mpPaymentId: Int
+    status: String
+    paymentDone: Boolean
   }
 
   type User {
@@ -176,6 +179,7 @@ const typeDefs = `
     readBy: [String]
     messageId: ID!
     senderId: ID!
+    conversationId: String!
   }
 
   type Notification {
@@ -343,6 +347,7 @@ const typeDefs = `
   input PaymentInput {
     cbu: String,
     alias: String
+    paymentDone: Boolean
   }
 
   input SortListingsBy {
@@ -400,7 +405,10 @@ const typeDefs = `
     generateContract(input: ContractInput!): String!
   },
   type Subscription {
-    newNotification(userId: ID!): Notification
+    notificationReceived(userId: ID!): Notification
+  }
+  type Subscription {
+    newMessage: SingleMessage
   }
 `;
 

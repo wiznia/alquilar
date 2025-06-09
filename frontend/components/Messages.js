@@ -4,9 +4,15 @@ import {
   GET_MESSAGES_BY_USER,
   MARK_MESSAGES_AS_READ,
   SEND_MESSAGE,
+  NEW_MESSAGE_SUBSCRIPTION,
 } from '@/components/queries/queries';
 import { useAuth } from '@/components/AuthContext';
-import { useMutation, useQuery } from '@apollo/client';
+import {
+  useMutation,
+  useQuery,
+  useApolloClient,
+  useSubscription,
+} from '@apollo/client';
 import { useFormValidation } from '@/app/hooks/useFormValidation';
 import Loading from './Loading';
 import { useState, useRef, useEffect } from 'react';
@@ -23,6 +29,24 @@ export default function Messages() {
     },
     skip: !user?.id,
   });
+
+  useSubscription(NEW_MESSAGE_SUBSCRIPTION, {
+    skip: !user?.id,
+    onData: ({ data }) => {
+      const newMessage = data.data?.newMessage;
+      if (!newMessage) return;
+
+      if (openConversation?.conversationId === newMessage.conversationId) {
+        setOpenConversation((prev) => ({
+          ...prev,
+          messages: [...prev.messages, newMessage],
+        }));
+      }
+
+      refetch();
+    },
+  });
+
   const [openConversation, setOpenConversation] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [sendMessage] = useMutation(SEND_MESSAGE);
@@ -104,7 +128,7 @@ export default function Messages() {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollTop = messagesEndRef.current.scrollHeight;
     }
-  }, [openConversation]);
+  }, [openConversation?.messages?.length]);
 
   if (loading) {
     return (
@@ -234,7 +258,7 @@ export default function Messages() {
                     <small>{formatDateTime(msg.createdAt)}</small>
                   </div>
                   <small>
-                    {msg.readBy.includes(openConversation.sender.id) &&
+                    {msg.readBy?.includes(openConversation.sender.id) &&
                       msg.senderId === user?.id && (
                         <svg
                           xmlns="http://www.w3.org/2000/svg"

@@ -67,6 +67,7 @@ const listingSchema = new mongoose.Schema({
     alias: { type: String },
     status: { type: String },
     mpPaymentId: { type: Number },
+    paymentDone: { type: Boolean, default: false },
   },
   potential_tenant: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   precio: { type: Number, required: true },

@@ -163,6 +163,8 @@ export const SINGLE_LISTING_QUERY = gql`
       payment {
         cbu
         alias
+        status
+        paymentDone
       }
       potential_tenant
       precio
@@ -870,11 +872,24 @@ export const GENERATE_CONTRACT = gql`
 `;
 
 export const SUBSCRIBE_NEW_NOTIFICATION = gql`
-  subscription NewNotification($userId: ID!) {
-    newNotification(userId: $userId) {
+  subscription NotificationReceived($userId: ID!) {
+    notificationReceived(userId: $userId) {
       id
       content
       createdAt
+    }
+  }
+`;
+
+export const NEW_MESSAGE_SUBSCRIPTION = gql`
+  subscription onNewMessage {
+    newMessage {
+      messageId
+      asunto
+      createdAt
+      senderId
+      readBy
+      conversationId
     }
   }
 `;

@@ -1,4 +1,5 @@
 import Notification from './notificationSchema.js';
+import { pubsub } from './pubsub.js';
 
 export const handleNotification = async (
   senderId,
@@ -13,6 +14,14 @@ export const handleNotification = async (
     content,
     type,
     listingId,
+    createdAt: new Date(),
   });
+
   await notification.save();
+
+  pubsub.publish(`NOTIFICATION_RECEIVED_${receiverId.toString()}`, {
+    notificationReceived: notification,
+  });
+
+  return notification;
 };

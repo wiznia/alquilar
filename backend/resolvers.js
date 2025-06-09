@@ -1,3 +1,4 @@
+import dotenv from 'dotenv';
 import Listing from './listingSchema.js';
 import User from './userSchema.js';
 import Message from './messageSchema.js';
@@ -7,9 +8,19 @@ import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
-import { handleNotification } from './helpers.js';
+import cloudinary from 'cloudinary';
 import { GraphQLUpload } from 'graphql-upload';
 import { generarContratoPDF } from './generarContrato.js';
+import { handleNotification } from './helpers.js';
+import { pubsub } from './pubsub.js';
+
+dotenv.config();
+
+cloudinary.v2.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_KEY,
+  api_secret: process.env.CLOUDINARY_SECRET,
+});
 
 const resolvers = {
   Upload: GraphQLUpload,
@@ -384,7 +395,10 @@ const resolvers = {
       };
     },
     login: async (_, { email, password }, { res }) => {
-      const user = await User.findOne({ email });
+      const user = await User.findOne({
+        email,
+      });
+
       if (!user) {
         throw new Error('User not found');
       }
@@ -687,7 +701,7 @@ const resolvers = {
           };
         }
 
-        // 🪪 Sena
+        // Sena
         if (input.sena && !input.payment?.cbu) {
           notificationContent = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> configuró el valor de la seña de <a href=${process.env.FRONTEND_URL}/account/alquileres/configListing?id=${listing.id}>${listing.direccion}</a>.`;
           listing.potential_tenant.forEach((tenant) =>
@@ -712,6 +726,18 @@ const resolvers = {
               'listing',
               id,
             ),
+          );
+        }
+
+        if (input.payment.paymentDone) {
+          notificationContent = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> pagó el valor de la seña de <a href=${process.env.FRONTEND_URL}/account/account/configListing?id=${listing.id}>${listing.direccion}</a>.`;
+
+          handleNotification(
+            senderId,
+            listing.owner,
+            notificationContent,
+            'listing',
+            id,
           );
         }
       }
@@ -876,7 +902,7 @@ const resolvers = {
       await owner.save();
       return owner;
     },
-    sendMessage: async (_, { senderId, receiverId, asunto }, context) => {
+    sendMessage: async (_, { receiverId, asunto }, context) => {
       const authHeader = context.req.headers.authorization;
       if (!authHeader) {
         throw new Error('No token provided');
@@ -885,44 +911,47 @@ const resolvers = {
       const token = authHeader.replace('Bearer ', '');
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       const actualSenderId = decoded.userId;
-      const readBy = senderId === actualSenderId ? [actualSenderId] : [];
-      const messageData = {
-        asunto,
-        createdAt: new Date(),
-        messageId: crypto.randomUUID(),
-        senderId,
-        readBy,
-      };
-
       let existingThread = await Message.findOne({
         $or: [
           { sender: actualSenderId, receiver: receiverId },
           { sender: receiverId, receiver: actualSenderId },
         ],
       });
+      const conversationId =
+        existingThread?.conversationId || crypto.randomUUID();
+      const messageData = {
+        asunto,
+        createdAt: new Date(),
+        messageId: crypto.randomUUID(),
+        senderId: actualSenderId,
+        readBy: [actualSenderId],
+        conversationId,
+      };
 
       const sender =
         await User.findById(actualSenderId).select('nombre apellido');
-      const content = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> te envió un <a href=${process.env.FRONTEND_URL}/account/messages>mensaje</a>.`;
+      const content = `<a href=${process.env.FRONTEND_URL}/user/${actualSenderId}>${sender.nombre} ${sender.apellido}</a> te envió un <a href=${process.env.FRONTEND_URL}/account/messages>mensaje</a>.`;
 
-      handleNotification(senderId, receiverId, content, 'message');
+      handleNotification(actualSenderId, receiverId, content, 'message');
 
       if (existingThread) {
         existingThread.messages.push(messageData);
         await existingThread.save();
-
-        return existingThread.populate('sender receiver');
-      } else {
-        const newConversation = new Message({
-          sender: senderId,
-          receiver: receiverId,
-          conversationId: crypto.randomUUID(),
-          messages: [messageData],
-        });
-        await newConversation.save();
-
-        return newConversation.populate('sender receiver');
+        await existingThread.populate('sender receiver');
+        await pubsub.publish('NEW_MESSAGE', { newMessage: messageData });
+        return existingThread;
       }
+      const newConversation = new Message({
+        sender: actualSenderId,
+        receiver: receiverId,
+        conversationId,
+        messages: [messageData],
+      });
+      await newConversation.save();
+
+      await newConversation.populate('sender receiver');
+      await pubsub.publish('NEW_MESSAGE', { newMessage: messageData });
+      return newConversation;
     },
     markMessagesAsRead: async (_, { messageIds }, context) => {
       const authHeader = context.req.headers.authorization;
@@ -1203,6 +1232,16 @@ const resolvers = {
     },
     receiverId: async (event) => {
       return await User.findById(event.receiverId);
+    },
+  },
+  Subscription: {
+    notificationReceived: {
+      subscribe: (_, { userId }, { pubsub }) =>
+        pubsub.asyncIterableIterator(`NOTIFICATION_RECEIVED_${userId}`),
+    },
+    newMessage: {
+      subscribe: (_, __, { pubsub }) =>
+        pubsub.asyncIterableIterator('NEW_MESSAGE'),
     },
   },
 };
