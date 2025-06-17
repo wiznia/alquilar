@@ -149,7 +149,7 @@ export default function Id() {
         <div className="user-profile-content__left">
           {ratings.length > 0 && <Rating ratings={ratings} />}
           {user?.id !== id && (
-            <ContactForm tipoDeCuenta={tipo_de_cuenta} id={id} />
+            <ContactForm tipoDeCuenta={tipo_de_cuenta} id={id} email={email} />
           )}
         </div>
         <div className="user-profile-content__right">

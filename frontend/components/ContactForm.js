@@ -141,7 +141,7 @@ export default function ContactForm({
           {!user && (
             <>
               <fieldset>
-                <label htmlFor="nombre">Nombre</label>
+                <label htmlFor="nombre">Nombre:</label>
                 <input
                   type="text"
                   placeholder="Nombre"
@@ -152,7 +152,7 @@ export default function ContactForm({
                 />
               </fieldset>
               <fieldset>
-                <label htmlFor="apellido">Apellido</label>
+                <label htmlFor="apellido">Apellido:</label>
                 <input
                   type="text"
                   placeholder="Apellido"
@@ -163,7 +163,7 @@ export default function ContactForm({
                 />
               </fieldset>
               <fieldset>
-                <label htmlFor="email">Email</label>
+                <label htmlFor="email">Email:</label>
                 <input
                   type="email"
                   placeholder="Email"

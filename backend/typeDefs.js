@@ -401,7 +401,7 @@ const typeDefs = `
     likeListing(listingId: ID!): Listing
     rateOwner(ownerId: ID!, rating: Int!, message: String): User
     sendMessage(senderId: ID, receiverId: ID!, asunto: String!, conversationId: String): Message
-    sendEmail(nombre: String!, apellido: String!, email: String!, asunto: String!, receiverEmail: String!, listingId: String!): Boolean
+    sendEmail(nombre: String!, apellido: String!, email: String!, asunto: String!, receiverEmail: String!, listingId: String): Boolean
     markMessagesAsRead(messageIds: [ID!]!): [SingleMessage!]!
     markNotificationsAsRead(notifications: [ID!]!): Boolean
     connectMercadoPago(listingId: ID!): String

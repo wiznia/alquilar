@@ -288,7 +288,7 @@ const resolvers = {
           subject: `Nuevo mensaje desde Alquil.AR`,
           html: `
             <h2>Hola!</h2>
-            <p>${nombre} ${apellido} te envió un mensaje por tu <a href=${process.env.FRONTEND_URL}/listing/${listingId}>publicación</a> en Alquil.AR:</p>
+            <p>${nombre} ${apellido} te envió un mensaje${listingId ? ` por tu <a href=${process.env.FRONTEND_URL}/listing/${listingId}>publicación</a> en Alquil.AR:` : `:`}</p>
             <p>${asunto}</p>
     `,
         });

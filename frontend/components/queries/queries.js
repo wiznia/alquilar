@@ -751,7 +751,7 @@ export const SEND_EMAIL = gql`
     $email: String!
     $asunto: String!
     $receiverEmail: String!
-    $listingId: String!
+    $listingId: String
   ) {
     sendEmail(
       nombre: $nombre
