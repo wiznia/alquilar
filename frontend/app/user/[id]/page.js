@@ -107,27 +107,42 @@ export default function Id() {
           <h1>
             {nombre} {apellido}
           </h1>
-          {telefono ||
-            (celular && (
-              <div className="user-profile-header__info-item">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="30"
-                  height="30"
-                  fill="none"
-                >
-                  <path
-                    fill="#FF9500"
-                    d="m29.953 22.676-1.362 5.906a1.821 1.821 0 0 1-1.785 1.42C12.023 30 0 17.976 0 3.192A1.82 1.82 0 0 1 1.42 1.41L7.324.047c.86-.2 1.74.247 2.097 1.062l2.726 6.357a1.834 1.834 0 0 1-.527 2.136l-3.154 2.533a20.488 20.488 0 0 0 9.345 9.346l2.583-3.153a1.823 1.823 0 0 1 2.137-.526l6.358 2.726c.764.402 1.262 1.292 1.063 2.148Z"
-                  />
-                </svg>
-                <h3>
-                  <a href={`tel:${celular || telefono}`}>
-                    {celular || telefono}
-                  </a>
-                </h3>
-              </div>
-            ))}
+          {telefono && (
+            <div className="user-profile-header__info-item">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="30"
+                height="30"
+                fill="none"
+              >
+                <path
+                  fill="#FF9500"
+                  d="m29.953 22.676-1.362 5.906a1.821 1.821 0 0 1-1.785 1.42C12.023 30 0 17.976 0 3.192A1.82 1.82 0 0 1 1.42 1.41L7.324.047c.86-.2 1.74.247 2.097 1.062l2.726 6.357a1.834 1.834 0 0 1-.527 2.136l-3.154 2.533a20.488 20.488 0 0 0 9.345 9.346l2.583-3.153a1.823 1.823 0 0 1 2.137-.526l6.358 2.726c.764.402 1.262 1.292 1.063 2.148Z"
+                />
+              </svg>
+              <h3>
+                <a href={`tel:${telefono}`}>{telefono}</a>
+              </h3>
+            </div>
+          )}
+          {celular && (
+            <div className="user-profile-header__info-item">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="30"
+                height="30"
+                fill="none"
+              >
+                <path
+                  fill="#FF9500"
+                  d="m29.953 22.676-1.362 5.906a1.821 1.821 0 0 1-1.785 1.42C12.023 30 0 17.976 0 3.192A1.82 1.82 0 0 1 1.42 1.41L7.324.047c.86-.2 1.74.247 2.097 1.062l2.726 6.357a1.834 1.834 0 0 1-.527 2.136l-3.154 2.533a20.488 20.488 0 0 0 9.345 9.346l2.583-3.153a1.823 1.823 0 0 1 2.137-.526l6.358 2.726c.764.402 1.262 1.292 1.063 2.148Z"
+                />
+              </svg>
+              <h3>
+                <a href={`tel:${celular}`}>{celular}</a>
+              </h3>
+            </div>
+          )}
           <div className="user-profile-header__info-item">
             <svg
               xmlns="http://www.w3.org/2000/svg"
