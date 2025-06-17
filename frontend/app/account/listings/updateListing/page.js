@@ -51,11 +51,16 @@ function UpdateListingContent() {
     validateFormCheck,
     handleIncrement,
     handleDecrement,
-  } = useFormValidation(data?.getListingById, 'updateListing', {
-    setSelectedProvince,
-    setSelectedCity,
-    setSelectedLocalidad,
-  });
+  } = useFormValidation(
+    data?.getListingById,
+    'updateListing',
+    'updateListing',
+    {
+      setSelectedProvince,
+      setSelectedCity,
+      setSelectedLocalidad,
+    },
+  );
   const [updateListing] = useMutation(UPDATE_LISTING);
   const [uploadImage] = useMutation(UPLOAD_IMAGES);
 
@@ -115,16 +120,13 @@ function UpdateListingContent() {
         documentation,
         mercadoPago,
         mpPaymentLink,
+        owner,
         payment,
         sena,
         contract,
         potential_tenant,
         ...sanitizedForm
       } = form;
-
-      if (sanitizedForm.owner && typeof sanitizedForm.owner === 'object') {
-        sanitizedForm.owner = sanitizedForm.owner.id;
-      }
 
       await updateListing({
         variables: {
@@ -239,7 +241,7 @@ function UpdateListingContent() {
               </div>
             </div>
             {errors.tipo_de_alquiler && (
-              <small className="error-message">{errors.tipo_de_alquiler}</small>
+              <small className="text-danger">{errors.tipo_de_alquiler}</small>
             )}
           </fieldset>
           <fieldset>
@@ -269,7 +271,7 @@ function UpdateListingContent() {
               </div>
             </div>
             {errors.moneda && (
-              <small className="error-message">{errors.moneda}</small>
+              <small className="text-danger">{errors.moneda}</small>
             )}
           </fieldset>
           <fieldset>
@@ -285,7 +287,7 @@ function UpdateListingContent() {
                   value={form?.precio || ''}
                 />
                 {errors.precio && (
-                  <small className="error-message">{errors.precio}</small>
+                  <small className="text-danger">{errors.precio}</small>
                 )}
               </div>
               <div className="account__item-inner account__item-inner--half">
@@ -299,7 +301,7 @@ function UpdateListingContent() {
                   value={form?.expensas || ''}
                 />
                 {errors.expensas && (
-                  <small className="error-message">{errors.expensas}</small>
+                  <small className="text-danger">{errors.expensas}</small>
                 )}
               </div>
             </div>
@@ -330,7 +332,7 @@ function UpdateListingContent() {
                   <option>Otros</option>
                 </select>
                 {errors.tipo_de_propiedad && (
-                  <small className="error-message">
+                  <small className="text-danger">
                     {errors.tipo_de_propiedad}
                   </small>
                 )}
@@ -351,9 +353,7 @@ function UpdateListingContent() {
                   value={form?.antiguedad_max || ''}
                 />
                 {errors.antiguedad_max && (
-                  <small className="error-message">
-                    {errors.antiguedad_max}
-                  </small>
+                  <small className="text-danger">{errors.antiguedad_max}</small>
                 )}
               </div>
             </div>
@@ -372,7 +372,7 @@ function UpdateListingContent() {
                   value={form?.superficie_cubierta || ''}
                 />
                 {errors.superficie_cubierta && (
-                  <small className="error-message">
+                  <small className="text-danger">
                     {errors.superficie_cubierta}
                   </small>
                 )}
@@ -389,7 +389,7 @@ function UpdateListingContent() {
                   value={form?.superficie_total || ''}
                 />
                 {errors.superficie_total && (
-                  <small className="error-message">
+                  <small className="text-danger">
                     {errors.superficie_total}
                   </small>
                 )}
@@ -410,7 +410,7 @@ function UpdateListingContent() {
                   keyName="nombre"
                 />
                 {errors.provincia && (
-                  <small className="error-message">{errors.provincia}</small>
+                  <small className="text-danger">{errors.provincia}</small>
                 )}
               </div>
             </div>
@@ -428,7 +428,7 @@ function UpdateListingContent() {
                   keyName="nombre"
                 />
                 {errors.barrio && (
-                  <small className="error-message">{errors.barrio}</small>
+                  <small className="text-danger">{errors.barrio}</small>
                 )}
               </div>
             </div>
@@ -447,7 +447,7 @@ function UpdateListingContent() {
                   value={form?.direccion || ''}
                 />
                 {errors.direccion && (
-                  <small className="error-message">{errors.direccion}</small>
+                  <small className="text-danger">{errors.direccion}</small>
                 )}
               </div>
             </div>
@@ -483,7 +483,7 @@ function UpdateListingContent() {
                   value={form?.titulo || ''}
                 />
                 {errors.titulo && (
-                  <small className="error-message">{errors.titulo}</small>
+                  <small className="text-danger">{errors.titulo}</small>
                 )}
               </div>
             </div>
@@ -858,7 +858,7 @@ function UpdateListingContent() {
                   <option>En negociación</option>
                 </select>
                 {errors.estado && (
-                  <small className="error-message">{errors.estado}</small>
+                  <small className="text-danger">{errors.estado}</small>
                 )}
               </div>
             </div>

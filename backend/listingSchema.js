@@ -73,6 +73,7 @@ const listingSchema = new mongoose.Schema({
   precio: { type: Number, required: true },
   provincia: { type: String, required: true },
   sena: { type: Number },
+  signature: { type: Boolean, default: false },
   superficie_cubierta: { type: Number, required: true },
   superficie_total: { type: Number, required: true },
   tenant: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

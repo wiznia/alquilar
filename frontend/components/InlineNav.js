@@ -1,9 +1,32 @@
 import Link from 'next/link';
 
-export default function InlineNav({ id, page, user }) {
+export default function InlineNav({ id, page, user, listingData }) {
   return (
     <nav className="inline-nav">
       <ul>
+        {listingData?.getListingById?.payment?.paymentDone &&
+          listingData?.getListingById?.signature &&
+          listingData?.getListingById?.contract?.potentialTenantAgreed &&
+          user?.tipo_de_cuenta === 'Inquilino' && (
+            <li
+              className={
+                page === 'myListing'
+                  ? 'inline-nav__item--active'
+                  : 'inline-nav__item'
+              }
+            >
+              <Link
+                href={{
+                  pathname: '/account/alquileres/configListing/myListing',
+                  query: {
+                    id,
+                  },
+                }}
+              >
+                <h6>Mi alquiler</h6>
+              </Link>
+            </li>
+          )}
         <li
           className={
             page === 'configListing'
@@ -22,7 +45,9 @@ export default function InlineNav({ id, page, user }) {
               },
             }}
           >
-            <h6>Configuración</h6>
+            <h6>
+              {user?.tipo_de_cuenta === 'Dueño' ? 'Configuración' : 'Pagos'}
+            </h6>
           </Link>
         </li>
         <li

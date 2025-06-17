@@ -25,7 +25,6 @@ const userSchema = new mongoose.Schema({
   resetTokenExpiration: { type: Date },
   telefono: { type: Number },
   tipo_de_cuenta: { type: String, required: true },
-  usuario: { type: String, required: true, unique: true },
   documentation: {
     documentsAreGlobal: { type: Boolean, default: false },
     documents: [

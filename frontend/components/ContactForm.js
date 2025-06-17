@@ -186,7 +186,7 @@ export default function ContactForm({
             ></textarea>
           </fieldset>
           {errors.asunto && (
-            <small className="error-message">{errors.asunto}</small>
+            <small className="text-danger">{errors.asunto}</small>
           )}
           <div className="button-container">
             <button className="button">

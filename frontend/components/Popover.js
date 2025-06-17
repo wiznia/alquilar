@@ -152,7 +152,7 @@ export default function Popover({ props }) {
           </div>
         ))}
         {name === 'moneda' && (
-          <div className="button-container">
+          <div className="popover__item popover__item--half">
             <input
               type="number"
               min="0"

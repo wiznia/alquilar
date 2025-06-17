@@ -23,7 +23,6 @@ export function useUnifiedSubmit({
       setNewFiles,
       setShowUpload,
       setIsLoading,
-      setUploadSuccess,
       type,
       globalDocsEnabled: handlerDocsEnabled,
     }) => {
@@ -157,7 +156,6 @@ export function useUnifiedSubmit({
           if (fileInputRef.current) fileInputRef.current.value = '';
           setShowUpload(false);
           setIsLoading(false);
-          setUploadSuccess(true);
         } catch (error) {
           console.error('Error uploading documents:', error);
           setIsLoading(false);

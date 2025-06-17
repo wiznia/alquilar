@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Modal } from '@/components/Modal';
 import { LOGIN } from '@/components/queries/queries';
 import { useMutation } from '@apollo/client';
@@ -23,6 +23,7 @@ export default function Page() {
     useFormValidation(initialState, 'login');
   const [loginMutation] = useMutation(LOGIN);
   const router = useRouter();
+  const inputRef = useRef(null);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -37,7 +38,7 @@ export default function Page() {
         setIsLoading(false);
         setCookie('authToken', data.login.token, 7);
         await login();
-        showToast('Login exitoso!');
+        showToast(`Hola, ${data.login.nombre}!`);
         router.back();
       }
     } catch (error) {
@@ -61,12 +62,16 @@ export default function Page() {
     }
   };
 
+  useEffect(() => {
+    inputRef.current.focus();
+  }, []);
+
   return (
     <Modal>
       <form onSubmit={handleLogin}>
         <h1>Ingresá a tu cuenta</h1>
         {errors.api && !errors.email && !errors.password && (
-          <small className="error-message">{errors.api}</small>
+          <small className="text-danger">{errors.api}</small>
         )}
         <fieldset>
           <label htmlFor="email">Email:</label>
@@ -77,9 +82,10 @@ export default function Page() {
             name="email"
             placeholder="Email"
             onChange={handleChange}
+            ref={inputRef}
           />
           {errors.email && (
-            <small className="error-message">{errors.email}</small>
+            <small className="text-danger">{errors.email}</small>
           )}
         </fieldset>
         <fieldset>
@@ -138,7 +144,7 @@ export default function Page() {
             )}
           </div>
           {errors.password && (
-            <small className="error-message">{errors.password}</small>
+            <small className="text-danger">{errors.password}</small>
           )}
         </fieldset>
         <Link href="/forgot">Olvidé mi contraseña</Link>

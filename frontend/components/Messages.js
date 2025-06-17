@@ -7,12 +7,7 @@ import {
   NEW_MESSAGE_SUBSCRIPTION,
 } from '@/components/queries/queries';
 import { useAuth } from '@/components/AuthContext';
-import {
-  useMutation,
-  useQuery,
-  useApolloClient,
-  useSubscription,
-} from '@apollo/client';
+import { useMutation, useQuery, useSubscription } from '@apollo/client';
 import { useFormValidation } from '@/app/hooks/useFormValidation';
 import Loading from './Loading';
 import { useState, useRef, useEffect } from 'react';
@@ -101,20 +96,6 @@ export default function Messages() {
       if (data?.sendMessage) {
         form.asunto = '';
         if (inputRef.current) inputRef.current.value = '';
-
-        setOpenConversation((prevConversation) => ({
-          ...prevConversation,
-          messages: [
-            ...prevConversation.messages,
-            ...data.sendMessage.messages.map((msg) => ({
-              messageId: msg.messageId,
-              senderId: msg.senderId,
-              asunto: msg.asunto,
-              createdAt: msg.createdAt,
-              readBy: msg.readBy || [],
-            })),
-          ],
-        }));
       }
       setIsLoading(false);
       await refetch();
@@ -122,6 +103,10 @@ export default function Messages() {
       setIsLoading(false);
       console.error('Error sending message:', error);
     }
+  };
+
+  const handleWriteMessage = (conversation) => {
+    handleOpenMessage(conversation);
   };
 
   useEffect(() => {
@@ -290,6 +275,7 @@ export default function Messages() {
                     placeholder="Escribí tu mensaje"
                     required
                     onChange={handleChange}
+                    onClick={() => handleWriteMessage(openConversation)}
                   />
                 </div>
                 <button type="submit">

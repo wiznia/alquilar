@@ -6,7 +6,11 @@ dialog {
     background-color: rgba(0, 0, 0, 0.55);
   }
   &.dialog--small {
-    width: min(450px, 90vw);
+    width: min(370px, 90vw);
+    text-align: center;
+    .modal-container {
+      align-items: center;
+    }
   }
 }
 

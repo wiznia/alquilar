@@ -14,9 +14,6 @@ export default function Listing({ listing, user }) {
     case 'Pausado':
       pillColor = 'pausado';
       break;
-    case 'En negociación':
-      pillColor = 'negociacion';
-      break;
     case 'Reservado':
       pillColor = 'reservado';
       break;
@@ -37,59 +34,60 @@ export default function Listing({ listing, user }) {
         <span className={`pill ${pillColor}`}>{estado}</span>
       </div>
       <div className="account-listing__buttons">
-        {listing?.owner?.id === user?.id && (
-          <>
-            <Link
-              className="button button--danger button--small"
-              href={{
-                pathname: `/account/listings/deleteListing`,
-                query: {
-                  id: listing.id,
-                },
-              }}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                height="22"
-                fill="none"
+        {listing?.owner?.id === user?.id &&
+          !listing?.estado.includes('Reservado') && (
+            <>
+              <Link
+                className="button button--danger button--small"
+                href={{
+                  pathname: `/account/listings/deleteListing`,
+                  query: {
+                    id: listing.id,
+                  },
+                }}
               >
-                <path
-                  fill="#fff"
-                  d="M17.357 3.929h-3.31l-1.366-2.28c-.382-.58-.973-.935-1.648-.935H6.967c-.675 0-1.302.355-1.647.935l-1.367 2.28H.643A.641.641 0 0 0 0 4.572v.642a.64.64 0 0 0 .643.643h.643v12.857a2.571 2.571 0 0 0 2.571 2.572h10.286a2.571 2.571 0 0 0 2.571-2.572V5.857h.643A.64.64 0 0 0 18 5.214v-.643a.64.64 0 0 0-.643-.642Zm-10.45-1.17c.04-.07.12-.116.205-.116h3.776c.086 0 .166.045.206.115l.702 1.17H6.204l.703-1.17Zm7.236 16.598H3.857a.643.643 0 0 1-.643-.643V5.857h11.572v12.857c0 .354-.29.643-.643.643ZM9 17.43a.642.642 0 0 0 .643-.643V8.429a.642.642 0 1 0-1.286 0v8.357c0 .353.29.643.643.643Zm-3.214 0c.353 0 .643-.29.643-.643V8.429a.642.642 0 1 0-1.286 0v8.357c0 .353.29.643.643.643Zm6.428 0a.642.642 0 0 0 .643-.643V8.429a.642.642 0 1 0-1.286 0v8.357c0 .353.29.643.643.643Z"
-                />
-              </svg>
-              Eliminar publicación
-            </Link>
-            <Link
-              className="button button--secondary button--small"
-              href={{
-                pathname: '/account/listings/updateListing',
-                query: {
-                  id: listing.id,
-                },
-              }}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                fill="none"
-              >
-                <g
-                  stroke="#FF9500"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="22"
+                  fill="none"
                 >
-                  <path d="M9.167 3.333H3.334A1.667 1.667 0 0 0 1.667 5v11.667a1.666 1.666 0 0 0 1.667 1.666H15a1.666 1.666 0 0 0 1.667-1.666v-5.834" />
-                  <path d="M15.417 2.083a1.768 1.768 0 0 1 2.5 2.5L10 12.5l-3.333.833L7.5 10l7.917-7.917Z" />
-                </g>
-              </svg>
-              Editar
-            </Link>
-          </>
-        )}
+                  <path
+                    fill="#fff"
+                    d="M17.357 3.929h-3.31l-1.366-2.28c-.382-.58-.973-.935-1.648-.935H6.967c-.675 0-1.302.355-1.647.935l-1.367 2.28H.643A.641.641 0 0 0 0 4.572v.642a.64.64 0 0 0 .643.643h.643v12.857a2.571 2.571 0 0 0 2.571 2.572h10.286a2.571 2.571 0 0 0 2.571-2.572V5.857h.643A.64.64 0 0 0 18 5.214v-.643a.64.64 0 0 0-.643-.642Zm-10.45-1.17c.04-.07.12-.116.205-.116h3.776c.086 0 .166.045.206.115l.702 1.17H6.204l.703-1.17Zm7.236 16.598H3.857a.643.643 0 0 1-.643-.643V5.857h11.572v12.857c0 .354-.29.643-.643.643ZM9 17.43a.642.642 0 0 0 .643-.643V8.429a.642.642 0 1 0-1.286 0v8.357c0 .353.29.643.643.643Zm-3.214 0c.353 0 .643-.29.643-.643V8.429a.642.642 0 1 0-1.286 0v8.357c0 .353.29.643.643.643Zm6.428 0a.642.642 0 0 0 .643-.643V8.429a.642.642 0 1 0-1.286 0v8.357c0 .353.29.643.643.643Z"
+                  />
+                </svg>
+                Eliminar publicación
+              </Link>
+              <Link
+                className="button button--secondary button--small"
+                href={{
+                  pathname: '/account/listings/updateListing',
+                  query: {
+                    id: listing.id,
+                  },
+                }}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  fill="none"
+                >
+                  <g
+                    stroke="#FF9500"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                  >
+                    <path d="M9.167 3.333H3.334A1.667 1.667 0 0 0 1.667 5v11.667a1.666 1.666 0 0 0 1.667 1.666H15a1.666 1.666 0 0 0 1.667-1.666v-5.834" />
+                    <path d="M15.417 2.083a1.768 1.768 0 0 1 2.5 2.5L10 12.5l-3.333.833L7.5 10l7.917-7.917Z" />
+                  </g>
+                </svg>
+                Editar
+              </Link>
+            </>
+          )}
         <Link
           className="button button--small"
           href={{

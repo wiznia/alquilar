@@ -170,6 +170,7 @@ export const SINGLE_LISTING_QUERY = gql`
       precio
       provincia
       sena
+      signature
       superficie_cubierta
       superficie_total
       tipo_de_alquiler
@@ -241,7 +242,6 @@ export const GET_USER = gql`
       }
       telefono
       tipo_de_cuenta
-      usuario
     }
   }
 `;
@@ -277,7 +277,6 @@ export const GET_USER_BY_ID = gql`
       }
       telefono
       tipo_de_cuenta
-      usuario
     }
   }
 `;
@@ -415,6 +414,7 @@ export const GET_NOTIFICATIONS = gql`
       createdAt
       read
       id
+      _id
     }
   }
 `;
@@ -526,7 +526,6 @@ export const REGISTER = gql`
     $provincia: String!
     $telefono: Int
     $tipo_de_cuenta: String!
-    $usuario: String!
   ) {
     register(
       apellido: $apellido
@@ -542,7 +541,6 @@ export const REGISTER = gql`
       provincia: $provincia
       telefono: $telefono
       tipo_de_cuenta: $tipo_de_cuenta
-      usuario: $usuario
     ) {
       apellido
       celular
@@ -554,7 +552,6 @@ export const REGISTER = gql`
       telefono
       tipo_de_cuenta
       token
-      usuario
     }
   }
 `;
@@ -564,6 +561,7 @@ export const LOGIN = gql`
     login(email: $email, password: $password) {
       id
       email
+      nombre
       token
     }
   }
@@ -874,6 +872,7 @@ export const GENERATE_CONTRACT = gql`
 export const SUBSCRIBE_NEW_NOTIFICATION = gql`
   subscription NotificationReceived($userId: ID!) {
     notificationReceived(userId: $userId) {
+      _id
       id
       content
       createdAt
@@ -890,6 +889,15 @@ export const NEW_MESSAGE_SUBSCRIPTION = gql`
       senderId
       readBy
       conversationId
+    }
+  }
+`;
+
+export const NEW_PAYMENT_SUBSCRIPTION = gql`
+  subscription onNewPayment {
+    newPayment {
+      id
+      status
     }
   }
 `;

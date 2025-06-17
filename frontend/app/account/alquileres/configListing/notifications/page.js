@@ -81,9 +81,9 @@ function Notifications() {
           user={user}
         />
         <h2>Configuración del inmueble</h2>
-        <InlineNav id={id} page={page} />
+        <InlineNav id={id} page={page} user={user} listingData={data} />
         {sortedNotifications?.length === 0 ? (
-          <div>Aún no hay notificaciones para este inmueble.</div>
+          <p>Aún no hay notificaciones para este inmueble.</p>
         ) : (
           sortedNotifications.map((notification, i) => (
             <div key={i} className="account__info-ownership-item">

@@ -69,7 +69,7 @@ export default function Page() {
     validateFormCheck,
     handleIncrement,
     handleDecrement,
-  } = useFormValidation(initialState, 'createListing', {
+  } = useFormValidation(initialState, 'createListing', 'createListing', {
     setSelectedProvince,
     setSelectedCity,
     setSelectedLocalidad,
@@ -115,39 +115,46 @@ export default function Page() {
     }
 
     try {
-      let uploadedImageUrls = form.fotos || [];
+      const { listingId: _, id: __, ...formCleaned } = form;
+
       const { data } = await createListing({
         variables: {
-          input: { ...form, estado: estadoValue },
+          input: {
+            ...formCleaned,
+            estado: estadoValue,
+          },
         },
       });
 
-      if (inputFiles.length > 0) {
-        if (data) {
-          const listingId = data.createListing.id;
-          const newUrls = await uploadFilesToCloudinary(
-            inputFiles,
-            user.id,
-            listingId,
-          );
-          uploadedImageUrls = [...uploadedImageUrls, ...newUrls];
-          setForm((prevForm) => ({
-            ...prevForm,
-            fotos: uploadedImageUrls,
-          }));
+      const newListingId = data?.createListing?.id;
+      if (!newListingId) throw new Error('No se pudo crear el listing');
 
-          await updateListing({
-            variables: {
-              id: listingId,
-              input: {
-                ...form,
-                fotos: uploadedImageUrls,
-                estado: estadoValue,
-                id: listingId,
-              },
+      setListingId(newListingId);
+
+      let uploadedImageUrls = [];
+
+      if (inputFiles.length > 0) {
+        uploadedImageUrls = await uploadFilesToCloudinary(
+          inputFiles,
+          user.id,
+          newListingId,
+        );
+
+        await updateListing({
+          variables: {
+            id: newListingId,
+            input: {
+              ...formCleaned,
+              fotos: uploadedImageUrls,
+              estado: estadoValue,
             },
-          });
-        }
+          },
+        });
+
+        setForm((prev) => ({
+          ...prev,
+          fotos: uploadedImageUrls,
+        }));
       }
 
       setIsLoading(false);
@@ -178,7 +185,7 @@ export default function Page() {
         <h2>Nueva publicación</h2>
         <form encType="multipart/form-data">
           <fieldset>
-            <p>Tipo de operación:</p>
+            <label htmlFor="alquiler">Tipo de operación:</label>
             <div className="account__item">
               <div className="account__item-inner">
                 <input
@@ -204,11 +211,11 @@ export default function Page() {
               </div>
             </div>
             {errors.tipo_de_alquiler && (
-              <small className="error-message">{errors.tipo_de_alquiler}</small>
+              <small className="text-danger">{errors.tipo_de_alquiler}</small>
             )}
           </fieldset>
           <fieldset>
-            <p>Moneda:</p>
+            <label htmlFor="pesos">Moneda:</label>
             <div className="account__item">
               <div className="account__item-inner">
                 <input
@@ -234,35 +241,37 @@ export default function Page() {
               </div>
             </div>
             {errors.moneda && (
-              <small className="error-message">{errors.moneda}</small>
+              <small className="text-danger">{errors.moneda}</small>
             )}
           </fieldset>
           <fieldset>
             <div className="account__item">
               <div className="account__item-inner account__item-inner--half">
-                <p>Precio:</p>
+                <label htmlFor="precio">Precio:</label>
                 <input
                   type="number"
+                  id="precio"
                   name="precio"
                   placeholder="Precio"
                   required
                   onChange={handleChange}
                 />
                 {errors.precio && (
-                  <small className="error-message">{errors.precio}</small>
+                  <small className="text-danger">{errors.precio}</small>
                 )}
               </div>
               <div className="account__item-inner account__item-inner--half">
-                <p>Expensas:</p>
+                <label htmlFor="expensas">Expensas:</label>
                 <input
                   type="number"
                   name="expensas"
+                  id="expensas"
                   placeholder="Expensas"
                   required
                   onChange={handleChange}
                 />
                 {errors.expensas && (
-                  <small className="error-message">{errors.expensas}</small>
+                  <small className="text-danger">{errors.expensas}</small>
                 )}
               </div>
             </div>
@@ -270,11 +279,10 @@ export default function Page() {
           <fieldset>
             <div className="account__item">
               <div className="account__item-inner account__item-inner--half">
-                <p>Tipo de propiedad:</p>
+                <label>Tipo de propiedad:</label>
                 <select
                   className="popover-button small"
                   name="tipo_de_propiedad"
-                  id="tipo_de_propiedad"
                   placeholder="Tipo de propiedad"
                   required
                   onChange={handleChange}
@@ -292,7 +300,7 @@ export default function Page() {
                   <option>Otros</option>
                 </select>
                 {errors.tipo_de_propiedad && (
-                  <small className="error-message">
+                  <small className="text-danger">
                     {errors.tipo_de_propiedad}
                   </small>
                 )}
@@ -302,7 +310,7 @@ export default function Page() {
           <fieldset>
             <div className="account__item">
               <div className="account__item-inner account__item-inner--half">
-                <p>Antiguedad (años):</p>
+                <label>Antiguedad (años):</label>
                 <input
                   type="number"
                   name="antiguedad_max"
@@ -312,9 +320,7 @@ export default function Page() {
                   onChange={handleChange}
                 />
                 {errors.antiguedad_max && (
-                  <small className="error-message">
-                    {errors.antiguedad_max}
-                  </small>
+                  <small className="text-danger">{errors.antiguedad_max}</small>
                 )}
               </div>
             </div>
@@ -322,33 +328,39 @@ export default function Page() {
           <fieldset>
             <div className="account__item">
               <div className="account__item-inner account__item-inner--half">
-                <p>Superficie cubierta (mts2):</p>
+                <label htmlFor="superficie_cubierta">
+                  Superficie cubierta (mts2):
+                </label>
                 <input
                   type="number"
                   name="superficie_cubierta"
+                  id="superficie_cubierta"
                   placeholder="Superficie cubierta"
                   required
                   min="0"
                   onChange={handleChange}
                 />
                 {errors.superficie_cubierta && (
-                  <small className="error-message">
+                  <small className="text-danger">
                     {errors.superficie_cubierta}
                   </small>
                 )}
               </div>
               <div className="account__item-inner account__item-inner--half">
-                <p>Superficie total (mts2):</p>
+                <label htmlFor="superficie_total">
+                  Superficie total (mts2):
+                </label>
                 <input
                   type="number"
                   name="superficie_total"
+                  id="superficie_total"
                   placeholder="Superficie total"
                   required
                   min="0"
                   onChange={handleChange}
                 />
                 {errors.superficie_total && (
-                  <small className="error-message">
+                  <small className="text-danger">
                     {errors.superficie_total}
                   </small>
                 )}
@@ -358,7 +370,7 @@ export default function Page() {
           <fieldset>
             <div className="account__item">
               <div className="account__item-inner account__item-inner--half">
-                <p>Provincia:</p>
+                <label>Provincia:</label>
                 <Select
                   name="provincia"
                   placeholder="Provincia"
@@ -368,7 +380,7 @@ export default function Page() {
                   keyName="nombre"
                 />
                 {errors.provincia && (
-                  <small className="error-message">{errors.provincia}</small>
+                  <small className="text-danger">{errors.provincia}</small>
                 )}
               </div>
             </div>
@@ -376,16 +388,17 @@ export default function Page() {
           <fieldset>
             <div className="account__item">
               <div className="account__item-inner account__item-inner--half">
-                <p>Barrio:</p>
+                <label htmlFor="barrio">Barrio:</label>
                 <Select
                   name="barrio"
+                  id="barrio"
                   placeholder="Barrio"
                   onChange={handleChange}
                   options={cityData ? cityData.localidades : []}
                   keyName="nombre"
                 />
                 {errors.barrio && (
-                  <small className="error-message">{errors.barrio}</small>
+                  <small className="text-danger">{errors.barrio}</small>
                 )}
               </div>
             </div>
@@ -394,9 +407,10 @@ export default function Page() {
             <fieldset>
               <div className="account__item">
                 <div className="account__item-inner account__item-inner--half">
-                  <p>Municipio:</p>
+                  <label htmlFor="municipio">Municipio:</label>
                   <Select
                     name="municipio"
+                    id="municipio"
                     placeholder="Municipio"
                     resource="localidades"
                     onChange={handleChange}
@@ -410,17 +424,18 @@ export default function Page() {
           <fieldset>
             <div className="account__item">
               <div className="account__item-inner account__item-inner--half">
-                <p>Dirección:</p>
+                <label htmlFor="direccion">Dirección:</label>
                 <input
                   type="text"
                   name="direccion"
+                  id="direccion"
                   placeholder="Dirección"
                   required
                   onChange={handleChange}
                   onBlur={handleBlur}
                 />
                 {errors.direccion && (
-                  <small className="error-message">{errors.direccion}</small>
+                  <small className="text-danger">{errors.direccion}</small>
                 )}
               </div>
             </div>
@@ -428,16 +443,17 @@ export default function Page() {
           <fieldset>
             <div className="account__item">
               <div className="account__item-inner account__item-inner--half">
-                <p>Título de la publicación:</p>
+                <label htmlFor="titulo">Título de la publicación:</label>
                 <input
                   type="text"
                   name="titulo"
+                  id="titulo"
                   placeholder="Título"
                   required
                   onChange={handleChange}
                 />
                 {errors.titulo && (
-                  <small className="error-message">{errors.titulo}</small>
+                  <small className="text-danger">{errors.titulo}</small>
                 )}
               </div>
             </div>
@@ -445,15 +461,16 @@ export default function Page() {
           <fieldset>
             <div className="account__item">
               <div className="account__item-inner account__item-inner--half">
-                <p>Descripción</p>
+                <label htmlFor="descripcion">Descripción</label>
                 <textarea
                   name="descripcion"
+                  id="descripcion"
                   placeholder="Descripción"
                   required
                   onChange={handleChange}
                 ></textarea>
                 {errors.descripcion && (
-                  <small className="error-message">{errors.descripcion}</small>
+                  <small className="text-danger">{errors.descripcion}</small>
                 )}
               </div>
             </div>
@@ -461,7 +478,7 @@ export default function Page() {
           <fieldset>
             <div className="account__item">
               <div className="account__item-inner account__item-inner--half">
-                <p>Ambientes:</p>
+                <label htmlFor="ambientes">Ambientes:</label>
                 <div className="account__item-number">
                   <button
                     onClick={(e) => {
@@ -475,6 +492,7 @@ export default function Page() {
                     min="0"
                     type="number"
                     name="ambientes"
+                    id="ambientes"
                     placeholder="0"
                     value={form.ambientes}
                     onChange={handleChange}
@@ -490,7 +508,7 @@ export default function Page() {
                 </div>
               </div>
               <div className="account__item-inner account__item-inner--half">
-                <p>Dormitorios:</p>
+                <label htmlFor="dormitorios">Dormitorios:</label>
                 <div className="account__item-number">
                   <button
                     onClick={(e) => {
@@ -504,6 +522,7 @@ export default function Page() {
                     min="0"
                     type="number"
                     name="dormitorios"
+                    id="dormitorios"
                     placeholder="0"
                     onChange={handleChange}
                     value={form.dormitorios}
@@ -523,7 +542,7 @@ export default function Page() {
           <fieldset>
             <div className="account__item">
               <div className="account__item-inner account__item-inner--half">
-                <p>Baños:</p>
+                <label htmlFor="banos">Baños:</label>
                 <div className="account__item-number">
                   <button
                     onClick={(e) => {
@@ -537,6 +556,7 @@ export default function Page() {
                     min="0"
                     type="number"
                     name="banos"
+                    id="banos"
                     placeholder="0"
                     onChange={handleChange}
                     value={form.banos}
@@ -552,7 +572,7 @@ export default function Page() {
                 </div>
               </div>
               <div className="account__item-inner account__item-inner--half">
-                <p>Toilettes:</p>
+                <label htmlFor="toilettes">Toilettes:</label>
                 <div className="account__item-number">
                   <button
                     onClick={(e) => {
@@ -583,7 +603,7 @@ export default function Page() {
             </div>
           </fieldset>
           <fieldset>
-            <p>Tipos de ambientes:</p>
+            <label>Tipos de ambientes:</label>
             <div className="account__item account__item--checkbox">
               <div className="account__item-inner account__item-inner--half">
                 <div className="popover__item">
@@ -636,7 +656,7 @@ export default function Page() {
             </div>
           </fieldset>
           <fieldset>
-            <p>Ammenities:</p>
+            <label>Ammenities:</label>
             <div className="account__item account__item--checkbox">
               <div className="account__item-inner account__item-inner--half">
                 <div className="popover__item">

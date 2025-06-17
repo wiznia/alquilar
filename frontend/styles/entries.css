@@ -124,10 +124,11 @@
   }
   .entry__description {
     color: var(--primary-text);
+  }
+  .pill-container {
     display: flex;
   }
   .pill {
-    margin-inline-end: auto;
     margin-block-end: 10px;
   }
   h2 + h5 {
@@ -141,14 +142,11 @@
   align-items: flex-start;
   padding: 32px 0;
   .entry__info {
-    width: 63%;
+    flex: 1;
     padding: 0;
     p {
       margin-block-start: 0;
     }
-  }
-  .entry__contact {
-    width: 37%;
   }
 }
 

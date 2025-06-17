@@ -182,6 +182,7 @@ const resolvers = {
       const listing = await Listing.findById(id)
         .populate('owner')
         .populate('likes');
+
       if (listing) {
         listing.viewCount += 1;
         listing.potential_tenant = listing.potential_tenant.map((id) =>
@@ -421,7 +422,7 @@ const resolvers = {
         maxAge: 24 * 60 * 60 * 1000,
       });
 
-      return { id: user.id, email: user.email, token };
+      return { id: user.id, email: user.email, token, nombre: user.nombre };
     },
     logout: async (_, __, { res }) => {
       res.clearCookie('authToken', {
@@ -493,6 +494,7 @@ const resolvers = {
       return true;
     },
     createListing: async (_, { input }, context) => {
+      console.log(input);
       const {
         ambientes,
         ammenities,
@@ -678,8 +680,10 @@ const resolvers = {
                   ? ' Configurá tu seña o CBU para recibir la reserva del potencial inquilino.'
                   : '';
               notificationContent = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> aceptó el contrato de alquiler de <a href=${inmuebleURL}>${listing.direccion}</a>. ${CBUContent}`;
+              updatedFields.tenant = [sender._id];
             } else {
               notificationContent = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> rechazó el contrato de alquiler de <a href=${inmuebleURL}>${listing.direccion}</a>.`;
+              updatedFields.tenant = null;
             }
 
             handleNotification(
@@ -729,12 +733,25 @@ const resolvers = {
           );
         }
 
-        if (input.payment.paymentDone) {
-          notificationContent = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> pagó el valor de la seña de <a href=${process.env.FRONTEND_URL}/account/account/configListing?id=${listing.id}>${listing.direccion}</a>.`;
+        if (input.payment?.paymentDone) {
+          notificationContent = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> pagó el valor de la seña de <a href=${process.env.FRONTEND_URL}/account/configListing?id=${listing.id}>${listing.direccion}</a>. Ya podés <a href="${process.env.FRONTEND_URL}/account/calendar">agendar</a> la fecha para firmar el contrato!`;
 
           handleNotification(
             senderId,
             listing.owner,
+            notificationContent,
+            'listing',
+            id,
+          );
+        }
+
+        if (input.signature) {
+          notificationContent = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> confirmó que la firma del contrato fue existosa. Ya estás alquilando, felicidades!`;
+          const tenant = listing.tenant;
+
+          handleNotification(
+            senderId,
+            tenant,
             notificationContent,
             'listing',
             id,
@@ -755,9 +772,7 @@ const resolvers = {
       // 🔁 Resto de campos simples
       Object.entries(input).forEach(([key, value]) => {
         if (
-          !['documentation', 'contract', 'fotos', 'payment', 'sena'].includes(
-            key,
-          ) &&
+          !['documentation', 'contract', 'fotos', 'payment'].includes(key) &&
           !(key in updatedFields)
         ) {
           updatedFields[key] = value;
@@ -1188,7 +1203,7 @@ const resolvers = {
     },
     generateContract: async (_, { input }) => {
       const fileName = await generarContratoPDF(input);
-      const url = `http://localhost:${PORT}/output/${fileName}`;
+      const url = `http://localhost:4000/output/${fileName}`;
       return url;
     },
     updateUser: async (_, { id, input }) => {
@@ -1242,6 +1257,10 @@ const resolvers = {
     newMessage: {
       subscribe: (_, __, { pubsub }) =>
         pubsub.asyncIterableIterator('NEW_MESSAGE'),
+    },
+    newPayment: {
+      subscribe: (_, __, { pubsub }) =>
+        pubsub.asyncIterableIterator('NEW_PAYMENT'),
     },
   },
 };

@@ -15,7 +15,7 @@ export default function Notifications({
 }) {
   const [notifications, setNotifications] = useState([]);
   const shouldSubscribe = Boolean(userId);
-  const { data, loading, error, refetch } = useQuery(GET_NOTIFICATIONS, {
+  const { data, loading, error } = useQuery(GET_NOTIFICATIONS, {
     variables: { userId },
   });
   const sortedNotifications = [...notifications].sort(
@@ -24,8 +24,8 @@ export default function Notifications({
 
   useSubscription(SUBSCRIBE_NEW_NOTIFICATION, {
     variables: { userId },
-    onSubscriptionData: ({ subscriptionData }) => {
-      const newNotification = subscriptionData?.data?.notificationReceived;
+    onData: ({ data }) => {
+      const newNotification = data?.data?.notificationReceived;
       if (newNotification) {
         setNotifications((prev) => {
           const exists = prev.some((n) => n._id === newNotification._id);
@@ -59,7 +59,7 @@ export default function Notifications({
     <ul>
       {sortedNotifications.length > 0 ? (
         sortedNotifications.map((notification) => (
-          <div key={notification.id} className="notification">
+          <div key={notification._id} className="notification">
             <div className="notification__pic">
               <svg
                 xmlns="http://www.w3.org/2000/svg"

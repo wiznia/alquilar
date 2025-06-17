@@ -50,7 +50,6 @@ fieldset {
       select.required,
       textarea.required
     ) {
-    p,
     label {
       &::after {
         content: '*';
@@ -98,6 +97,7 @@ form {
 /* Utility classes */
 label {
   color: var(--primary-text);
+  cursor: pointer;
 }
 
 input,
@@ -193,6 +193,11 @@ input[type='checkbox'] {
   }
 }
 /* End Checkbox */
+
+input[type='radio'] + label,
+input[type='checkbox'] + label {
+  padding-inline-start: 16px;
+}
 
 .input-password {
   position: relative;
@@ -392,8 +397,7 @@ small,
   &.pausado {
     background-color: #006fe6;
   }
-  &.reservado,
-  &.negociacion {
+  &.reservado {
     background-color: #d64000;
   }
   &.alquilado {
@@ -539,12 +543,12 @@ main {
   }
 }
 
-.error-message {
+.text-danger {
   color: var(--error);
   margin-block-start: -5px;
 }
 
-.success-message {
+.text-success {
   color: var(--success);
 }
 

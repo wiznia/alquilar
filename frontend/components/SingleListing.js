@@ -35,6 +35,7 @@ export default function SingleListingPage({ id }) {
     descripcion,
     direccion,
     dormitorios,
+    estado,
     expensas,
     owner,
     precio,
@@ -49,11 +50,11 @@ export default function SingleListingPage({ id }) {
   } = data.getListingById;
   const features = {
     ambientes,
-    dormitorios,
+    antiguedad_max,
     banos,
+    dormitorios,
     superficie_total,
     superficie_cubierta,
-    antiguedad_max,
     toilettes,
   };
 
@@ -62,9 +63,14 @@ export default function SingleListingPage({ id }) {
       <ImageSlider listing={data.getListingById} thumbnails="yes" />
       <div className="single-container">
         <div className="entry__info">
-          {tipo_de_alquiler === 'Alquiler temporario' && (
-            <span className="pill">{tipo_de_alquiler}</span>
-          )}
+          <div className="pill-container">
+            {estado.includes('Pausado') && (
+              <span className="pill pausado">Publicación pausada</span>
+            )}
+            {tipo_de_alquiler === 'Alquiler temporario' && (
+              <span className="pill">{tipo_de_alquiler}</span>
+            )}
+          </div>
           <h2>{formatMoney(precio)}</h2>
           <h5>{formatMoney(expensas)} Expensas</h5>
           <div className="address">

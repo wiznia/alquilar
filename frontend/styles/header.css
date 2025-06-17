@@ -13,6 +13,9 @@
 .logo {
   display: flex;
   align-items: center;
+  svg {
+    pointer-events: none;
+  }
 }
 
 .notifications {

@@ -116,10 +116,16 @@ app.post('/webhook/mercadopago', async (req, res) => {
         $set: {
           'payment.status': paymentInfo.status,
           'payment.mpPaymentId': paymentInfo.id,
+          estado: ['Reservado'],
         },
       });
 
-      console.log('Received payment info:', paymentInfo);
+      pubsub.publish('NEW_PAYMENT', {
+        newPayment: {
+          id: paymentInfo.external_reference,
+          status: paymentInfo.status,
+        },
+      });
       res.sendStatus(200);
     } catch (err) {
       console.error('Error fetching payment info from Mercado Pago:', err);

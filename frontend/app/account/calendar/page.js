@@ -24,6 +24,7 @@ export default function Calendar() {
   const showToast = useToast();
   const isOwner = user?.tipo_de_cuenta === 'Dueño';
   const formRef = useRef(null);
+  const dialogRef = useRef(null);
   const daysOfWeek = ['DOM', 'LUN', 'MAR', 'MIE', 'JUE', 'VIE', 'SAB'];
   const monthsOfYear = [
     'Enero',
@@ -51,7 +52,6 @@ export default function Calendar() {
   const [currentMonth, setCurrentMonth] = useState(currentDate.getMonth());
   const [currentYear, setCurrentYear] = useState(currentDate.getFullYear());
   const [selectedDate, setSelectedDate] = useState(currentDate);
-  const [showAddEventForm, setShowAddEventForm] = useState(false);
   const [invite, setInvite] = useState([]);
   const [inviteName, setInviteName] = useState('');
   const [searchIsActive, setSearchIsActive] = useState(false);
@@ -98,7 +98,7 @@ export default function Calendar() {
     variables: {
       id: user?.id,
     },
-    skip: !showAddEventForm,
+    skip: !dialogRef?.current,
   });
 
   const data = isOwner
@@ -119,7 +119,7 @@ export default function Calendar() {
     );
     setMonthlyEvents([]);
     setDateEvents([]);
-    setShowAddEventForm(false);
+    dialogRef?.current.close();
     refetch();
   };
 
@@ -130,7 +130,7 @@ export default function Calendar() {
     );
     setMonthlyEvents([]);
     setDateEvents([]);
-    setShowAddEventForm(false);
+    dialogRef?.current.close();
     refetch();
   };
 
@@ -177,7 +177,7 @@ export default function Calendar() {
 
       if (data?.setCalendarEvent) {
         setIsLoading(false);
-        setShowAddEventForm(false);
+        dialogRef?.current.close();
         setInvite([]);
         setInviteName('');
         if (formRef.current) {
@@ -261,6 +261,10 @@ export default function Calendar() {
     }
 
     return classes.join(' ');
+  };
+
+  const handleOpenEventDialog = () => {
+    dialogRef.current?.showModal();
   };
 
   const handleDeleteEvent = async (eventId) => {
@@ -402,14 +406,15 @@ export default function Calendar() {
               </div>
             </div>
           </div>
-          {showAddEventForm && user?.tipo_de_cuenta === 'Dueño' && (
-            <div className="calendar-form shadow">
+          {user?.tipo_de_cuenta === 'Dueño' && (
+            <dialog className="calendar-form shadow" ref={dialogRef}>
               <form onSubmit={handleSubmit} ref={formRef}>
                 <button
                   className="close"
                   type="button"
                   onClick={() => {
-                    setShowAddEventForm(false);
+                    dialogRef?.current.close();
+                    formRef.current.reset();
                   }}
                 >
                   &times;
@@ -431,7 +436,7 @@ export default function Calendar() {
                       className="required"
                     />
                     {errors.titulo && (
-                      <small className="error-message">{errors.titulo}</small>
+                      <small className="text-danger">{errors.titulo}</small>
                     )}
                   </fieldset>
                   <fieldset>
@@ -444,7 +449,7 @@ export default function Calendar() {
                       className="required"
                     ></textarea>
                     {errors.asunto && (
-                      <small className="error-message">{errors.asunto}</small>
+                      <small className="text-danger">{errors.asunto}</small>
                     )}
                   </fieldset>
                   <fieldset>
@@ -457,7 +462,7 @@ export default function Calendar() {
                       className="required"
                     />
                     {errors.time && (
-                      <small className="error-message">{errors.time}</small>
+                      <small className="text-danger">{errors.time}</small>
                     )}
                   </fieldset>
                   <fieldset>
@@ -515,9 +520,7 @@ export default function Calendar() {
                             ))}
                         </div>
                         {errors.invite && (
-                          <small className="error-message">
-                            {errors.invite}
-                          </small>
+                          <small className="text-danger">{errors.invite}</small>
                         )}
                       </div>
                       <div className="account__item-inner account__item-inner--half">
@@ -535,7 +538,7 @@ export default function Calendar() {
                           keyName="direccion"
                         />
                         {errors.inmueble && (
-                          <small className="error-message">
+                          <small className="text-danger">
                             {errors.inmueble}
                           </small>
                         )}
@@ -557,16 +560,13 @@ export default function Calendar() {
                   </div>
                 </div>
               </form>
-            </div>
+            </dialog>
           )}
           <div className="calendar-events">
             {user?.tipo_de_cuenta === 'Dueño' &&
               (selectedDate > currentDate ||
                 isSameDay(selectedDate, currentDate)) && (
-                <button
-                  className="button"
-                  onClick={() => setShowAddEventForm(true)}
-                >
+                <button className="button" onClick={handleOpenEventDialog}>
                   Agregar evento
                 </button>
               )}

@@ -30,7 +30,6 @@ export default function Page() {
     telefono: null,
     terms: false,
     tipo_de_cuenta: '',
-    usuario: '',
   };
   const {
     provinceData,
@@ -41,7 +40,7 @@ export default function Page() {
     setSelectedLocalidad,
   } = useLocationData();
   const { form, errors, handleChange, validateFormCheck, setErrors } =
-    useFormValidation(initialState, 'register', {
+    useFormValidation(initialState, 'register', 'register', {
       setSelectedProvince,
       setSelectedCity,
       setSelectedLocalidad,
@@ -75,9 +74,7 @@ export default function Page() {
 
       const newErrors = {};
 
-      if (errorMessage.includes('User already exists')) {
-        newErrors.usuario = 'Ya existe un usuario con este nombre, elegí otro.';
-      } else if (errorMessage.includes('Email already exists')) {
+      if (errorMessage.includes('Email already exists')) {
         newErrors.email = 'El email ingresado ya existe en el sistema.';
       } else {
         newErrors.api = errorMessage;
@@ -117,22 +114,7 @@ export default function Page() {
           <option>Escribano</option>
         </select>
         {errors.tipo_de_cuenta && (
-          <small className="error-message">{errors.tipo_de_cuenta}</small>
-        )}
-      </fieldset>
-      <fieldset>
-        <label htmlFor="usuario">Usuario:</label>
-        <input
-          type="text"
-          className="small"
-          id="usuario"
-          name="usuario"
-          placeholder="Usuario"
-          required
-          onChange={handleChange}
-        />
-        {errors.usuario && (
-          <small className="error-message">{errors.usuario}</small>
+          <small className="text-danger">{errors.tipo_de_cuenta}</small>
         )}
       </fieldset>
       <fieldset>
@@ -146,9 +128,7 @@ export default function Page() {
           required
           onChange={handleChange}
         />
-        {errors.email && (
-          <small className="error-message">{errors.email}</small>
-        )}
+        {errors.email && <small className="text-danger">{errors.email}</small>}
       </fieldset>
       <fieldset>
         <label htmlFor="contrasena">Contraseña:</label>
@@ -162,7 +142,7 @@ export default function Page() {
           onChange={handleChange}
         />
         {errors.password && (
-          <small className="error-message">{errors.password}</small>
+          <small className="text-danger">{errors.password}</small>
         )}
       </fieldset>
       <fieldset>
@@ -177,7 +157,7 @@ export default function Page() {
           onChange={handleChange}
         />
         {errors.nombre && (
-          <small className="error-message">{errors.nombre}</small>
+          <small className="text-danger">{errors.nombre}</small>
         )}
       </fieldset>
       <fieldset>
@@ -192,7 +172,7 @@ export default function Page() {
           onChange={handleChange}
         />
         {errors.apellido && (
-          <small className="error-message">{errors.apellido}</small>
+          <small className="text-danger">{errors.apellido}</small>
         )}
       </fieldset>
       <fieldset>
@@ -208,7 +188,7 @@ export default function Page() {
               keyName="nombre"
             />
             {errors.provincia && (
-              <small className="error-message">{errors.provincia}</small>
+              <small className="text-danger">{errors.provincia}</small>
             )}
           </div>
         </div>
@@ -225,7 +205,7 @@ export default function Page() {
               keyName="nombre"
             />
             {errors.barrio && (
-              <small className="error-message">{errors.barrio}</small>
+              <small className="text-danger">{errors.barrio}</small>
             )}
           </div>
         </div>
@@ -259,7 +239,7 @@ export default function Page() {
               onChange={handleChange}
             />
             {errors.direccion && (
-              <small className="error-message">{errors.direccion}</small>
+              <small className="text-danger">{errors.direccion}</small>
             )}
           </div>
         </div>
@@ -288,7 +268,7 @@ export default function Page() {
           <option>Exento</option>
         </select>
         {errors.condicion_fiscal && (
-          <small className="error-message">{errors.condicion_fiscal}</small>
+          <small className="text-danger">{errors.condicion_fiscal}</small>
         )}
       </fieldset>
       <fieldset>
@@ -302,7 +282,7 @@ export default function Page() {
           required
           onChange={handleChange}
         />
-        {errors.dni && <small className="error-message">{errors.dni}</small>}
+        {errors.dni && <small className="text-danger">{errors.dni}</small>}
       </fieldset>
       <fieldset>
         <label htmlFor="telefono">Teléfono:</label>
@@ -340,9 +320,7 @@ export default function Page() {
             Acepto los <a href="/">Términos y condiciones de uso</a>
           </label>
         </div>
-        {errors.terms && (
-          <small className="error-message">{errors.terms}</small>
-        )}
+        {errors.terms && <small className="text-danger">{errors.terms}</small>}
       </fieldset>
       <button onClick={handleRegisterSubmit} className="button button--large">
         {isLoading ? (

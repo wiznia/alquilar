@@ -311,7 +311,7 @@ function Documentation() {
               )}
             </div>
             {errors.documentation && (
-              <small className="error-message">{errors.documentation}</small>
+              <small className="text-danger">{errors.documentation}</small>
             )}
             <div className="button-container">
               <button
@@ -393,123 +393,125 @@ function Documentation() {
           </div>
         ))}
 
-        {showUploadedContract ? (
-          <div className="account__info-inner">
-            <h6>Contrato:</h6>
-            <p>
-              Subí el modelo de contrato de alquiler con los datos del inquilino
-              para su revisión o{' '}
-              <Link
-                className="dark"
-                href={{
-                  pathname: '/account/listings/configListing/generateContract',
-                  query: {
-                    id,
-                  },
-                }}
-              >
-                generalo automáticamente (experimental)
-              </Link>
-              .
-            </p>
-            <div
-              className={
-                displayContract.length > 0
-                  ? 'account__item-photo-upload account__item-photo-upload-align-top'
-                  : 'account__item-photo-upload'
-              }
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                onChange={(e) => handleUploadFile(e, setNewContract)}
-              />
-              {displayContract.length > 0 ? (
-                displayContract.map((file, index) => (
-                  <div key={index} className="account__item-photo-item">
-                    <span className="account__item-photo-extension">
-                      {file?.type ? file.type.split('/')[1] : file.extension}
-                    </span>
-                    <span>{file.name}</span>
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleRemoveDisplayFile(
-                          index,
-                          uploadedContract,
-                          setUploadedContract,
-                          setNewContract,
-                          fileInputRef,
-                        );
-                      }}
-                      className="account__item-photo-close"
-                    >
-                      &times;
-                    </button>
-                  </div>
-                ))
-              ) : (
-                <>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="25"
-                    height="25"
-                    fill="none"
-                  >
-                    <path
-                      stroke="#FF9500"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M21.5 15.5v4a2 2 0 0 1-2 2h-14a2 2 0 0 1-2-2v-4M17.5 8.5l-5-5-5 5M12.5 3.5v12"
-                    />
-                  </svg>
-                  <p>Subí tu documentación</p>
-                </>
-              )}
-            </div>
-            {uploadContractSuccess && (
-              <p className="success-message">
-                Documentos subidos exitósamente!
+        {showUploadedContract &&
+          data?.getListingById?.contract?.potentialTenantAgreed === false && (
+            <div className="account__info-inner">
+              <h6>Contrato:</h6>
+              <p>
+                Subí el modelo de contrato de alquiler con los datos del
+                inquilino para su revisión o{' '}
+                <Link
+                  className="dark"
+                  href={{
+                    pathname:
+                      '/account/listings/configListing/generateContract',
+                    query: {
+                      id,
+                    },
+                  }}
+                >
+                  generalo automáticamente (experimental)
+                </Link>
+                .
               </p>
-            )}
+              <div
+                className={
+                  displayContract.length > 0
+                    ? 'account__item-photo-upload account__item-photo-upload-align-top'
+                    : 'account__item-photo-upload'
+                }
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  onChange={(e) => handleUploadFile(e, setNewContract)}
+                />
+                {displayContract.length > 0 ? (
+                  displayContract.map((file, index) => (
+                    <div key={index} className="account__item-photo-item">
+                      <span className="account__item-photo-extension">
+                        {file?.type ? file.type.split('/')[1] : file.extension}
+                      </span>
+                      <span>{file.name}</span>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleRemoveDisplayFile(
+                            index,
+                            uploadedContract,
+                            setUploadedContract,
+                            setNewContract,
+                            fileInputRef,
+                          );
+                        }}
+                        className="account__item-photo-close"
+                      >
+                        &times;
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  <>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="25"
+                      height="25"
+                      fill="none"
+                    >
+                      <path
+                        stroke="#FF9500"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M21.5 15.5v4a2 2 0 0 1-2 2h-14a2 2 0 0 1-2-2v-4M17.5 8.5l-5-5-5 5M12.5 3.5v12"
+                      />
+                    </svg>
+                    <p>Subí tu documentación</p>
+                  </>
+                )}
+              </div>
+              {uploadContractSuccess && (
+                <p className="text-success">Documentos subidos exitósamente!</p>
+              )}
+              <div className="button-container">
+                <button
+                  onClick={handleSubmitContract}
+                  type="submit"
+                  name="publish"
+                  className="button"
+                  disabled={isLoadingContract}
+                >
+                  {isLoadingContract ? (
+                    <span className="loader"></span>
+                  ) : (
+                    <span>
+                      {displayContract.length > 0
+                        ? 'Actualizar'
+                        : 'Subir archivos'}
+                    </span>
+                  )}
+                </button>
+                <button
+                  className="button button--secondary"
+                  onClick={() => setShowUploadedContract(false)}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          )}
+        {!showUploadedContract &&
+          !data?.getListingById?.contract?.potentialTenantAgreed && (
             <div className="button-container">
               <button
-                onClick={handleSubmitContract}
-                type="submit"
-                name="publish"
                 className="button"
-                disabled={isLoadingContract}
+                onClick={() => setShowUploadedContract(true)}
               >
-                {isLoadingContract ? (
-                  <span className="loader"></span>
-                ) : (
-                  <span>
-                    {displayContract.length > 0
-                      ? 'Actualizar'
-                      : 'Subir archivos'}
-                  </span>
-                )}
-              </button>
-              <button
-                className="button button--secondary"
-                onClick={() => setShowUploadedContract(false)}
-              >
-                Cancelar
+                Editar contrato
               </button>
             </div>
-          </div>
-        ) : (
-          <div className="button-container">
-            <button
-              className="button"
-              onClick={() => setShowUploadedContract(true)}
-            >
-              Editar contrato
-            </button>
-          </div>
-        )}
+          )}
         {form?.contract?.documents?.length > 0 && (
           <div className="account__info-inner">
             <h6>Tu contrato de alquiler:</h6>

@@ -32,7 +32,6 @@ function Documentation() {
   const [newFiles, setNewFiles] = useState([]);
   const [showUploadFiles, setShowUploadFiles] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-  const [uploadSuccess, setUploadSuccess] = useState(false);
   const [formLoaded, setFormLoaded] = useState(false);
 
   const { data, loading, error, refetch } = useQuery(SINGLE_LISTING_QUERY, {
@@ -64,7 +63,6 @@ function Documentation() {
     setNewFiles,
     setShowUpload: setShowUploadFiles,
     setIsLoading,
-    setUploadSuccess,
     type: 'documentation',
   });
 
@@ -164,7 +162,7 @@ function Documentation() {
           user={user}
         />
         <h2>Configuración del inmueble</h2>
-        <InlineNav id={id} page={page} user={user} />
+        <InlineNav id={id} page={page} user={user} listingData={data} />
         {showUploadFiles ? (
           <div className="account__info-inner">
             <h6>Documentos:</h6>
@@ -235,7 +233,7 @@ function Documentation() {
               )}
             </div>
             {errors.documentation && (
-              <small className="error-message">{errors.documentation}</small>
+              <small className="text-danger">{errors.documentation}</small>
             )}
             <div className="button-container">
               <button
@@ -249,7 +247,7 @@ function Documentation() {
                   <span className="loader"></span>
                 ) : (
                   <span>
-                    {displayFiles.length > 0 ? 'Actualizar' : 'Subir archivos'}
+                    {uploadedFiles.length > 0 ? 'Actualizar' : 'Subir archivos'}
                   </span>
                 )}
               </button>

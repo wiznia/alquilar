@@ -1,4 +1,5 @@
 import fs from 'fs-extra';
+import path from 'path';
 import puppeteer from 'puppeteer';
 
 export const generarContratoPDF = async (datos) => {

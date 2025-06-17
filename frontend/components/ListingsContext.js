@@ -17,7 +17,7 @@ export function ListingsProvider({ children }) {
       first: perPage,
       sortBy,
       ...filterVariables,
-      estado: ['Activo'],
+      estado: ['Activo', 'Pausado'],
     },
   });
 

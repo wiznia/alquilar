@@ -120,6 +120,7 @@ const typeDefs = `
     precio: Float!
     provincia: String!
     sena: Float
+    signature: Boolean
     superficie_cubierta: Int
     superficie_total: Int
     tipo_de_alquiler: String!
@@ -186,6 +187,7 @@ const typeDefs = `
     content: String!
     createdAt: String!
     id: ID!
+    _id: ID!
     listingId: [Listing!]
     read: Boolean!
     receiver: User
@@ -214,6 +216,11 @@ const typeDefs = `
   type Documentation {
     documentsAreGlobal: Boolean
     documents: [File]
+  }
+
+  type MPPayment {
+    id: String
+    status: String
   }
 
   scalar Upload
@@ -262,13 +269,15 @@ const typeDefs = `
     likes: [ID]
     mercadoPago: MercadoPagoInput
     moneda: String
+    mpPaymentLink: String
     municipio: String
-    owner: ID
+    owner: UpdateUserInput
     payment: PaymentInput
     potential_tenant: [ID]
     precio: Float
     provincia: String
     sena: Float
+    signature: Boolean
     superficie_cubierta: Int
     superficie_total: Int
     tipo_de_alquiler: String
@@ -409,6 +418,9 @@ const typeDefs = `
   }
   type Subscription {
     newMessage: SingleMessage
+  }
+  type Subscription {
+    newPayment: MPPayment
   }
 `;
 
