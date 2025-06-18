@@ -113,6 +113,8 @@ export const SINGLE_LISTING_QUERY = gql`
           extension
         }
         potentialTenantAgreed
+        contractNote
+        contractVoidReason
       }
       descripcion
       direccion

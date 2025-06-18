@@ -329,7 +329,10 @@ function Documentation() {
                 {data?.getListingById?.contract?.documents[0]?.extension}
               </span>
               <span>{data?.getListingById?.contract?.documents[0]?.name}</span>
-              <Link href={data?.getListingById?.contract?.documents[0]?.url}>
+              <Link
+                href={data?.getListingById?.contract?.documents[0]?.url}
+                target="_blank"
+              >
                 Ver
               </Link>
             </div>

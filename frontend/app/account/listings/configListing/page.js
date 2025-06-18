@@ -41,6 +41,7 @@ function ConfigListing() {
   const [isLoadingMP, setIsLoadingMP] = useState(false);
   const [isLoadingCBU, setIsLoadingCBU] = useState(false);
   const [isLoadingSena, setIsLoadingSena] = useState(false);
+  const [isLoadingVoid, setIsLoadingVoid] = useState(false);
   const [isLoadingSignature, setIsLoadingSignature] = useState(false);
   const [shouldFetchPotentialTenants, setShouldFetchPotentialTenants] =
     useState(false);
@@ -273,6 +274,7 @@ function ConfigListing() {
   };
 
   const handleConfirmSignature = async () => {
+    const { signature } = form;
     setIsLoadingSignature(true);
 
     try {
@@ -280,7 +282,7 @@ function ConfigListing() {
         variables: {
           id,
           input: {
-            signature: !form.signature,
+            signature: !signature,
           },
           senderId: user?.id,
         },
@@ -295,6 +297,36 @@ function ConfigListing() {
         'error',
       );
       setIsLoadingSignature(false);
+    }
+  };
+
+  const handleVoidContract = async () => {
+    const { contractNote, contractVoidReason } = form;
+    setIsLoadingVoid(true);
+
+    try {
+      await updateListing({
+        variables: {
+          id,
+          input: {
+            contract: {
+              contractNote,
+              contractVoidReason,
+            },
+          },
+          senderId: user?.id,
+        },
+      });
+      setIsLoadingVoid(false);
+      showToast(`Rescindiste tu contrato.`);
+      await refetch();
+    } catch (error) {
+      console.error('Error rescindiendo el contrato:', error.message);
+      showToast(
+        `Hubo un error al tratar de rescindir el contrato: ${error}`,
+        'error',
+      );
+      setIsLoadingVoid(false);
     }
   };
 
@@ -351,7 +383,8 @@ function ConfigListing() {
         />
         <h2>Configuración del inmueble</h2>
         <InlineNav id={id} page={page} user={user} />
-        {data?.getListingById?.signature !== true ? (
+        {(data?.getListingById?.signature !== true ||
+          data?.getListingById?.contract?.contractVoidReason) && (
           <>
             <div className="account__info-inner">
               <h6>Agregar usuarios como potenciales inquilinos:</h6>
@@ -359,7 +392,7 @@ function ConfigListing() {
                 Los usuarios que agregues como potenciales inquilinos van a
                 poder acceder a la configuración de este inmueble incluyendo tu
                 documentación e información general del inmueble como el valor
-                de la seña o tu CBU o alias.
+                de la seña o tu CBU.
               </p>
               <div className="input-suggestion">
                 <input
@@ -511,7 +544,7 @@ function ConfigListing() {
                   <p>
                     Podés recibir el pago de la seña de tu inmueble directamente
                     en tu cuenta de Mercado Pago. Clickeá en "Conectar cuenta"
-                    para poder vincularla.
+                    para poder vincularla y luego vinculá tu seña.
                   </p>
                   <div className="button-container">
                     {data?.getListingById?.mercadoPago?.userId ? (
@@ -582,97 +615,115 @@ function ConfigListing() {
                 </button>
               </div>
             </div>
-            <div className="account__info-inner">
-              <h6>Firma del contrato:</h6>
-              <p>
-                Una vez que hayas firmado el contrato, Clickeá en "Confirmar
-                firma". Esta operación es definitiva. Una vez que confirmes la
-                firma de contrato no podrás volver atrás. El inmueble no podrá
-                volver a ser editado ni configurado y vas a poder ver toda la
-                información del alquiler vigente.
-              </p>
-              <div className="button-container">
-                <button
-                  className="button"
-                  onClick={handleConfirmSignature}
-                  disabled={updateLoading}
-                >
-                  {updateLoading ? (
-                    <span className="loader"></span>
-                  ) : (
-                    'Confirmar firma'
-                  )}
-                </button>
-              </div>
-            </div>
+            {data?.getListingById?.contract?.potentialTenantAgreed &&
+              !data?.getListingById?.contract?.contractVoidReason && (
+                <div className="account__info-inner">
+                  <h6>Firma del contrato:</h6>
+                  <p>
+                    Una vez que hayas firmado el contrato, Clickeá en "Confirmar
+                    firma". Esta operación es definitiva. Una vez que confirmes
+                    la firma de contrato no podrás volver atrás. El inmueble no
+                    podrá volver a ser editado ni configurado y vas a poder ver
+                    toda la información del alquiler vigente.
+                  </p>
+                  <div className="button-container">
+                    <button
+                      className="button"
+                      onClick={handleConfirmSignature}
+                      disabled={updateLoading}
+                    >
+                      {updateLoading ? (
+                        <span className="loader"></span>
+                      ) : (
+                        'Confirmar firma'
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
           </>
-        ) : (
-          <>
-            <div className="account__info-inner">
-              <h6>Rescindir contrato</h6>
-              <p>
-                Si el inquilino tuvo un uso irregular o indebido, abandono o
-                deuda, podés rescindir el contrato de manera unilateral. Indicá
-                el motivo de la rescisión:
-              </p>
-              <fieldset className="radio">
-                <div className="account__item">
+        )}
+        {data?.getListingById?.signature === true &&
+          data?.getListingById?.payment?.paymentDone &&
+          !data?.getListingById?.contract?.contractVoidReason && (
+            <>
+              <div className="account__info-inner">
+                <h6>Rescindir contrato</h6>
+                <p>
+                  Si el inquilino tuvo un uso irregular o indebido, abandono o
+                  deuda, podés rescindir el contrato de manera unilateral.
+                  Indicá el motivo de la rescisión:
+                </p>
+                <fieldset className="radio">
+                  <div className="account__item">
+                    <div className="account__item-inner">
+                      <input
+                        type="radio"
+                        name="contractVoidReason"
+                        onChange={handleChange}
+                        value="Uso indebido"
+                        id="uso-indebido"
+                      />
+                      <label htmlFor="uso-indebido">Uso indebido</label>
+                    </div>
+                  </div>
                   <div className="account__item-inner">
                     <input
                       type="radio"
-                      name="motivo_rescision"
+                      name="contractVoidReason"
                       onChange={handleChange}
-                      value="Uso indebido"
-                      id="uso-indebido"
+                      value="Abandono"
+                      id="abandono"
                     />
-                    <label htmlFor="uso-indebido">Uso indebido</label>
+                    <label htmlFor="abandono">Abandono</label>
                   </div>
-                </div>
-                <div className="account__item-inner">
-                  <input
-                    type="radio"
-                    name="motivo_rescision"
+                  <div className="account__item-inner">
+                    <input
+                      type="radio"
+                      name="contractVoidReason"
+                      onChange={handleChange}
+                      value="Deuda"
+                      id="deuda"
+                    />
+                    <label htmlFor="deuda">Deuda</label>
+                  </div>
+                  <div className="account__item-inner">
+                    <input
+                      type="radio"
+                      name="contractVoidReason"
+                      onChange={handleChange}
+                      value="Otros"
+                      id="otros"
+                    />
+                    <label htmlFor="otros">Otros</label>
+                  </div>
+                </fieldset>
+                <fieldset>
+                  <label htmlFor="note">Nota al inquilino:</label>
+                  <textarea
+                    name="contractNote"
+                    id="note"
+                    placeholder="Nota al inquilino"
+                    required
                     onChange={handleChange}
-                    value="Abandono"
-                    id="abandono"
-                  />
-                  <label htmlFor="abandono">Abandono</label>
+                  ></textarea>
+                </fieldset>
+                <div className="button-container">
+                  <button
+                    className="button button--danger"
+                    disabled={isLoadingVoid}
+                    onClick={handleVoidContract}
+                  >
+                    {isLoadingVoid ? (
+                      <span className="loader"></span>
+                    ) : (
+                      <span>Rescindir contrato</span>
+                    )}
+                  </button>
                 </div>
-                <div className="account__item-inner">
-                  <input
-                    type="radio"
-                    name="motivo_rescision"
-                    onChange={handleChange}
-                    value="Deuda"
-                    id="deuda"
-                  />
-                  <label htmlFor="deuda">Deuda</label>
-                </div>
-                <div className="account__item-inner">
-                  <input
-                    type="radio"
-                    name="motivo_rescision"
-                    onChange={handleChange}
-                    value="Otros"
-                    id="otros"
-                  />
-                  <label htmlFor="otros">Otros</label>
-                </div>
-              </fieldset>
-              <textarea
-                name="Nota al inquilino"
-                placeholder="Nota al inquilino"
-                onChange={handleChange}
-                value={form?.note || ''}
-              ></textarea>
-              <div className="button-container">
-                <button className="button button--danger">
-                  Rescindir contrato
-                </button>
               </div>
-            </div>
-          </>
-        )}
+            </>
+          )}
       </div>
     </div>
   );

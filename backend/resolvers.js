@@ -13,6 +13,7 @@ import { GraphQLUpload } from 'graphql-upload';
 import { generarContratoPDF } from './generarContrato.js';
 import { handleNotification } from './helpers.js';
 import { pubsub } from './pubsub.js';
+import mongoose from 'mongoose';
 
 dotenv.config();
 
@@ -756,6 +757,50 @@ const resolvers = {
             'listing',
             id,
           );
+
+          await Listing.findByIdAndUpdate(id, {
+            $set: {
+              estado: ['Alquilado'],
+            },
+          });
+        }
+
+        if (input.contract?.contractVoidReason) {
+          notificationContent = `<a href=${process.env.FRONTEND_URL}/user/${senderId}>${sender.nombre} ${sender.apellido}</a> rescindió tu contrato de alquiler por ${input.contract.contractVoidReason} con la nota: ${input.contract.contractNote}`;
+          const tenant = listing.tenant;
+
+          handleNotification(
+            senderId,
+            tenant,
+            notificationContent,
+            'listing',
+            id,
+          );
+
+          await Listing.findByIdAndUpdate(
+            id,
+            {
+              $set: {
+                estado: ['Activo'],
+                'payment.paymentDone': false,
+                'contract.potentialTenantAgreed': false,
+                signature: false,
+              },
+              $pull: {
+                documentation: { id: tenant },
+                potential_tenant: tenant,
+              },
+              $unset: {
+                'payment.mpPaymentId': '',
+                'payment.status': '',
+                tenant: '',
+              },
+            },
+            { new: true },
+          );
+          await User.findByIdAndUpdate(tenant, {
+            $unset: { potential_tenant: '' },
+          });
         }
       }
 

@@ -80,6 +80,8 @@ const typeDefs = `
     apellido: String
     documents: [File]
     potentialTenantAgreed: Boolean
+    contractVoidReason: String
+    contractNote: String
   }
 
   input ContractDataInput {
@@ -88,6 +90,8 @@ const typeDefs = `
     apellido: String
     documents: [FileInput]
     potentialTenantAgreed: Boolean
+    contractVoidReason: String
+    contractNote: String
   }
 
   input MercadoPagoInput {

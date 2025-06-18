@@ -16,6 +16,7 @@ import InlineNav from '@/components/InlineNav';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useFormValidation } from '@/app/hooks/useFormValidation';
+import formatMoney from '@/lib/formatMoney';
 
 function ConfigListing() {
   const { user } = useAuth();
@@ -126,7 +127,7 @@ function ConfigListing() {
             !data?.getListingById?.payment?.paymentDone && (
               <>
                 <h6>Seña:</h6>
-                <h5>${sena}</h5>
+                <h5>{formatMoney(sena)}</h5>
                 {((cbu && mpPaymentLink) ||
                   (!cbu && mpPaymentLink) ||
                   (!mpPaymentLink && cbu)) && (
@@ -178,9 +179,16 @@ function ConfigListing() {
           {(data?.getListingById?.payment?.status === 'approved' ||
             data?.getListingById?.payment?.paymentDone) && (
             <>
-              <h5 className="text-success">
-                Felicidades! ya reservaste el inmueble!
-              </h5>
+              {data?.getListingById?.signature ? (
+                <h5 className="text-success">
+                  Felicidades! ya reservaste el inmueble!
+                </h5>
+              ) : (
+                <h5>
+                  Arreglá con el dueño la firma de contrato para cerrar la
+                  operación.
+                </h5>
+              )}
               <>
                 {!data?.getListingById?.contract?.potentialTenantAgreed &&
                   !data?.getListingById?.payment?.paymentDone && (
