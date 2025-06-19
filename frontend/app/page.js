@@ -37,7 +37,13 @@ export default function ListingsPage() {
   return (
     <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY}>
       <ListingsProvider>
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense
+          fallback={
+            <div className="loading">
+              <h4>Loading...</h4>
+            </div>
+          }
+        >
           <PageContent />
         </Suspense>
       </ListingsProvider>

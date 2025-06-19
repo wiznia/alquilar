@@ -495,7 +495,6 @@ const resolvers = {
       return true;
     },
     createListing: async (_, { input }, context) => {
-      console.log(input);
       const {
         ambientes,
         ammenities,

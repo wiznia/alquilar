@@ -30,9 +30,8 @@ export default function Page() {
     if (!validateFormCheck()) return;
 
     try {
-      const { data } = await loginMutation({ variables: { ...form } });
-
       setIsLoading(true);
+      const { data } = await loginMutation({ variables: { ...form } });
 
       if (data?.login?.token) {
         setIsLoading(false);
