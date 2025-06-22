@@ -229,5 +229,16 @@ export const validateForm = (form, formType, extraFields = {}) => {
     }
   }
 
+  if (formType === 'voidContract') {
+    if (!form?.contractNote) {
+      errors.contractNote = 'Completá una razón para rescindir el contrato.';
+    }
+
+    if (!form?.contractVoidReason) {
+      errors.contractVoidReason =
+        'Completá una razón para rescindir el contrato.';
+    }
+  }
+
   return errors;
 };

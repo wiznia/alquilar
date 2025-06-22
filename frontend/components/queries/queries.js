@@ -97,6 +97,7 @@ export const ALL_LISTINGS_QUERY = gql`
 export const SINGLE_LISTING_QUERY = gql`
   query SINGLE_LISTING_QUERY($id: ID!) {
     getListingById(id: $id) {
+      adjustmentProvisional
       ambientes
       ammenities
       antiguedad_max
@@ -113,8 +114,14 @@ export const SINGLE_LISTING_QUERY = gql`
           extension
         }
         potentialTenantAgreed
+        url
+        hash
         contractNote
         contractVoidReason
+        contractStartDate
+        contractDuration
+        contractAdjustmentType
+        contractAdjustmentMethod
       }
       descripcion
       direccion
@@ -167,6 +174,7 @@ export const SINGLE_LISTING_QUERY = gql`
         alias
         status
         paymentDone
+        mpPaymentId
       }
       potential_tenant
       precio
@@ -866,8 +874,8 @@ export const DELETE_CALENDAR_EVENT = gql`
 `;
 
 export const GENERATE_CONTRACT = gql`
-  mutation GenerateContract($input: ContractInput!) {
-    generateContract(input: $input)
+  mutation GenerateContract($input: ContractInput!, $listingId: ID!) {
+    generateContract(input: $input, listingId: $listingId)
   }
 `;
 

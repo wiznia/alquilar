@@ -4,7 +4,8 @@ export default function InlineNav({ id, page, user, listingData }) {
   return (
     <nav className="inline-nav">
       <ul>
-        {listingData?.getListingById?.payment?.paymentDone &&
+        {(listingData?.getListingById?.payment?.paymentDone ||
+          listingData?.getListingById?.payment?.mpPaymentId) &&
           listingData?.getListingById?.signature &&
           listingData?.getListingById?.contract?.potentialTenantAgreed &&
           user?.tipo_de_cuenta === 'Inquilino' && (
@@ -46,7 +47,11 @@ export default function InlineNav({ id, page, user, listingData }) {
             }}
           >
             <h6>
-              {user?.tipo_de_cuenta === 'Dueño' ? 'Configuración' : 'Pagos'}
+              {user?.tipo_de_cuenta === 'Dueño'
+                ? 'Configuración'
+                : listingData?.getListingById?.signature
+                  ? 'Mi reserva'
+                  : 'Reservar inmueble'}
             </h6>
           </Link>
         </li>

@@ -179,54 +179,44 @@ function ConfigListing() {
           {(data?.getListingById?.payment?.status === 'approved' ||
             data?.getListingById?.payment?.paymentDone) && (
             <>
-              {data?.getListingById?.signature ? (
-                <h5 className="text-success">
-                  Felicidades! ya reservaste el inmueble!
-                </h5>
-              ) : (
-                <h5>
-                  Arreglá con el dueño la firma de contrato para cerrar la
-                  operación.
-                </h5>
-              )}
-              <>
-                {!data?.getListingById?.contract?.potentialTenantAgreed &&
-                  !data?.getListingById?.payment?.paymentDone && (
-                    <p>
-                      <Link
-                        className="dark"
-                        href={`/account/listings/configListing/documents?id=${id}`}
-                      >
-                        Confirmá
-                      </Link>{' '}
-                      que el contrato esté en orden, tus datos estén bien y
-                      avisale al dueño clickeando en "Ya pagué" para continuar
-                      el proceso.
-                    </p>
-                  )}
-                {data?.getListingById?.contract?.potentialTenantAgreed &&
-                  !data?.getListingById?.payment?.paymentDone && (
-                    <p>
-                      Avisale al dueño clickeando en "Ya pagué" para continuar
-                      el proceso.
-                    </p>
-                  )}
-                {!data?.getListingById?.payment?.paymentDone && (
-                  <div className="button-container">
-                    <button
-                      className="button"
-                      onClick={handlePaidReservation}
-                      disabled={isLoading}
-                    >
-                      {isLoading ? (
-                        <span className="loader"></span>
+              {data?.getListingById?.contract?.potentialTenantAgreed ? (
+                <>
+                  {data?.getListingById?.signature ? (
+                    <>
+                      <h5 className="text-success">
+                        Felicidades! ya reservaste el inmueble!
+                      </h5>
+                      <h6>Datos de mi reserva:</h6>
+                      {data?.getListingById?.payment?.mpPaymentId ? (
+                        <p>
+                          Pagaste {formatMoney(data?.getListingById?.sena)} con
+                          Mercado Pago.
+                        </p>
                       ) : (
-                        <span>Ya pagué</span>
+                        <p>
+                          Pagaste {formatMoney(data?.getListingById?.sena)} por
+                          transferencia bancaria.
+                        </p>
                       )}
-                    </button>
-                  </div>
-                )}
-              </>
+                    </>
+                  ) : (
+                    <p>
+                      Arreglá con el dueño la firma de contrato para cerrar la
+                      operación.
+                    </p>
+                  )}
+                </>
+              ) : (
+                <p>
+                  <Link
+                    className="dark"
+                    href={`/account/alquileres/configListing/documents?id=${id}`}
+                  >
+                    Confirmá
+                  </Link>{' '}
+                  que el contrato esté en orden y tus datos estén bien.
+                </p>
+              )}
             </>
           )}
         </div>

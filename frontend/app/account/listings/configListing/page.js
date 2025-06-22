@@ -301,6 +301,9 @@ function ConfigListing() {
   };
 
   const handleVoidContract = async () => {
+    if (!validateFormCheck(undefined, 'voidContract')) {
+      return;
+    }
     const { contractNote, contractVoidReason } = form;
     setIsLoadingVoid(true);
 
@@ -644,7 +647,8 @@ function ConfigListing() {
           </>
         )}
         {data?.getListingById?.signature === true &&
-          data?.getListingById?.payment?.paymentDone &&
+          (data?.getListingById?.payment?.paymentDone ||
+            data?.getListingById?.payment?.mpPaymentId) &&
           !data?.getListingById?.contract?.contractVoidReason && (
             <>
               <div className="account__info-inner">
@@ -698,13 +702,17 @@ function ConfigListing() {
                     <label htmlFor="otros">Otros</label>
                   </div>
                 </fieldset>
+                {errors.contractVoidReason && (
+                  <small className="text-danger">
+                    {errors.contractVoidReason}
+                  </small>
+                )}
                 <fieldset>
                   <label htmlFor="note">Nota al inquilino:</label>
                   <textarea
                     name="contractNote"
                     id="note"
                     placeholder="Nota al inquilino"
-                    required
                     onChange={handleChange}
                   ></textarea>
                 </fieldset>

@@ -30,7 +30,6 @@ function Documentation() {
 
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [newFiles, setNewFiles] = useState([]);
-  const [showUploadFiles, setShowUploadFiles] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [formLoaded, setFormLoaded] = useState(false);
 
@@ -61,7 +60,6 @@ function Documentation() {
     setUploadedFiles,
     newFiles,
     setNewFiles,
-    setShowUpload: setShowUploadFiles,
     setIsLoading,
     type: 'documentation',
   });
@@ -124,9 +122,6 @@ function Documentation() {
   useEffect(() => {
     if (!formLoaded && data?.getListingById && user?.id) {
       const userDocuments = documentationArr.find((doc) => doc.id === user?.id);
-      if (userDocuments?.documents?.length > 0) {
-        setShowUploadFiles(false);
-      }
       setUploadedFiles(userDocuments ? userDocuments.documents : []);
       setForm(data.getListingById);
       setFormLoaded(true);
@@ -163,109 +158,95 @@ function Documentation() {
         />
         <h2>Configuración del inmueble</h2>
         <InlineNav id={id} page={page} user={user} listingData={data} />
-        {showUploadFiles ? (
-          <div className="account__info-inner">
-            <h6>Documentos:</h6>
-            <p>
-              Subí tu documentación para que el dueño la pueda evaluar. <br />
-              Recordá que para alquilar necesitas:
-            </p>
-            <ul className="documentation-list">
-              <li>DNI o pasaporte vigente</li>
-              <li>Recibo de sueldo o certificado de ingresos</li>
-              <li>Garantía inmobiliaria</li>
-            </ul>
-            <div
-              className={
-                displayFiles.length > 0
-                  ? 'account__item-photo-upload account__item-photo-upload-align-top'
-                  : 'account__item-photo-upload'
-              }
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                onChange={(e) => handleUploadFile(e, setNewFiles)}
-              />
-              {displayFiles.length > 0 ? (
-                displayFiles.map((file, index) => (
-                  <div key={index} className="account__item-photo-item">
-                    <span className="account__item-photo-extension">
-                      {file?.type ? file.type.split('/')[1] : file.extension}
-                    </span>
-                    <span>{file.name}</span>
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleRemoveDisplayFile(
-                          index,
-                          uploadedFiles,
-                          setUploadedFiles,
-                          setNewFiles,
-                          fileInputRef,
-                        );
-                      }}
-                      className="account__item-photo-close"
-                    >
-                      &times;
-                    </button>
-                  </div>
-                ))
-              ) : (
-                <>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="25"
-                    height="25"
-                    fill="none"
-                  >
-                    <path
-                      stroke="#FF9500"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M21.5 15.5v4a2 2 0 0 1-2 2h-14a2 2 0 0 1-2-2v-4M17.5 8.5l-5-5-5 5M12.5 3.5v12"
-                    />
-                  </svg>
-                  <p>Subí tu documentación</p>
-                </>
-              )}
-            </div>
-            {errors.documentation && (
-              <small className="text-danger">{errors.documentation}</small>
-            )}
-            <div className="button-container">
-              <button
-                onClick={handleSubmit}
-                type="submit"
-                name="publish"
-                className="button"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <span className="loader"></span>
-                ) : (
-                  <span>
-                    {uploadedFiles.length > 0 ? 'Actualizar' : 'Subir archivos'}
+        <div className="account__info-inner">
+          <h6>Documentos:</h6>
+          <p>
+            Subí tu documentación para que el dueño la pueda evaluar. <br />
+            Recordá que para alquilar necesitas:
+          </p>
+          <ul className="documentation-list">
+            <li>DNI o pasaporte vigente</li>
+            <li>Recibo de sueldo o certificado de ingresos</li>
+            <li>Garantía inmobiliaria</li>
+          </ul>
+          <div
+            className={
+              displayFiles.length > 0
+                ? 'account__item-photo-upload account__item-photo-upload-align-top'
+                : 'account__item-photo-upload'
+            }
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              onChange={(e) => handleUploadFile(e, setNewFiles)}
+            />
+            {displayFiles.length > 0 ? (
+              displayFiles.map((file, index) => (
+                <div key={index} className="account__item-photo-item">
+                  <span className="account__item-photo-extension">
+                    {file?.type ? file.type.split('/')[1] : file.extension}
                   </span>
-                )}
-              </button>
-              <button
-                className="button button--secondary"
-                onClick={() => setShowUploadFiles(false)}
-              >
-                Cancelar
-              </button>
-            </div>
+                  <span>{file.name}</span>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleRemoveDisplayFile(
+                        index,
+                        uploadedFiles,
+                        setUploadedFiles,
+                        setNewFiles,
+                        fileInputRef,
+                      );
+                    }}
+                    className="account__item-photo-close"
+                  >
+                    &times;
+                  </button>
+                </div>
+              ))
+            ) : (
+              <>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="25"
+                  height="25"
+                  fill="none"
+                >
+                  <path
+                    stroke="#FF9500"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M21.5 15.5v4a2 2 0 0 1-2 2h-14a2 2 0 0 1-2-2v-4M17.5 8.5l-5-5-5 5M12.5 3.5v12"
+                  />
+                </svg>
+                <p>Subí tu documentación</p>
+              </>
+            )}
           </div>
-        ) : (
+          {errors.documentation && (
+            <small className="text-danger">{errors.documentation}</small>
+          )}
           <div className="button-container">
-            <button className="button" onClick={() => setShowUploadFiles(true)}>
-              Editar documentación
+            <button
+              onClick={handleSubmit}
+              type="submit"
+              name="publish"
+              className="button"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <span className="loader"></span>
+              ) : (
+                <span>
+                  {uploadedFiles.length > 0 ? 'Actualizar' : 'Subir archivos'}
+                </span>
+              )}
             </button>
           </div>
-        )}
+        </div>
 
         <div className="account__info-inner" key={user?.id}>
           <h6>Tu documentación:</h6>

@@ -13,8 +13,12 @@ import dotenv from 'dotenv';
 import { graphqlUploadExpress } from 'graphql-upload';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import Listing from './listingSchema.js';
+import Event from './eventSchema.js';
+import User from './userSchema.js';
 import cron from 'node-cron';
+import { formatDate, handleNotification } from './helpers.js';
 import { pubsub } from './pubsub.js';
+import { Agent } from 'undici';
 
 import typeDefs from './typeDefs.js';
 import resolvers from './resolvers.js';
@@ -112,6 +116,7 @@ app.post('/webhook/mercadopago', async (req, res) => {
 
       const paymentInfo = await response.json();
       const listingId = paymentInfo.external_reference;
+
       await Listing.findByIdAndUpdate(listingId, {
         $set: {
           'payment.status': paymentInfo.status,
@@ -136,7 +141,7 @@ app.post('/webhook/mercadopago', async (req, res) => {
   }
 });
 
-/*const notifyPastEvents = async () => {
+const notifyPastEvents = async () => {
   const oneDayAgo = new Date();
   oneDayAgo.setDate(oneDayAgo.getDate() - 1);
 
@@ -157,9 +162,132 @@ app.post('/webhook/mercadopago', async (req, res) => {
     event.notified = true;
     await event.save();
   }
-};*/
+};
 
-//cron.schedule('*/2 * * * *', notifyPastEvents);
+const listingPriceHasChanged = async () => {
+  const rentedListings = await Listing.find({
+    estado: ['Alquilado'],
+  });
+
+  for (const listing of rentedListings) {
+    const start = new Date(listing.contract.contractStartDate);
+    const today = new Date();
+    const todayDate = new Date().toISOString().slice(0, 10);
+    const adjustmentType = listing.contract.contractAdjustmentType;
+    const adjustmentMethod = listing.contract.contractAdjustmentMethod;
+
+    if (!start) return;
+
+    const adjustmentMap = {
+      anual: 12,
+      semestral: 6,
+      trimestral: 3,
+    };
+    const monthsToAdd = adjustmentMap[adjustmentType];
+    const lastAdjustedDate = new Date(
+      listing.precioLastAdjustmentDate || start,
+    );
+    let nextAdjustmentDate = new Date(start);
+
+    while (nextAdjustmentDate <= today) {
+      nextAdjustmentDate.setMonth(nextAdjustmentDate.getMonth() + monthsToAdd);
+    }
+
+    nextAdjustmentDate.setMonth(nextAdjustmentDate.getMonth() - monthsToAdd);
+
+    if (lastAdjustedDate >= nextAdjustmentDate) return;
+
+    const adjustmentApiUrl =
+      adjustmentMethod === 'IPC'
+        ? `https://api.bcra.gob.ar/estadisticas/v3.0/monetarias/27?desde=${listing.contract.contractStartDate}&hasta=${todayDate}&limit=1300`
+        : `https://api.bcra.gob.ar/estadisticas/v3.0/monetarias/40?desde=${listing.contract.contractStartDate}&hasta=${todayDate}&limit=1300`;
+
+    if (today > nextAdjustmentDate) {
+      try {
+        const agent = new Agent({
+          connect: {
+            rejectUnauthorized: false,
+          },
+        });
+        const response = await fetch(adjustmentApiUrl, { dispatcher: agent });
+
+        if (!response.ok) {
+          throw new Error(`Error fetching data for listing ${listing._id}`);
+        }
+        const data = await response.json();
+        const { results } = data;
+
+        const fechaInicio = new Date(start);
+        const fechaAjuste = new Date(nextAdjustmentDate);
+
+        const fromMonth = new Date(fechaInicio);
+        fromMonth.setMonth(fromMonth.getMonth() + 1);
+        fromMonth.setDate(1);
+
+        const toMonth = new Date(fechaAjuste);
+        toMonth.setDate(1);
+
+        const ipcMensualRaw = results
+          .map((r) => ({ ...r, fecha: new Date(r.fecha) }))
+          .filter((r) => r.fecha >= fromMonth && r.fecha <= toMonth);
+
+        const ipcMensual = ipcMensualRaw
+          .filter((r) => !isNaN(r.valor))
+          .map((r) => Number(r.valor));
+
+        let adjustedPrice;
+        let adjustmentProvisional = false;
+
+        if (adjustmentMethod === 'ICL') {
+          const firstValue = Number(
+            results.find((r) => r.fecha === start.toISOString().slice(0, 10))
+              ?.valor,
+          );
+          const lastValue = Number(
+            results.find(
+              (r) => r.fecha === nextAdjustmentDate.toISOString().slice(0, 10),
+            )?.valor,
+          );
+          adjustedPrice = (lastValue / firstValue) * listing.precio;
+        } else {
+          if (ipcMensual.length < ipcMensualRaw.length) {
+            adjustmentProvisional = true;
+          }
+
+          const expectedLastMonth = toMonth.getTime();
+          const actualLastMonth =
+            ipcMensualRaw.length > 0
+              ? ipcMensualRaw[ipcMensualRaw.length - 1].fecha.getTime()
+              : null;
+          if (actualLastMonth !== expectedLastMonth) {
+            adjustmentProvisional = true;
+          }
+
+          let index = 1.0;
+          for (const monthly of ipcMensual) {
+            index *= 1 + monthly / 100;
+          }
+          adjustedPrice = Math.round(listing.precio * index);
+        }
+
+        await Listing.findByIdAndUpdate(listing._id, {
+          $set: {
+            precio: adjustedPrice,
+            precioLastAdjustmentDate: nextAdjustmentDate
+              .toISOString()
+              .slice(0, 10),
+            adjustmentProvisional,
+          },
+        });
+      } catch (error) {
+        console.error(`Error with listing ${listing._id}:`, error);
+      }
+    }
+  }
+};
+
+cron.schedule('*/2 * * * *', notifyPastEvents);
+cron.schedule('0 0 * * *', listingPriceHasChanged);
 
 const server = new ApolloServer({
   typeDefs,

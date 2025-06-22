@@ -21,10 +21,11 @@ export function useUnifiedSubmit({
       setUploadedFiles,
       newFiles,
       setNewFiles,
-      setShowUpload,
       setIsLoading,
       type,
       globalDocsEnabled: handlerDocsEnabled,
+      customContractData,
+      onSuccess,
     }) => {
       return async function unifiedSubmit(e) {
         e.preventDefault();
@@ -107,6 +108,7 @@ export function useUnifiedSubmit({
                 nombre: user?.nombre,
                 apellido: user?.apellido,
                 documents: cleanedDocs,
+                ...(customContractData || {}),
               },
               id,
             };
@@ -132,6 +134,11 @@ export function useUnifiedSubmit({
                 input,
               },
             });
+
+            if (typeof onSuccess === 'function') {
+              onSuccess();
+            }
+
             if (type === 'documentation') {
               showToast('Documentos subidos con éxito!');
             } else {
@@ -154,7 +161,6 @@ export function useUnifiedSubmit({
           setNewFiles([]);
           setUploadedFiles(uploadedDocs);
           if (fileInputRef.current) fileInputRef.current.value = '';
-          setShowUpload(false);
           setIsLoading(false);
         } catch (error) {
           console.error('Error uploading documents:', error);

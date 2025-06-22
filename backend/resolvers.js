@@ -647,6 +647,23 @@ const resolvers = {
             ...existingContract,
             ...incomingContract,
           };
+
+          if (incomingContract.contractStartDate) {
+            mergedContract.contractStartDate =
+              incomingContract.contractStartDate;
+          }
+          if (incomingContract.contractDuration) {
+            mergedContract.contractDuration = incomingContract.contractDuration;
+          }
+          if (incomingContract.contractAdjustmentType) {
+            mergedContract.contractAdjustmentType =
+              incomingContract.contractAdjustmentType;
+          }
+          if (incomingContract.contractAdjustmentMethod) {
+            mergedContract.contractAdjustmentMethod =
+              incomingContract.contractAdjustmentMethod;
+          }
+
           updatedFields.contract = mergedContract;
 
           // Notificación por subida de contrato
@@ -1245,9 +1262,17 @@ const resolvers = {
 
       return true;
     },
-    generateContract: async (_, { input }) => {
+    generateContract: async (_, { input, listingId }) => {
       const fileName = await generarContratoPDF(input);
-      const url = `http://localhost:4000/output/${fileName}`;
+      const url = `http://localhost:4000/output/${fileName.fileName}`;
+
+      await Listing.findByIdAndUpdate(listingId, {
+        contract: {
+          url,
+          hash: fileName.hash,
+        },
+      });
+
       return url;
     },
     updateUser: async (_, { id, input }) => {

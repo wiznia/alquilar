@@ -29,15 +29,20 @@ function Documentation() {
 
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [newFiles, setNewFiles] = useState([]);
-  const [showUploadFiles, setShowUploadFiles] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [uploadedContract, setUploadedContract] = useState([]);
   const [newContract, setNewContract] = useState([]);
-  const [showUploadedContract, setShowUploadedContract] = useState(true);
   const [isLoadingContract, setIsLoadingContract] = useState(false);
   const [uploadContractSuccess, setUploadContractSuccess] = useState(false);
   const [globalFiles, setGlobalFiles] = useState([]);
+  const [showCustomContractForm, setShowCustomContractForm] = useState(false);
+  const [customContractData, setCustomContractData] = useState({
+    contractStartDate: '',
+    contractDuration: '',
+    contractAdjustmentType: '',
+    contractAdjustmentMethod: '',
+  });
 
   const { data, loading, error, refetch } = useQuery(SINGLE_LISTING_QUERY, {
     variables: { id },
@@ -66,7 +71,6 @@ function Documentation() {
     setUploadedFiles,
     newFiles,
     setNewFiles,
-    setShowUpload: setShowUploadFiles,
     setIsLoading,
     setUploadSuccess,
     type: 'documentation',
@@ -77,10 +81,11 @@ function Documentation() {
     setUploadedFiles: setUploadedContract,
     newFiles: newContract,
     setNewFiles: setNewContract,
-    setShowUpload: setShowUploadedContract,
     setIsLoading: setIsLoadingContract,
     setUploadSuccess: setUploadContractSuccess,
     type: 'contract',
+    customContractData,
+    onSuccess: () => setShowCustomContractForm(false),
   });
 
   const displayFiles = [
@@ -101,6 +106,29 @@ function Documentation() {
       __uploaded: false,
     })),
   ];
+
+  const handleUploadContract = async (e, setNewFiles, isContract = false) => {
+    const files = Array.from(e.target.files);
+    handleUploadFile(e, setNewFiles);
+
+    if (!isContract || files.length === 0) return;
+
+    const file = files[0];
+    const arrayBuffer = await file.arrayBuffer();
+    const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
+
+    const currentAutoHash = form?.contract?.hash;
+
+    if (!currentAutoHash && hashHex !== currentAutoHash) {
+      setShowCustomContractForm(true);
+    } else {
+      setShowCustomContractForm(false);
+    }
+  };
 
   const [fetchTenant] = useLazyQuery(GET_USER_BY_ID);
   const [tenantsDocs, setTenantsDocs] = useState([]);
@@ -199,18 +227,9 @@ function Documentation() {
         (doc) => doc.id === user?.id,
       )[0];
 
-      if (userDocuments?.documents?.length > 0) {
-        setShowUploadFiles(false);
-      }
       setUploadedFiles(userDocuments ? userDocuments.documents : []);
+      setUploadedContract(contract?.documents || []);
       setForm(data.getListingById);
-
-      if (contract.id === user?.id) {
-        setUploadedContract(
-          Array.isArray(contract?.documents) ? contract.documents : [],
-        );
-        setShowUploadedContract(false);
-      }
     }
   }, [
     data?.getListingById,
@@ -249,101 +268,87 @@ function Documentation() {
         />
         <h2>Configuración del inmueble</h2>
         <InlineNav id={id} page={page} user={user} />
-        {showUploadFiles ? (
-          <div className="account__info-inner">
-            <h6>Documentos:</h6>
-            <p>Recordá que tenés que subir tu DNI (frente y dorso).</p>
-            <div
-              className={
-                displayFiles.length > 0
-                  ? 'account__item-photo-upload account__item-photo-upload-align-top'
-                  : 'account__item-photo-upload'
-              }
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                onChange={(e) => handleUploadFile(e, setNewFiles)}
-              />
-              {displayFiles.length > 0 ? (
-                displayFiles.map((file, index) => (
-                  <div key={index} className="account__item-photo-item">
-                    <span className="account__item-photo-extension">
-                      {file?.type ? file.type.split('/')[1] : file.extension}
-                    </span>
-                    <span>{file.name}</span>
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleRemoveDisplayFile(
-                          index,
-                          uploadedFiles,
-                          setUploadedFiles,
-                          setNewFiles,
-                          fileInputRef,
-                        );
-                      }}
-                      className="account__item-photo-close"
-                    >
-                      &times;
-                    </button>
-                  </div>
-                ))
-              ) : (
-                <>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="25"
-                    height="25"
-                    fill="none"
-                  >
-                    <path
-                      stroke="#FF9500"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M21.5 15.5v4a2 2 0 0 1-2 2h-14a2 2 0 0 1-2-2v-4M17.5 8.5l-5-5-5 5M12.5 3.5v12"
-                    />
-                  </svg>
-                  <p>Subí tu documentación</p>
-                </>
-              )}
-            </div>
-            {errors.documentation && (
-              <small className="text-danger">{errors.documentation}</small>
-            )}
-            <div className="button-container">
-              <button
-                onClick={handleSubmit}
-                type="submit"
-                name="publish"
-                className="button"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <span className="loader"></span>
-                ) : (
-                  <span>
-                    {displayFiles.length > 0 ? 'Actualizar' : 'Subir archivos'}
+        <div className="account__info-inner">
+          <h6>Documentos:</h6>
+          <p>Recordá que tenés que subir tu DNI (frente y dorso).</p>
+          <div
+            className={
+              displayFiles.length > 0
+                ? 'account__item-photo-upload account__item-photo-upload-align-top'
+                : 'account__item-photo-upload'
+            }
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              onChange={(e) => handleUploadFile(e, setNewFiles)}
+            />
+            {displayFiles.length > 0 ? (
+              displayFiles.map((file, index) => (
+                <div key={index} className="account__item-photo-item">
+                  <span className="account__item-photo-extension">
+                    {file?.type ? file.type.split('/')[1] : file.extension}
                   </span>
-                )}
-              </button>
-              <button
-                className="button button--secondary"
-                onClick={() => setShowUploadFiles(false)}
-              >
-                Cancelar
-              </button>
-            </div>
+                  <span>{file.name}</span>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleRemoveDisplayFile(
+                        index,
+                        uploadedFiles,
+                        setUploadedFiles,
+                        setNewFiles,
+                        fileInputRef,
+                      );
+                    }}
+                    className="account__item-photo-close"
+                  >
+                    &times;
+                  </button>
+                </div>
+              ))
+            ) : (
+              <>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="25"
+                  height="25"
+                  fill="none"
+                >
+                  <path
+                    stroke="#FF9500"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M21.5 15.5v4a2 2 0 0 1-2 2h-14a2 2 0 0 1-2-2v-4M17.5 8.5l-5-5-5 5M12.5 3.5v12"
+                  />
+                </svg>
+                <p>Subí tu documentación</p>
+              </>
+            )}
           </div>
-        ) : (
+          {errors.documentation && (
+            <small className="text-danger">{errors.documentation}</small>
+          )}
           <div className="button-container">
-            <button className="button" onClick={() => setShowUploadFiles(true)}>
-              Editar documentación
+            <button
+              onClick={handleSubmit}
+              type="submit"
+              name="publish"
+              className="button"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <span className="loader"></span>
+              ) : (
+                <span>
+                  {displayFiles.length > 0 ? 'Actualizar' : 'Subir archivos'}
+                </span>
+              )}
             </button>
           </div>
-        )}
+        </div>
 
         <div className="account__info-inner" key={user?.id}>
           <h6>Tu documentación:</h6>
@@ -393,90 +398,206 @@ function Documentation() {
           </div>
         ))}
 
-        {showUploadedContract &&
-          data?.getListingById?.contract?.potentialTenantAgreed === false && (
-            <div className="account__info-inner">
-              <h6>Contrato:</h6>
-              <p>
-                Subí el modelo de contrato de alquiler con los datos del
-                inquilino para su revisión o{' '}
-                <Link
-                  className="dark"
-                  href={{
-                    pathname:
-                      '/account/listings/configListing/generateContract',
-                    query: {
-                      id,
-                    },
-                  }}
-                >
-                  generalo automáticamente (experimental)
-                </Link>
-                .
-              </p>
-              <div
-                className={
-                  displayContract.length > 0
-                    ? 'account__item-photo-upload account__item-photo-upload-align-top'
-                    : 'account__item-photo-upload'
-                }
+        {data?.getListingById?.contract?.potentialTenantAgreed === false && (
+          <div className="account__info-inner">
+            <h6>Contrato:</h6>
+            <p>
+              Subí el modelo de contrato de alquiler con los datos del inquilino
+              para su revisión o{' '}
+              <Link
+                className="dark"
+                href={{
+                  pathname: '/account/listings/configListing/generateContract',
+                  query: {
+                    id,
+                  },
+                }}
               >
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  multiple
-                  onChange={(e) => handleUploadFile(e, setNewContract)}
-                />
-                {displayContract.length > 0 ? (
-                  displayContract.map((file, index) => (
-                    <div key={index} className="account__item-photo-item">
-                      <span className="account__item-photo-extension">
-                        {file?.type ? file.type.split('/')[1] : file.extension}
-                      </span>
-                      <span>{file.name}</span>
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleRemoveDisplayFile(
-                            index,
-                            uploadedContract,
-                            setUploadedContract,
-                            setNewContract,
-                            fileInputRef,
-                          );
-                        }}
-                        className="account__item-photo-close"
-                      >
-                        &times;
-                      </button>
-                    </div>
-                  ))
-                ) : (
-                  <>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="25"
-                      height="25"
-                      fill="none"
+                generalo automáticamente (experimental)
+              </Link>
+              .
+            </p>
+            <div
+              className={
+                displayContract.length > 0
+                  ? 'account__item-photo-upload account__item-photo-upload-align-top'
+                  : 'account__item-photo-upload'
+              }
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                onChange={(e) => handleUploadContract(e, setNewContract, true)}
+              />
+              {displayContract.length > 0 ? (
+                displayContract.map((file, index) => (
+                  <div key={index} className="account__item-photo-item">
+                    <span className="account__item-photo-extension">
+                      {file?.type ? file.type.split('/')[1] : file.extension}
+                    </span>
+                    <span>{file.name}</span>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleRemoveDisplayFile(
+                          index,
+                          uploadedContract,
+                          setUploadedContract,
+                          setNewContract,
+                          fileInputRef,
+                        );
+                      }}
+                      className="account__item-photo-close"
                     >
-                      <path
-                        stroke="#FF9500"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M21.5 15.5v4a2 2 0 0 1-2 2h-14a2 2 0 0 1-2-2v-4M17.5 8.5l-5-5-5 5M12.5 3.5v12"
-                      />
-                    </svg>
-                    <p>Subí tu documentación</p>
-                  </>
-                )}
-              </div>
-              {uploadContractSuccess && (
-                <p className="text-success">Documentos subidos exitósamente!</p>
+                      &times;
+                    </button>
+                  </div>
+                ))
+              ) : (
+                <>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="25"
+                    height="25"
+                    fill="none"
+                  >
+                    <path
+                      stroke="#FF9500"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M21.5 15.5v4a2 2 0 0 1-2 2h-14a2 2 0 0 1-2-2v-4M17.5 8.5l-5-5-5 5M12.5 3.5v12"
+                    />
+                  </svg>
+                  <p>Subí tu documentación</p>
+                </>
               )}
+            </div>
+            {uploadContractSuccess && (
+              <p className="text-success">Documentos subidos exitósamente!</p>
+            )}
+            {showCustomContractForm ? (
+              <>
+                <h6>Necesitamos algunos datos extra:</h6>
+                <p>
+                  Como el contrato no fue generado por el sistema, necesitamos
+                  que completes estos datos para poder mostrar la información al
+                  inquilino.
+                </p>
+                <fieldset>
+                  <label>Fecha de inicio</label>
+                  <input
+                    type="date"
+                    value={customContractData.contractStartDate}
+                    onChange={(e) =>
+                      setCustomContractData((prev) => ({
+                        ...prev,
+                        contractStartDate: e.target.value,
+                      }))
+                    }
+                  />
+                </fieldset>
+                <fieldset>
+                  <label>Duración del contrato:</label>
+                  <select
+                    className="popover-button small"
+                    placeholder="Duración del contrato"
+                    value={customContractData.duration}
+                    onChange={(e) =>
+                      setCustomContractData((prev) => ({
+                        ...prev,
+                        contractDuration: e.target.value,
+                      }))
+                    }
+                  >
+                    <button>
+                      <selectedcontent></selectedcontent>
+                      <span className="arrow"></span>
+                    </button>
+                    <option value="" hidden>
+                      <span>Duración del contrato</span>
+                    </option>
+                    <option value="6">6 meses</option>
+                    <option value="12">1 año</option>
+                    <option value="24">2 años</option>
+                    <option value="36">3 años</option>
+                  </select>
+                </fieldset>
+                <fieldset>
+                  <label>Tipo de ajuste:</label>
+                  <select
+                    className="popover-button small"
+                    value={customContractData.adjustmentType}
+                    placeholder="Tipo de ajuste"
+                    onChange={(e) =>
+                      setCustomContractData((prev) => ({
+                        ...prev,
+                        contractAdjustmentType: e.target.value,
+                      }))
+                    }
+                  >
+                    <button>
+                      <selectedcontent></selectedcontent>
+                      <span className="arrow"></span>
+                    </button>
+                    <option value="" hidden>
+                      <span>Tipo de ajuste</span>
+                    </option>
+                    <option value="trimestral">Trimestral</option>
+                    <option value="semestral">Semestral</option>
+                    <option value="anual">Anual</option>
+                  </select>
+                </fieldset>
+                <fieldset>
+                  <label>Método de ajuste:</label>
+                  <select
+                    className="popover-button small"
+                    placeholder="Método de ajuste"
+                    required
+                    onChange={(e) =>
+                      setCustomContractData((prev) => ({
+                        ...prev,
+                        contractAdjustmentMethod: e.target.value,
+                      }))
+                    }
+                  >
+                    <button>
+                      <selectedcontent></selectedcontent>
+                      <span className="arrow"></span>
+                    </button>
+                    <option value="" hidden>
+                      <span>Método de ajuste</span>
+                    </option>
+                    <option value="IPC">
+                      Índice de Precios al Consumidor (IPC)
+                    </option>
+                    <option value="ICL">
+                      Índice de Contratos de Locación (ICL)
+                    </option>
+                  </select>
+                </fieldset>
+                <div className="button-container">
+                  <button
+                    className="button"
+                    disabled={isLoadingContract}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleSubmitContract(e);
+                    }}
+                  >
+                    {isLoadingContract ? (
+                      <span className="loader"></span>
+                    ) : (
+                      <span>Confirmar y subir contrato</span>
+                    )}
+                  </button>
+                </div>
+              </>
+            ) : (
               <div className="button-container">
                 <button
-                  onClick={handleSubmitContract}
+                  onClick={(e) => handleSubmitContract(e)}
                   type="submit"
                   name="publish"
                   className="button"
@@ -492,26 +613,10 @@ function Documentation() {
                     </span>
                   )}
                 </button>
-                <button
-                  className="button button--secondary"
-                  onClick={() => setShowUploadedContract(false)}
-                >
-                  Cancelar
-                </button>
               </div>
-            </div>
-          )}
-        {!showUploadedContract &&
-          !data?.getListingById?.contract?.potentialTenantAgreed && (
-            <div className="button-container">
-              <button
-                className="button"
-                onClick={() => setShowUploadedContract(true)}
-              >
-                Editar contrato
-              </button>
-            </div>
-          )}
+            )}
+          </div>
+        )}
         {form?.contract?.documents?.length > 0 && (
           <div className="account__info-inner">
             <h6>Tu contrato de alquiler:</h6>

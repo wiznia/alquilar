@@ -458,3 +458,20 @@ fieldset {
   gap: var(--margin);
   padding: 30px;
 }
+
+.account__info-list {
+  border-bottom: 1px solid #e9eaed;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px 0;
+  &:first-child {
+    padding-top: 0;
+  }
+  h5 {
+    font-size: 20px;
+  }
+  h6 {
+    font-weight: 500;
+  }
+}

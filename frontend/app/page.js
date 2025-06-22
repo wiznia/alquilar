@@ -40,7 +40,7 @@ export default function ListingsPage() {
         <Suspense
           fallback={
             <div className="loading">
-              <h4>Loading...</h4>
+              <h4>Cargando...</h4>
             </div>
           }
         >

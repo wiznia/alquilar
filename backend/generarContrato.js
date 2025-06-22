@@ -1,6 +1,7 @@
 import fs from 'fs-extra';
 import path from 'path';
 import puppeteer from 'puppeteer';
+import crypto from 'crypto';
 
 export const generarContratoPDF = async (datos) => {
   const [year, monthDate, today] = datos.contractSignDate
@@ -80,9 +81,11 @@ export const generarContratoPDF = async (datos) => {
 
   await browser.close();
 
+  const hash = crypto.createHash('sha256').update(pdfBuffer).digest('hex');
+
   const fileName = `contrato_final_${Date.now()}.pdf`;
   const outputPath = path.resolve('./output', fileName);
   await fs.outputFile(outputPath, pdfBuffer);
 
-  return fileName;
+  return { fileName, hash };
 };

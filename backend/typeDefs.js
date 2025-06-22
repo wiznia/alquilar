@@ -80,8 +80,14 @@ const typeDefs = `
     apellido: String
     documents: [File]
     potentialTenantAgreed: Boolean
+    url: String
+    hash: String
     contractVoidReason: String
     contractNote: String
+    contractStartDate: String
+    contractDuration: String
+    contractAdjustmentType: String
+    contractAdjustmentMethod: String
   }
 
   input ContractDataInput {
@@ -92,6 +98,10 @@ const typeDefs = `
     potentialTenantAgreed: Boolean
     contractVoidReason: String
     contractNote: String
+    contractStartDate: String
+    contractDuration: String
+    contractAdjustmentType: String
+    contractAdjustmentMethod: String
   }
 
   input MercadoPagoInput {
@@ -100,6 +110,7 @@ const typeDefs = `
   }
 
   type Listing {
+    adjustmentProvisional: Int
     ambientes: Int
     ammenities: [String]
     antiguedad_max: Int
@@ -415,7 +426,7 @@ const typeDefs = `
     removePotentialTenant(listingId: ID!, senderId: ID!, receiverId: ID!, type: String!): Boolean
     setCalendarEvent(titulo: String!, asunto: String!, time: String!, date: String!, senderId: ID!, receiverId: [ID!]!, listingId: ID): Event!
     deleteCalendarEvent(eventId: String!): Boolean
-    generateContract(input: ContractInput!): String!
+    generateContract(input: ContractInput!, listingId: ID!): String!
   },
   type Subscription {
     notificationReceived(userId: ID!): Notification

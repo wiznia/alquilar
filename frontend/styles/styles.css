@@ -592,6 +592,7 @@ main {
   top: 10px;
   left: 0;
   right: 0;
+  z-index: 100;
 }
 .toast-message {
   background-color: #f2fff7;

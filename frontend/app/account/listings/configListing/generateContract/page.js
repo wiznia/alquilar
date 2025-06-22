@@ -89,7 +89,7 @@ function GenerateContract() {
       const { potential_tenant, inquilino, ...sanitizedForm } = form;
       setIsLoading(true);
       const { data } = await generateContract({
-        variables: { input: sanitizedForm },
+        variables: { input: sanitizedForm, listingId: id },
       });
       const contractUrl = data.generateContract;
       setContractUrl(contractUrl);
@@ -602,7 +602,6 @@ function GenerateContract() {
                 <label htmlFor="adjustmentMethod">Método de ajuste:</label>
                 <select
                   className="popover-button small"
-                  type="text"
                   name="adjustmentMethod"
                   id="adjustmentMethod"
                   placeholder="Método de ajuste"
@@ -616,8 +615,12 @@ function GenerateContract() {
                   <option value="" hidden>
                     <span>Método de ajuste</span>
                   </option>
-                  <option>Índice de Precios al Consumidor (IPC)</option>
-                  <option>Índice de Contratos de Locación (ICL)</option>
+                  <option value="IPC">
+                    Índice de Precios al Consumidor (IPC)
+                  </option>
+                  <option value="ICL">
+                    Índice de Contratos de Locación (ICL)
+                  </option>
                 </select>
                 {errors.adjustmentMethod && (
                   <small className="text-danger">
