@@ -117,12 +117,14 @@ function UpdateListingContent() {
       const fileImages = { fotos: uploadedImageUrls };
       const {
         __typename,
+        adjustmentProvisional,
         documentation,
         mercadoPago,
         mpPaymentLink,
         owner,
         payment,
         sena,
+        tenant,
         contract,
         potential_tenant,
         ...sanitizedForm

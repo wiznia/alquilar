@@ -26,7 +26,7 @@ export default function Page() {
   const [isLoadingSave, setIsLoadingSave] = useState(false);
   const [inputFiles, setInputFiles] = useState([]);
   const [address, setAddress] = useState('Buenos Aires, Argentina');
-  const [listingId, setListingId] = useState(null);
+  const [, setListingId] = useState(null);
   const initialState = {
     ambientes: 0,
     ammenities: [],
