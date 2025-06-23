@@ -19,6 +19,7 @@ import { handleUploadFile, handleRemoveDisplayFile } from '@/lib/fileHandlers';
 import removeTypename from '@/lib/removeTypename';
 import Link from 'next/link';
 import { useUnifiedSubmit } from '@/app/hooks/useHandleSubmit';
+import useListingNotificationRefetch from '@/app/hooks/useListingNotificationRefetch';
 
 function Documentation() {
   const { user } = useAuth();
@@ -54,6 +55,12 @@ function Documentation() {
     data?.getListingById,
     'uploadDocuments',
   );
+
+  useListingNotificationRefetch({
+    userId: user?.id,
+    listingId: id,
+    onListingNotification: refetch,
+  });
 
   const getUnifiedSubmitHandler = useUnifiedSubmit({
     user,

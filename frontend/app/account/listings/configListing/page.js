@@ -24,6 +24,7 @@ import throttle from '@/lib/throttle';
 import { usePathname } from 'next/navigation';
 import removeTypename from '@/lib/removeTypename';
 import { useToast } from '@/components/ToastContext';
+import useListingNotificationRefetch from '@/app/hooks/useListingNotificationRefetch';
 
 function ConfigListing() {
   const { user } = useAuth();
@@ -74,6 +75,12 @@ function ConfigListing() {
     }, 2000),
     [findTenants],
   );
+
+  useListingNotificationRefetch({
+    userId: user?.id,
+    listingId: id,
+    onListingNotification: refetch,
+  });
 
   const handleConnectMercadoPago = async () => {
     try {

@@ -17,6 +17,7 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useFormValidation } from '@/app/hooks/useFormValidation';
 import formatMoney from '@/lib/formatMoney';
+import useListingNotificationRefetch from '@/app/hooks/useListingNotificationRefetch';
 
 function ConfigListing() {
   const { user } = useAuth();
@@ -29,6 +30,12 @@ function ConfigListing() {
     variables: {
       id,
     },
+  });
+
+  useListingNotificationRefetch({
+    userId: user?.id,
+    listingId: id,
+    onListingNotification: refetch,
   });
 
   useSubscription(NEW_PAYMENT_SUBSCRIPTION, {

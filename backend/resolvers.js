@@ -808,6 +808,7 @@ const resolvers = {
               $unset: {
                 'payment.mpPaymentId': '',
                 'payment.status': '',
+                precioLastAdjustmentDate: '',
                 tenant: '',
                 'contract.documents': '',
                 'contract.potentialTenantAgreed': '',

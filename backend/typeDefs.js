@@ -203,7 +203,7 @@ const typeDefs = `
     createdAt: String!
     id: ID!
     _id: ID!
-    listingId: [Listing!]
+    listingId: ID
     read: Boolean!
     receiver: User
     sender: User

@@ -886,6 +886,7 @@ export const SUBSCRIBE_NEW_NOTIFICATION = gql`
       id
       content
       createdAt
+      listingId
     }
   }
 `;
