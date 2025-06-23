@@ -46,6 +46,7 @@ export const generarContratoPDF = async (datos) => {
   });
   const adjustment = {
     trimestral: 'trimestre',
+    cuatrimestral: 'cuatrimestre',
     semestral: 'semestre',
     anual: 'año',
   };

@@ -179,7 +179,7 @@ function ConfigListing() {
           {(data?.getListingById?.payment?.status === 'approved' ||
             data?.getListingById?.payment?.paymentDone) && (
             <>
-              {data?.getListingById?.contract?.potentialTenantAgreed ? (
+              {data?.getListingById?.contract?.potentialTenantAgreed && (
                 <>
                   {data?.getListingById?.signature ? (
                     <>
@@ -206,17 +206,19 @@ function ConfigListing() {
                     </p>
                   )}
                 </>
-              ) : (
-                <p>
-                  <Link
-                    className="dark"
-                    href={`/account/alquileres/configListing/documents?id=${id}`}
-                  >
-                    Confirmá
-                  </Link>{' '}
-                  que el contrato esté en orden y tus datos estén bien.
-                </p>
               )}
+              {!data?.getListingById?.contract?.potentialTenantAgreed &&
+                data?.getListingById?.contract?.documents?.length > 0 && (
+                  <p>
+                    <Link
+                      className="dark"
+                      href={`/account/alquileres/configListing/documents?id=${id}`}
+                    >
+                      Confirmá
+                    </Link>{' '}
+                    que el contrato esté en orden y tus datos estén bien.
+                  </p>
+                )}
             </>
           )}
         </div>

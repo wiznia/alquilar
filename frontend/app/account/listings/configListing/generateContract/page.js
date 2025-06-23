@@ -591,6 +591,7 @@ function GenerateContract() {
                     <span>Tipo de ajuste</span>
                   </option>
                   <option>trimestral</option>
+                  <option>cuatrimestral</option>
                   <option>semestral</option>
                   <option>anual</option>
                 </select>

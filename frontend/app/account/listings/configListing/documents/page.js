@@ -545,6 +545,7 @@ function Documentation() {
                       <span>Tipo de ajuste</span>
                     </option>
                     <option value="trimestral">Trimestral</option>
+                    <option value="cuatrimestral">Cuatrimestral</option>
                     <option value="semestral">Semestral</option>
                     <option value="anual">Anual</option>
                   </select>

@@ -37,6 +37,7 @@ export default function SingleListingPage({ id }) {
     dormitorios,
     estado,
     expensas,
+    moneda,
     owner,
     precio,
     provincia,
@@ -71,7 +72,7 @@ export default function SingleListingPage({ id }) {
               <span className="pill">{tipo_de_alquiler}</span>
             )}
           </div>
-          <h2>{formatMoney(precio)}</h2>
+          <h2>{formatMoney(precio, moneda)}</h2>
           <h5>{formatMoney(expensas)} Expensas</h5>
           <div className="address">
             <h5>{direccion}</h5>

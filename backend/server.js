@@ -182,6 +182,7 @@ const listingPriceHasChanged = async () => {
       anual: 12,
       semestral: 6,
       trimestral: 3,
+      cuatrimestral: 4,
     };
     const monthsToAdd = adjustmentMap[adjustmentType];
     const lastAdjustedDate = new Date(

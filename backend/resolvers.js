@@ -793,23 +793,28 @@ const resolvers = {
             id,
           );
 
-          await Listing.findByIdAndUpdate(
+          const updated = await Listing.findByIdAndUpdate(
             id,
             {
               $set: {
                 estado: ['Activo'],
                 'payment.paymentDone': false,
-                'contract.potentialTenantAgreed': false,
                 signature: false,
               },
               $pull: {
-                documentation: { id: tenant },
+                documentation: false,
                 potential_tenant: tenant,
               },
               $unset: {
                 'payment.mpPaymentId': '',
                 'payment.status': '',
                 tenant: '',
+                'contract.documents': '',
+                'contract.potentialTenantAgreed': '',
+                'contract.contractStartDate': '',
+                'contract.contractDuration': '',
+                'contract.contractAdjustmentType': '',
+                'contract.contractAdjustmentMethod': '',
               },
             },
             { new: true },
@@ -817,6 +822,8 @@ const resolvers = {
           await User.findByIdAndUpdate(tenant, {
             $unset: { potential_tenant: '' },
           });
+
+          return updated;
         }
       }
 

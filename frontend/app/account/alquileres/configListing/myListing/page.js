@@ -22,22 +22,23 @@ function ConfigListing() {
   const showToast = useToast();
   const id = useSearchParams().get('id');
   const pathname = usePathname();
+  const [isLoadingVoid, setIsLoadingVoid] = useState(false);
   const page = pathname.split('/').findLast((element) => element);
   const { data, loading, error, refetch } = useQuery(SINGLE_LISTING_QUERY, {
     variables: {
       id,
     },
   });
-  const { form, setForm, errors, handleChange, validateFormCheck } =
-    useFormValidation(data?.getListingById, 'sendSena');
+  const [updateListing] = useMutation(UPDATE_LISTING);
+  const { form, errors, handleChange, validateFormCheck } = useFormValidation(
+    data?.getListingById,
+    'voidContract',
+  );
   const durationStr = data?.getListingById?.contract?.contractDuration;
   const duration = parseInt(durationStr, 10);
   const contractStartDate = new Date(
     `${data?.getListingById?.contract?.contractStartDate}T00:00:00`,
   );
-  const [updateListing, { loading: updateLoading }] =
-    useMutation(UPDATE_LISTING);
-
   const contractEnd = (() => {
     const endDate = new Date(contractStartDate);
     if (durationStr === '6') {
@@ -47,17 +48,13 @@ function ConfigListing() {
     }
     return endDate;
   })();
-
   const contractEndDate = contractEnd.toLocaleDateString('es-ES', {
     day: '2-digit',
     month: 'long',
     year: 'numeric',
   });
-
   const contractDurationPrefix =
     durationStr === '6' ? 'meses' : durationStr === '1' ? 'año' : 'años';
-
-  const [isLoadingVoid, setIsLoadingVoid] = useState(false);
 
   const handleVoidContract = async () => {
     if (!validateFormCheck(undefined, 'voidContract')) {
@@ -131,7 +128,13 @@ function ConfigListing() {
           </div>
           <div className="account__info-list">
             <h5>Estas pagando:</h5>
-            <h6>{formatMoney(data?.getListingById?.precio)} por mes.</h6>
+            <h6>
+              {formatMoney(
+                data?.getListingById?.precio,
+                data?.getListingById?.moneda,
+              )}{' '}
+              por mes.
+            </h6>
             {data?.getListingById?.adjustmentProvisional && (
               <p style={{ color: 'var(--primary-bg)', fontWeight: 'bold' }}>
                 ⚠️ Ajuste provisional: el último mes de IPC aún no fue
@@ -168,7 +171,9 @@ function ConfigListing() {
           <p>
             Si tuviste un problema o necesitas rescindir el contrato
             tempranamente, clickeá en “Rescindir contrato” para cancelar este
-            alquiler.
+            alquiler. Tené en cuenta que al rescindir el contrato tempranamente
+            vas a tener que pagar el 10% de todos los meses restantes que te
+            quedan de contrato.
           </p>
           <fieldset>
             <label htmlFor="note">Nota al dueño:</label>

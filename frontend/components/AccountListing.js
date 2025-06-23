@@ -35,7 +35,8 @@ export default function Listing({ listing, user }) {
       </div>
       <div className="account-listing__buttons">
         {listing?.owner?.id === user?.id &&
-          !listing?.estado.includes('Reservado') && (
+          !listing?.estado.includes('Reservado') &&
+          !listing.estado.includes('Alquilado') && (
             <>
               <Link
                 className="button button--danger button--small"
