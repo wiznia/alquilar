@@ -40,6 +40,17 @@ export default function Page() {
     );
   }
 
+  if (error) {
+    return (
+      <Loading>
+        <p>
+          Hubo un problema al cargar los inmuebles:
+          {error.message}
+        </p>
+      </Loading>
+    );
+  }
+
   return (
     <div className="account">
       <AccountSidebar />

@@ -95,7 +95,9 @@ export default function Listing({ listing, user }) {
             pathname:
               user?.tipo_de_cuenta === 'Dueño'
                 ? '/account/listings/configListing'
-                : '/account/alquileres/configListing',
+                : user?.tipo_de_cuenta !== 'Dueño' && estado[0] === 'Alquilado'
+                  ? '/account/alquileres/configListing/myListing'
+                  : '/account/alquileres/configListing',
             query: {
               id: listing.id,
             },

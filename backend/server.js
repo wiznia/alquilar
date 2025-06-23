@@ -287,8 +287,36 @@ const listingPriceHasChanged = async () => {
   }
 };
 
-cron.schedule('*/2 * * * *', notifyPastEvents);
+const enableRatingForm = async () => {
+  const rentedListings = await Listing.find({
+    estado: ['Alquilado'],
+  });
+
+  for (const listing of rentedListings) {
+    const start = new Date(listing.contract.contractStartDate);
+    const today = new Date();
+    const duration = listing.contract.contractDuration;
+    const contractEnd = new Date(start).setMonth(
+      start.getMonth() + parseInt(duration),
+    );
+    const contractEndDate = new Date(contractEnd);
+    const contractEndDateBuffer = contractEndDate.setMonth(
+      contractEndDate.getMonth() - 3,
+    );
+
+    if (today > contractEndDateBuffer) {
+      await Listing.findByIdAndUpdate(listing._id, {
+        $set: {
+          'contract.contractExpiring': true,
+        },
+      });
+    }
+  }
+};
+
+cron.schedule('0 0 * * *', notifyPastEvents);
 cron.schedule('0 0 * * *', listingPriceHasChanged);
+cron.schedule('0 0 * * *', enableRatingForm);
 
 const server = new ApolloServer({
   typeDefs,

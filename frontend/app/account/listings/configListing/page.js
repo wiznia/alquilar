@@ -12,6 +12,8 @@ import {
   GET_POTENTIAL_TENANTS_BY_LISTING,
   REMOVE_POTENTIAL_TENANT,
   UPDATE_LISTING,
+  RATE_USER,
+  GET_USER_BY_ID,
 } from '@/components/queries/queries';
 import { useSearchParams } from 'next/navigation';
 import { useQuery, useMutation, useLazyQuery } from '@apollo/client';
@@ -32,18 +34,30 @@ function ConfigListing() {
   const id = useSearchParams().get('id');
   const pathname = usePathname();
   const page = pathname.split('/').findLast((element) => element);
+  const [isLoadingRating, setIsLoadingRating] = useState(false);
+  const [rating, setRating] = useState({});
   const { data, loading, error, refetch } = useQuery(SINGLE_LISTING_QUERY, {
     variables: {
       id,
     },
   });
-  const [paymentLink, setPaymentLink] = useState('');
+  const {
+    data: userData,
+    loading: userLoading,
+    error: userError,
+  } = useQuery(GET_USER_BY_ID, {
+    variables: {
+      id: data?.getListingById?.tenant,
+    },
+    skip: !data?.getListingById?.tenant,
+  });
+  const [, setPaymentLink] = useState('');
   const [searchIsActive, setSearchIsActive] = useState(false);
   const [isLoadingMP, setIsLoadingMP] = useState(false);
   const [isLoadingCBU, setIsLoadingCBU] = useState(false);
   const [isLoadingSena, setIsLoadingSena] = useState(false);
   const [isLoadingVoid, setIsLoadingVoid] = useState(false);
-  const [isLoadingSignature, setIsLoadingSignature] = useState(false);
+  const [, setIsLoadingSignature] = useState(false);
   const [shouldFetchPotentialTenants, setShouldFetchPotentialTenants] =
     useState(false);
   const [connectMercadoPago] = useMutation(CONNECT_MERCADO_PAGO);
@@ -53,6 +67,7 @@ function ConfigListing() {
   const [createPaymentLink] = useMutation(CREATE_PAYMENT_LINK);
   const [updateListing, { loading: updateLoading }] =
     useMutation(UPDATE_LISTING);
+  const [rateUser] = useMutation(RATE_USER);
   const { form, setForm, errors, handleChange, validateFormCheck } =
     useFormValidation(data?.getListingById, 'sendSena');
   const [
@@ -340,6 +355,36 @@ function ConfigListing() {
     }
   };
 
+  const handleSubmitRating = async () => {
+    if (!validateFormCheck(undefined, 'submitRating')) {
+      return;
+    }
+
+    setIsLoadingRating(true);
+
+    try {
+      await rateUser({
+        variables: {
+          senderId: user?.id,
+          receiverId: data?.getListingById?.tenant,
+          accountType: user?.tipo_de_cuenta,
+          message: form?.message,
+          rating: Number(form?.rating),
+        },
+      });
+      setIsLoadingRating(false);
+      showToast(`Calificaste al inquilino!`);
+      await refetch();
+    } catch (error) {
+      console.error('Error calificando al inquilino:', error.message);
+      showToast(
+        `Hubo un error al tratar de calificar al inquilino: ${error}`,
+        'error',
+      );
+      setIsLoadingRating(false);
+    }
+  };
+
   useEffect(() => {
     if (
       data?.getListingById?.potential_tenant &&
@@ -359,9 +404,23 @@ function ConfigListing() {
           cbu: data.getListingById.payment.cbu,
         },
         signature: data.getListingById.signature,
+        rating: rating?.rating || '',
+        message: rating?.message || '',
       }));
     }
   }, [user, data?.getListingById]);
+
+  useEffect(() => {
+    const ratings = userData?.getUser?.ratings;
+    const tenantRating = ratings?.find((rating) => rating.user.id === user?.id);
+
+    if (tenantRating) {
+      setRating({
+        rating: tenantRating.rating,
+        message: tenantRating.message,
+      });
+    }
+  }, [userData?.getUser, user?.id]);
 
   if (loading) {
     return (
@@ -658,6 +717,43 @@ function ConfigListing() {
             data?.getListingById?.payment?.mpPaymentId) &&
           !data?.getListingById?.contract?.contractVoidReason && (
             <>
+              <div className="account__info-inner">
+                <h6>Calificá al inquilino:</h6>
+                <input
+                  type="range"
+                  name="rating"
+                  min="1"
+                  max="5"
+                  value={form?.rating || rating.rating || 5}
+                  onChange={handleChange}
+                />
+                <fieldset>
+                  <label htmlFor="message">Mensaje:</label>
+                  <textarea
+                    name="message"
+                    id="message"
+                    placeholder="Mensaje"
+                    value={form?.message || rating.message || ''}
+                    onChange={handleChange}
+                  ></textarea>
+                  {errors.message && (
+                    <small className="text-danger">{errors.message}</small>
+                  )}
+                </fieldset>
+                <div className="button-container">
+                  <button
+                    className="button"
+                    disabled={isLoadingRating}
+                    onClick={handleSubmitRating}
+                  >
+                    {isLoadingRating ? (
+                      <span className="loader"></span>
+                    ) : (
+                      <span>Calificar</span>
+                    )}
+                  </button>
+                </div>
+              </div>
               <div className="account__info-inner">
                 <h6>Rescindir contrato</h6>
                 <p>

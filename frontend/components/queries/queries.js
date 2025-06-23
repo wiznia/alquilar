@@ -122,6 +122,7 @@ export const SINGLE_LISTING_QUERY = gql`
         contractDuration
         contractAdjustmentType
         contractAdjustmentMethod
+        contractExpiring
       }
       descripcion
       direccion
@@ -183,6 +184,7 @@ export const SINGLE_LISTING_QUERY = gql`
       signature
       superficie_cubierta
       superficie_total
+      tenant
       tipo_de_alquiler
       tipo_de_ambientes
       tipo_de_propiedad
@@ -876,6 +878,27 @@ export const DELETE_CALENDAR_EVENT = gql`
 export const GENERATE_CONTRACT = gql`
   mutation GenerateContract($input: ContractInput!, $listingId: ID!) {
     generateContract(input: $input, listingId: $listingId)
+  }
+`;
+
+export const RATE_USER = gql`
+  mutation RateUser(
+    $senderId: ID!
+    $receiverId: ID!
+    $accountType: String!
+    $rating: Int!
+    $message: String
+  ) {
+    rateUser(
+      senderId: $senderId
+      receiverId: $receiverId
+      accountType: $accountType
+      rating: $rating
+      message: $message
+    ) {
+      nombre
+      apellido
+    }
   }
 `;
 

@@ -88,6 +88,7 @@ const typeDefs = `
     contractDuration: String
     contractAdjustmentType: String
     contractAdjustmentMethod: String
+    contractExpiring: Boolean
   }
 
   input ContractDataInput {
@@ -138,6 +139,7 @@ const typeDefs = `
     signature: Boolean
     superficie_cubierta: Int
     superficie_total: Int
+    tenant: String
     tipo_de_alquiler: String!
     tipo_de_ambientes: [String]
     tipo_de_propiedad: String!
@@ -312,6 +314,13 @@ const typeDefs = `
     localidad: String
     telefono: Int
     documentation: [DocumentsDataInput]
+    ratings: [RatingInput]
+  }
+
+  input RatingInput {
+    user: ID!
+    rating: Int!
+    message: String
   }
 
   input ContractInput {
@@ -414,7 +423,7 @@ const typeDefs = `
     uploadImage(files: [Upload]!, userId: ID!, listingId: ID!): [File]!
     uploadDocuments(files: [Upload]!, userId: ID!): [File]!
     likeListing(listingId: ID!): Listing
-    rateOwner(ownerId: ID!, rating: Int!, message: String): User
+    rateUser(senderId: ID!, receiverId: ID!, accountType: String!, rating: Int!, message: String): User
     sendMessage(senderId: ID, receiverId: ID!, asunto: String!, conversationId: String): Message
     sendEmail(nombre: String!, apellido: String!, email: String!, asunto: String!, receiverEmail: String!, listingId: String): Boolean
     markMessagesAsRead(messageIds: [ID!]!): [SingleMessage!]!

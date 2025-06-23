@@ -3,7 +3,6 @@ import { validateForm } from './validateForm';
 
 export const useFormValidation = (
   initialState,
-  formType,
   defaultFormType,
   locationHandlers = {},
 ) => {

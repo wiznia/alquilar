@@ -199,6 +199,44 @@ input[type='checkbox'] + label {
   padding-inline-start: 16px;
 }
 
+input[type="range"] {
+  align-self: flex-start;
+  --s: 32px;
+  --_c: #7b7b7b 50%,#f1c40f 0;
+  aspect-ratio: attr(max type(<integer>));
+  padding-inline: 14px;
+  box-sizing: border-box;
+  mask:
+    url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNCIgaGVpZ2h0PSIxNCIgZmlsbD0ibm9uZSI+PHBhdGggZmlsbD0iI0JFQkVCRSIgZD0ibTQuODAyIDQuNjMyLTQuMzkuNDg2YS40Mi40MiAwIDAgMC0uMzUuMjg2Yy0uMDUzLjE2MSAwIC4zMjkuMTE2LjQzNEMxLjQ4MyA3LjAzIDMuNDQ0IDguODEzIDMuNDQ0IDguODEzYy0uMDAyIDAtLjUzOCAyLjU5NC0uODk1IDQuMzI0YS40MTQuNDE0IDAgMCAwIC42MTIuNDQ1YzEuNTM2LS44NzMgMy44MzgtMi4xODYgMy44MzgtMi4xODZsMy44MzcgMi4xODdhLjQyLjQyIDAgMCAwIC40NS0uMDI0LjQxNy40MTcgMCAwIDAgLjE2My0uNDJsLS44OTMtNC4zMjYgMy4yNjYtMi45NzJhLjQxNi40MTYgMCAwIDAtLjIzMy0uNzJjLTEuNzU3LS4xOTgtNC4zOS0uNDktNC4zOS0uNDlTOC4xMDUgMi4yMTggNy4zNzguNjA4YS40MTYuNDE2IDAgMCAwLS43NTggMEw0LjgwMiA0LjYzMloiPjwvcGF0aD48L3N2Zz4=") 0/var(--s);
+  appearance: none;
+  cursor: pointer;
+}
+input[type="range" i]::-webkit-slider-thumb{
+  width: 1px;
+  border-image:
+    conic-gradient(at calc(50% + var(--s)/2),var(--_c))
+    fill 0//var(--s) calc(20*var(--s));
+  appearance: none;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 1px;
+  border-image:
+    conic-gradient(at calc(50% + var(--s)/2),var(--_c))
+    fill 0//var(--s) calc(20*var(--s));
+  appearance: none;
+}
+input[type="range"]:focus-visible {
+  outline: 2px solid #000;
+  outline-offset: -2px;
+  --_m:,conic-gradient(from 90deg at 2px 2px,#0000 25%,#000 0) 0 0/calc(100% - 2px) calc(100% - 2px);
+}
+
+@supports not (d:attr(d type(*))) {
+  input[type="range"] {
+    aspect-ratio: 5;
+  }
+}
+
 .input-password {
   position: relative;
   display: flex;

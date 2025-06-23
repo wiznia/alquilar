@@ -816,6 +816,7 @@ const resolvers = {
                 'contract.contractDuration': '',
                 'contract.contractAdjustmentType': '',
                 'contract.contractAdjustmentMethod': '',
+                'contract.contractExpiring': '',
               },
             },
             { new: true },
@@ -961,14 +962,13 @@ const resolvers = {
       await listing.save();
       return listing.populate('likes');
     },
-    rateOwner: async (_, { ownerId, rating, message }) => {
-      const owner = await User.findById(ownerId);
-      const user = {
-        nombre: 'Pepito',
-        apellido: 'Perez',
-      };
+    rateUser: async (
+      _,
+      { senderId, receiverId, accountType, rating, message },
+    ) => {
+      const ratedUser = await User.findById(receiverId);
 
-      if (!owner) {
+      if (!ratedUser) {
         throw new Error('Owner not found');
       }
 
@@ -976,15 +976,24 @@ const resolvers = {
         throw new Error('Rating must be between 1 and 5 stars');
       }
 
-      const ratingObject = {
-        user,
-        rating,
-        message,
-      };
+      const existingRating = ratedUser.ratings.find(
+        (r) => r.user.toString() === senderId,
+      );
 
-      owner.ratings.push(ratingObject);
-      await owner.save();
-      return owner;
+      if (existingRating) {
+        existingRating.rating = rating;
+        existingRating.message = message;
+      } else {
+        const ratingObject = {
+          user: senderId,
+          rating,
+          message,
+        };
+        ratedUser.ratings.push(ratingObject);
+      }
+
+      await ratedUser.save();
+      return ratedUser;
     },
     sendMessage: async (_, { receiverId, asunto }, context) => {
       const authHeader = context.req.headers.authorization;

@@ -27,6 +27,7 @@ const listingSchema = new mongoose.Schema({
     contractAdjustmentMethod: String,
     contractNote: String,
     contractVoidReason: String,
+    contractExpiring: Boolean,
   },
   createdAt: {
     type: Date,

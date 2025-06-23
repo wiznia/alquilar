@@ -6,12 +6,14 @@ import { useSearchParams } from 'next/navigation';
 import { useMutation, useQuery } from '@apollo/client';
 import { useAuth } from '@/components/AuthContext';
 import Loading from '@/components/Loading';
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import InlineNav from '@/components/InlineNav';
 import { usePathname } from 'next/navigation';
 import {
   SINGLE_LISTING_QUERY,
-  UPDATE_LISTING,
+  RATE_USER,
+  UPDATE_USER,
+  GET_USER_BY_ID,
 } from '@/components/queries/queries';
 import formatMoney from '@/lib/formatMoney';
 import { useToast } from '@/components/ToastContext';
@@ -23,15 +25,34 @@ function ConfigListing() {
   const id = useSearchParams().get('id');
   const pathname = usePathname();
   const [isLoadingVoid, setIsLoadingVoid] = useState(false);
+  const [isLoadingRating, setIsLoadingRating] = useState(false);
+  const [rating, setRating] = useState({});
+  const [isContractExpiring, setIsContractExpiring] = useState(false);
   const page = pathname.split('/').findLast((element) => element);
   const { data, loading, error, refetch } = useQuery(SINGLE_LISTING_QUERY, {
     variables: {
       id,
     },
   });
-  const [updateListing] = useMutation(UPDATE_LISTING);
+  const {
+    data: ownerData,
+    loading: ownerLoading,
+    error: ownerError,
+  } = useQuery(GET_USER_BY_ID, {
+    variables: {
+      id: data?.getListingById?.owner?.id,
+    },
+    skip: !data?.getListingById?.owner?.id,
+  });
+
+  const [rateUser] = useMutation(RATE_USER);
+  const [updateUser] = useMutation(UPDATE_USER);
   const { form, errors, handleChange, validateFormCheck } = useFormValidation(
-    data?.getListingById,
+    {
+      ...data?.getListingById,
+      rating: 5,
+      message: '',
+    },
     'voidContract',
   );
   const durationStr = data?.getListingById?.contract?.contractDuration;
@@ -64,7 +85,7 @@ function ConfigListing() {
     setIsLoadingVoid(true);
 
     try {
-      await updateListing({
+      await updateUser({
         variables: {
           id,
           input: {
@@ -87,6 +108,56 @@ function ConfigListing() {
       setIsLoadingVoid(false);
     }
   };
+
+  const handleSubmitRating = async () => {
+    if (!validateFormCheck(undefined, 'submitRating')) {
+      return;
+    }
+
+    setIsLoadingRating(true);
+
+    try {
+      await rateUser({
+        variables: {
+          senderId: user?.id,
+          receiverId: data?.getListingById?.owner?.id,
+          accountType: user?.tipo_de_cuenta,
+          message: form?.message,
+          rating: Number(form?.rating),
+        },
+      });
+      setIsLoadingRating(false);
+      showToast(`Calificaste al dueño!`);
+      await refetch();
+    } catch (error) {
+      console.error('Error calificando al dueño:', error.message);
+      showToast(
+        `Hubo un error al tratar de calificar al dueño: ${error}`,
+        'error',
+      );
+      setIsLoadingRating(false);
+    }
+  };
+
+  useEffect(() => {
+    const contractExpiring = data?.getListingById?.contract?.contractExpiring;
+
+    if (contractExpiring) {
+      setIsContractExpiring(true);
+    }
+  }, [data?.getListingById]);
+
+  useEffect(() => {
+    const ratings = ownerData?.getUser?.ratings;
+    const tenantRating = ratings?.find((rating) => rating.user.id === user?.id);
+
+    if (tenantRating) {
+      setRating({
+        rating: tenantRating.rating,
+        message: tenantRating.message,
+      });
+    }
+  }, [ownerData?.getUser, user?.id]);
 
   if (loading) {
     return (
@@ -137,9 +208,8 @@ function ConfigListing() {
             </h6>
             {data?.getListingById?.adjustmentProvisional && (
               <p style={{ color: 'var(--primary-bg)', fontWeight: 'bold' }}>
-                ⚠️ Ajuste provisional: el último mes de IPC aún no fue
-                publicado. El monto puede variar cuando se actualice el dato
-                oficial.
+                Ajuste provisional: el último mes de IPC aún no fue publicado.
+                El monto puede variar cuando se actualice el dato oficial.
               </p>
             )}
           </div>
@@ -166,6 +236,49 @@ function ConfigListing() {
             <h6>{data?.getListingById?.contract?.contractAdjustmentMethod}.</h6>
           </div>
         </div>
+        {isContractExpiring && (
+          <div className="account__info-inner">
+            <h6>Calificá al dueño:</h6>
+            <p>
+              Tu contrato de alquiler está próximo a terminarse. Calificá al
+              dueño del inmueble:
+            </p>
+            <input
+              type="range"
+              name="rating"
+              min="1"
+              max="5"
+              value={form?.rating || rating.rating || 5}
+              onChange={handleChange}
+            />
+            <fieldset>
+              <label htmlFor="message">Mensaje:</label>
+              <textarea
+                name="message"
+                id="message"
+                placeholder="Mensaje"
+                value={form?.message || rating.message || ''}
+                onChange={handleChange}
+              ></textarea>
+              {errors.message && (
+                <small className="text-danger">{errors.message}</small>
+              )}
+            </fieldset>
+            <div className="button-container">
+              <button
+                className="button"
+                disabled={isLoadingRating}
+                onClick={handleSubmitRating}
+              >
+                {isLoadingRating ? (
+                  <span className="loader"></span>
+                ) : (
+                  <span>Calificar</span>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
         <div className="account__info-inner">
           <h6>Rescindir contrato</h6>
           <p>
