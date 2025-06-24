@@ -1,24 +1,31 @@
 'use client';
 
 import Loading from '@/components/Loading';
-import { GET_USER_BY_ID } from '@/components/queries/queries';
+import { GET_USER_BY_ID, REPLY_RATING } from '@/components/queries/queries';
 import Rating from '@/components/Rating';
 import Related from '@/components/Related';
 import ContactForm from '@/components/ContactForm';
-import { useQuery } from '@apollo/client';
+import { useMutation, useQuery } from '@apollo/client';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useAuth } from '@/components/AuthContext';
+import { useState } from 'react';
+import { useFormValidation } from '@/app/hooks/useFormValidation';
+import { useToast } from '@/components/ToastContext';
 
 export default function Id() {
   const { user } = useAuth();
+  const showToast = useToast();
   const params = useParams();
   const { id } = params;
+  const [activeReplyIndex, setActiveReplyIndex] = useState(null);
+  const [isLoadingReply, setIsLoadingReply] = useState(false);
   const { data, loading, error } = useQuery(GET_USER_BY_ID, {
     variables: {
       id,
     },
   });
+  const [replyRating] = useMutation(REPLY_RATING);
   const {
     nombre,
     apellido,
@@ -30,6 +37,46 @@ export default function Id() {
   } = data?.getUser || {};
   const owner = {
     id,
+  };
+  const { form, setForm, errors, handleChange, validateFormCheck } =
+    useFormValidation(
+      {
+        ...data?.getUser,
+        message: '',
+      },
+      'replyReview',
+    );
+  const handleReply = (index, e) => {
+    e.preventDefault();
+    setActiveReplyIndex(index);
+  };
+
+  const handleReplyRating = async (ratingId) => {
+    if (!validateFormCheck(undefined, 'replyRating')) {
+      return;
+    }
+
+    setIsLoadingReply(true);
+
+    try {
+      await replyRating({
+        variables: {
+          senderId: id,
+          receiverId: ratingId,
+          message: form?.ratingReply,
+        },
+      });
+      setIsLoadingReply(false);
+      showToast('Respuesta enviada!');
+      setActiveReplyIndex(null);
+    } catch (error) {
+      console.error('Error respondiendo a la review:', error.message);
+      showToast(
+        `Hubo un error al tratar de responderle al usuario: ${error}`,
+        'error',
+      );
+      setIsLoadingReply(false);
+    }
   };
 
   const buildStars = (rating) => {
@@ -170,8 +217,14 @@ export default function Id() {
         <div className="user-profile-content__right">
           {ratings?.length > 0 && (
             <>
-              <h6>{ratings.length} opiniones</h6>
+              <h6>
+                {ratings.length}{' '}
+                {ratings.length === 1 ? 'opinión' : 'opiniones'}
+              </h6>
               {ratings.map((rating, i) => {
+                const ownerReply = rating.replies.find(
+                  (reply) => reply.user.id === user?.id,
+                );
                 return (
                   <div key={i} className="rating-item">
                     <div className="rating-item__profile-pic">
@@ -195,7 +248,52 @@ export default function Id() {
                         </Link>
                       </h6>
                       {buildStars(rating.rating)}
-                      <p>{rating.message}</p>
+                      <h6>{rating.message}</h6>
+                      {user?.id === id && !ownerReply && (
+                        <Link
+                          className="small"
+                          href=""
+                          onClick={(e) => handleReply(i, e)}
+                        >
+                          Responder
+                        </Link>
+                      )}
+                      {activeReplyIndex === i && (
+                        <>
+                          <fieldset>
+                            <textarea
+                              name="ratingReply"
+                              required
+                              placeholder="Tu respuesta"
+                              onChange={handleChange}
+                            ></textarea>
+                          </fieldset>
+                          <div className="button-container">
+                            <button
+                              className="button"
+                              onClick={() =>
+                                handleReplyRating(rating?.user?.id)
+                              }
+                            >
+                              {isLoadingReply ? (
+                                <span className="loader"></span>
+                              ) : (
+                                <span>Responder</span>
+                              )}
+                            </button>
+                          </div>
+                        </>
+                      )}
+                      {rating.replies.map((reply) => {
+                        return (
+                          <div className="rating-reply" key={reply.user}>
+                            <h6>
+                              <strong>Respuesta del dueño:</strong>
+                            </h6>
+                            <h6>{reply.message}</h6>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 );

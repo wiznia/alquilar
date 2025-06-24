@@ -27,6 +27,7 @@ import { usePathname } from 'next/navigation';
 import removeTypename from '@/lib/removeTypename';
 import { useToast } from '@/components/ToastContext';
 import useListingNotificationRefetch from '@/app/hooks/useListingNotificationRefetch';
+import RatingForm from '@/components/RatingForm';
 
 function ConfigListing() {
   const { user } = useAuth();
@@ -367,7 +368,6 @@ function ConfigListing() {
         variables: {
           senderId: user?.id,
           receiverId: data?.getListingById?.tenant,
-          accountType: user?.tipo_de_cuenta,
           message: form?.message,
           rating: Number(form?.rating),
         },
@@ -409,18 +409,6 @@ function ConfigListing() {
       }));
     }
   }, [user, data?.getListingById]);
-
-  useEffect(() => {
-    const ratings = userData?.getUser?.ratings;
-    const tenantRating = ratings?.find((rating) => rating.user.id === user?.id);
-
-    if (tenantRating) {
-      setRating({
-        rating: tenantRating.rating,
-        message: tenantRating.message,
-      });
-    }
-  }, [userData?.getUser, user?.id]);
 
   if (loading) {
     return (
@@ -717,43 +705,17 @@ function ConfigListing() {
             data?.getListingById?.payment?.mpPaymentId) &&
           !data?.getListingById?.contract?.contractVoidReason && (
             <>
-              <div className="account__info-inner">
-                <h6>Calificá al inquilino:</h6>
-                <input
-                  type="range"
-                  name="rating"
-                  min="1"
-                  max="5"
-                  value={form?.rating || rating.rating || 5}
-                  onChange={handleChange}
-                />
-                <fieldset>
-                  <label htmlFor="message">Mensaje:</label>
-                  <textarea
-                    name="message"
-                    id="message"
-                    placeholder="Mensaje"
-                    value={form?.message || rating.message || ''}
-                    onChange={handleChange}
-                  ></textarea>
-                  {errors.message && (
-                    <small className="text-danger">{errors.message}</small>
-                  )}
-                </fieldset>
-                <div className="button-container">
-                  <button
-                    className="button"
-                    disabled={isLoadingRating}
-                    onClick={handleSubmitRating}
-                  >
-                    {isLoadingRating ? (
-                      <span className="loader"></span>
-                    ) : (
-                      <span>Calificar</span>
-                    )}
-                  </button>
-                </div>
-              </div>
+              <RatingForm
+                role="inquilino"
+                user={user}
+                otherUserData={userData?.getUser}
+                form={form}
+                setForm={setForm}
+                errors={errors}
+                isLoading={isLoadingRating}
+                onChange={handleChange}
+                onSubmit={handleSubmitRating}
+              />
               <div className="account__info-inner">
                 <h6>Rescindir contrato</h6>
                 <p>

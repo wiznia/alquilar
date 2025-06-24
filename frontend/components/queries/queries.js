@@ -247,11 +247,6 @@ export const GET_USER = gql`
       id
       nombre
       provincia
-      ratings {
-        rating
-        message
-        createdAt
-      }
       telefono
       tipo_de_cuenta
     }
@@ -286,6 +281,12 @@ export const GET_USER_BY_ID = gql`
         rating
         message
         createdAt
+        replies {
+          message
+          user {
+            id
+          }
+        }
       }
       telefono
       tipo_de_cuenta
@@ -885,15 +886,26 @@ export const RATE_USER = gql`
   mutation RateUser(
     $senderId: ID!
     $receiverId: ID!
-    $accountType: String!
     $rating: Int!
     $message: String
   ) {
     rateUser(
       senderId: $senderId
       receiverId: $receiverId
-      accountType: $accountType
       rating: $rating
+      message: $message
+    ) {
+      nombre
+      apellido
+    }
+  }
+`;
+
+export const REPLY_RATING = gql`
+  mutation ReplyRating($senderId: ID!, $receiverId: ID!, $message: String) {
+    replyRating(
+      senderId: $senderId
+      receiverId: $receiverId
       message: $message
     ) {
       nombre

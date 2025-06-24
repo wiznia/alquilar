@@ -228,6 +228,12 @@ const typeDefs = `
     rating: Int!
     message: String
     createdAt: String!
+    replies: [ReplyData]
+  }
+
+  type ReplyData {
+    user: User
+    message: String
   }
 
   type Documentation {
@@ -423,7 +429,8 @@ const typeDefs = `
     uploadImage(files: [Upload]!, userId: ID!, listingId: ID!): [File]!
     uploadDocuments(files: [Upload]!, userId: ID!): [File]!
     likeListing(listingId: ID!): Listing
-    rateUser(senderId: ID!, receiverId: ID!, accountType: String!, rating: Int!, message: String): User
+    rateUser(senderId: ID!, receiverId: ID!, rating: Int!, message: String): User
+    replyRating(senderId: ID!, receiverId: ID!, message: String): User
     sendMessage(senderId: ID, receiverId: ID!, asunto: String!, conversationId: String): Message
     sendEmail(nombre: String!, apellido: String!, email: String!, asunto: String!, receiverEmail: String!, listingId: String): Boolean
     markMessagesAsRead(messageIds: [ID!]!): [SingleMessage!]!

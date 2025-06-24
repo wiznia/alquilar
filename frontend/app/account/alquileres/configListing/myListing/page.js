@@ -18,6 +18,7 @@ import {
 import formatMoney from '@/lib/formatMoney';
 import { useToast } from '@/components/ToastContext';
 import { useFormValidation } from '@/app/hooks/useFormValidation';
+import RatingForm from '@/components/RatingForm';
 
 function ConfigListing() {
   const { user } = useAuth();
@@ -47,14 +48,15 @@ function ConfigListing() {
 
   const [rateUser] = useMutation(RATE_USER);
   const [updateUser] = useMutation(UPDATE_USER);
-  const { form, errors, handleChange, validateFormCheck } = useFormValidation(
-    {
-      ...data?.getListingById,
-      rating: 5,
-      message: '',
-    },
-    'voidContract',
-  );
+  const { form, setForm, errors, handleChange, validateFormCheck } =
+    useFormValidation(
+      {
+        ...data?.getListingById,
+        rating: 5,
+        message: '',
+      },
+      'voidContract',
+    );
   const durationStr = data?.getListingById?.contract?.contractDuration;
   const duration = parseInt(durationStr, 10);
   const contractStartDate = new Date(
@@ -121,7 +123,6 @@ function ConfigListing() {
         variables: {
           senderId: user?.id,
           receiverId: data?.getListingById?.owner?.id,
-          accountType: user?.tipo_de_cuenta,
           message: form?.message,
           rating: Number(form?.rating),
         },
@@ -146,18 +147,6 @@ function ConfigListing() {
       setIsContractExpiring(true);
     }
   }, [data?.getListingById]);
-
-  useEffect(() => {
-    const ratings = ownerData?.getUser?.ratings;
-    const tenantRating = ratings?.find((rating) => rating.user.id === user?.id);
-
-    if (tenantRating) {
-      setRating({
-        rating: tenantRating.rating,
-        message: tenantRating.message,
-      });
-    }
-  }, [ownerData?.getUser, user?.id]);
 
   if (loading) {
     return (
@@ -206,7 +195,7 @@ function ConfigListing() {
               )}{' '}
               por mes.
             </h6>
-            {data?.getListingById?.adjustmentProvisional && (
+            {data?.getListingById?.adjustmentProvisional === 1 && (
               <p style={{ color: 'var(--primary-bg)', fontWeight: 'bold' }}>
                 Ajuste provisional: el último mes de IPC aún no fue publicado.
                 El monto puede variar cuando se actualice el dato oficial.
@@ -237,47 +226,18 @@ function ConfigListing() {
           </div>
         </div>
         {isContractExpiring && (
-          <div className="account__info-inner">
-            <h6>Calificá al dueño:</h6>
-            <p>
-              Tu contrato de alquiler está próximo a terminarse. Calificá al
-              dueño del inmueble:
-            </p>
-            <input
-              type="range"
-              name="rating"
-              min="1"
-              max="5"
-              value={form?.rating || rating.rating || 5}
-              onChange={handleChange}
-            />
-            <fieldset>
-              <label htmlFor="message">Mensaje:</label>
-              <textarea
-                name="message"
-                id="message"
-                placeholder="Mensaje"
-                value={form?.message || rating.message || ''}
-                onChange={handleChange}
-              ></textarea>
-              {errors.message && (
-                <small className="text-danger">{errors.message}</small>
-              )}
-            </fieldset>
-            <div className="button-container">
-              <button
-                className="button"
-                disabled={isLoadingRating}
-                onClick={handleSubmitRating}
-              >
-                {isLoadingRating ? (
-                  <span className="loader"></span>
-                ) : (
-                  <span>Calificar</span>
-                )}
-              </button>
-            </div>
-          </div>
+          <RatingForm
+            role="dueño"
+            showExpiringDescription={isContractExpiring}
+            user={user}
+            otherUserData={ownerData?.getUser}
+            form={form}
+            setForm={setForm}
+            errors={errors}
+            isLoading={isLoadingRating}
+            onChange={handleChange}
+            onSubmit={handleSubmitRating}
+          />
         )}
         <div className="account__info-inner">
           <h6>Rescindir contrato</h6>

@@ -75,11 +75,20 @@
 }
 .rating-item__info {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 5px;
   a {
     color: inherit;
   }
+  h6 {
+    color: #4f4f4f;
+  }
+}
+
+.rating-reply {
+  padding: 10px 0 10px 20px;
+  border-inline-start: 1px solid #ccc;
 }
 
 .rating-stars {

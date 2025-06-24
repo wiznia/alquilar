@@ -962,14 +962,11 @@ const resolvers = {
       await listing.save();
       return listing.populate('likes');
     },
-    rateUser: async (
-      _,
-      { senderId, receiverId, accountType, rating, message },
-    ) => {
+    rateUser: async (_, { senderId, receiverId, rating, message }) => {
       const ratedUser = await User.findById(receiverId);
 
       if (!ratedUser) {
-        throw new Error('Owner not found');
+        throw new Error('User not found');
       }
 
       if (rating < 1 || rating > 5) {
@@ -994,6 +991,25 @@ const resolvers = {
 
       await ratedUser.save();
       return ratedUser;
+    },
+    replyRating: async (_, { senderId, receiverId, message }) => {
+      const repliedUser = await User.findById(senderId);
+      const myReply = repliedUser.ratings.find(
+        (reply) => reply.user.toString() === receiverId,
+      );
+
+      if (!repliedUser) {
+        throw new Error('User not found');
+      }
+
+      const replyObject = {
+        user: senderId,
+        message,
+      };
+      myReply.replies.push(replyObject);
+
+      await repliedUser.save();
+      return repliedUser;
     },
     sendMessage: async (_, { receiverId, asunto }, context) => {
       const authHeader = context.req.headers.authorization;
@@ -1333,6 +1349,12 @@ const resolvers = {
     },
     receiverId: async (event) => {
       return await User.findById(event.receiverId);
+    },
+  },
+  ReplyData: {
+    user: async (parent) => {
+      if (!parent.user) return null;
+      return await User.findById(parent.user);
     },
   },
   Subscription: {
