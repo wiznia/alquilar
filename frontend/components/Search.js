@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useLazyQuery } from '@apollo/client';
 import { useRouter } from 'next/navigation';
 import { SEARCH_LISTINGS_QUERY } from './queries/queries';
+import Icon from './Icon';
 
 export default function Search() {
   const router = useRouter();
@@ -55,26 +56,7 @@ export default function Search() {
         />
       </div>
       <button type="submit">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          fill="none"
-        >
-          <g clipPath="url(#a)">
-            <path
-              fill="#fff"
-              fillRule="evenodd"
-              d="m11.46 10.319 4.304 4.304a.806.806 0 1 1-1.141 1.14l-4.304-4.303a6.4 6.4 0 1 1 1.14-1.141h.002Zm-5.06.88a4.8 4.8 0 1 0 0-9.6 4.8 4.8 0 0 0 0 9.6Z"
-              clipRule="evenodd"
-            />
-          </g>
-          <defs>
-            <clipPath id="a">
-              <path fill="#fff" d="M0 0h16v16H0z" />
-            </clipPath>
-          </defs>
-        </svg>
+        <Icon name="search" />
       </button>
     </form>
   );

@@ -10,6 +10,7 @@ import { Suspense, useEffect, useRef, useState } from 'react';
 import { handleUploadFile, handleRemoveDisplayFile } from '@/lib/fileHandlers';
 import removeTypename from '@/lib/removeTypename';
 import { useUnifiedSubmit } from '@/app/hooks/useHandleSubmit';
+import Icon from '@/components/Icon';
 
 function Documents() {
   const { user } = useAuth();
@@ -127,20 +128,7 @@ function Documents() {
               ))
             ) : (
               <>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="25"
-                  height="25"
-                  fill="none"
-                >
-                  <path
-                    stroke="#FF9500"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M21.5 15.5v4a2 2 0 0 1-2 2h-14a2 2 0 0 1-2-2v-4M17.5 8.5l-5-5-5 5M12.5 3.5v12"
-                  />
-                </svg>
+                <Icon name="upload" />
                 <p>Subí tu documentación</p>
               </>
             )}

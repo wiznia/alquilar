@@ -18,6 +18,7 @@ import Loading from '@/components/Loading';
 import Link from 'next/link';
 import Select from '@/components/Select';
 import { useToast } from '@/components/ToastContext';
+import Icon from '@/components/Icon';
 
 export default function Calendar() {
   const { user } = useAuth();
@@ -318,64 +319,10 @@ export default function Calendar() {
               </h4>
               <div className="calendar__nav">
                 <button onClick={prevMonth}>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="32"
-                    height="32"
-                    fill="none"
-                  >
-                    <rect
-                      width="30"
-                      height="30"
-                      x="1"
-                      y="1"
-                      fill="#fff"
-                      rx="15"
-                    />
-                    <rect
-                      width="30"
-                      height="30"
-                      x="1"
-                      y="1"
-                      stroke="#FF9500"
-                      strokeWidth="2"
-                      rx="15"
-                    />
-                    <path
-                      fill="#FF9500"
-                      d="m19.512 10.898-5 5 5 5-1 2-7-7 7-7 1 2Z"
-                    />
-                  </svg>
+                  <Icon name="arrowLeftCalendar" />
                 </button>
                 <button onClick={nextMonth}>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="32"
-                    height="32"
-                    fill="none"
-                  >
-                    <rect
-                      width="30"
-                      height="30"
-                      x="1"
-                      y="1"
-                      fill="#fff"
-                      rx="15"
-                    />
-                    <rect
-                      width="30"
-                      height="30"
-                      x="1"
-                      y="1"
-                      stroke="#FF9500"
-                      strokeWidth="2"
-                      rx="15"
-                    />
-                    <path
-                      fill="#FF9500"
-                      d="m13.348 21.438 5-5-5-5 1-2 7 7-7 7-1-2Z"
-                    />
-                  </svg>
+                  <Icon name="arrowrightCalendar" />
                 </button>
               </div>
             </div>
@@ -591,13 +538,7 @@ export default function Calendar() {
                       className="calendar__event-delete"
                       onClick={() => handleDeleteEvent(event.id)}
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 448 512"
-                        width="16"
-                      >
-                        <path d="M432 80h-82.38l-34-56.75C306.1 8.827 291.4 0 274.6 0H173.4c-16.8 0-32.4 8.827-41 23.25L98.38 80H16C7.125 80 0 87.13 0 96v16c0 8.9 7.125 16 16 16h16v320c0 35.35 28.65 64 64 64h256c35.35 0 64-28.65 64-64V128h16c8.9 0 16-7.1 16-16V96c0-8.87-7.1-16-16-16zM171.9 50.88c1-1.75 3-2.88 5.1-2.88h94c2.125 0 4.125 1.125 5.125 2.875L293.6 80H154.4l17.5-29.12zM352 464H96c-8.837 0-16-7.163-16-16V128h288v320c0 8.8-7.2 16-16 16zm-128-48c8.844 0 16-7.156 16-16V192c0-8.844-7.156-16-16-16s-16 7.2-16 16v208c0 8.8 7.2 16 16 16zm-80 0c8.8 0 16-7.2 16-16V192c0-8.844-7.156-16-16-16s-16 7.2-16 16v208c0 8.8 7.2 16 16 16zm160 0c8.844 0 16-7.156 16-16V192c0-8.844-7.156-16-16-16s-16 7.2-16 16v208c0 8.8 7.2 16 16 16z" />
-                      </svg>
+                      <Icon name="trash" />
                     </button>
                   )}
                   <div className="calendar__event-info">
