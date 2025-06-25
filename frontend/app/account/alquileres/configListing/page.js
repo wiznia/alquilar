@@ -24,7 +24,7 @@ function ConfigListing() {
   const id = useSearchParams().get('id');
   const pathname = usePathname();
   const [isLoading, setIsLoading] = useState(false);
-  const [paymentData, setPaymentData] = useState({});
+  const [, setPaymentData] = useState({});
   const page = pathname.split('/').findLast((element) => element);
   const { data, loading, error, refetch } = useQuery(SINGLE_LISTING_QUERY, {
     variables: {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { APIProvider } from '@vis.gl/react-google-maps';
 import AccountSidebar from '@/components/AccountSidebar';
 import MapComponent from '@/components/Map';
@@ -177,6 +177,12 @@ export default function Page() {
       setAddress(`${e.target.value}, ${barrio.value}, ${provincia.value}`);
     }
   };
+
+  useEffect(() => {
+    if (form?.provincia) {
+      setSelectedProvince(form.provincia);
+    }
+  }, [form?.provincia]);
 
   return (
     <div className="account">

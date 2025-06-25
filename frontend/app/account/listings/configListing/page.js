@@ -70,7 +70,7 @@ function ConfigListing() {
     useMutation(UPDATE_LISTING);
   const [rateUser] = useMutation(RATE_USER);
   const { form, setForm, errors, handleChange, validateFormCheck } =
-    useFormValidation(data?.getListingById, 'sendSena');
+    useFormValidation(data?.getListingById, '');
   const [
     findTenants,
     { data: tenantData, loading: tenantLoading, error: tenantError },

@@ -245,8 +245,8 @@ function ConfigListing() {
             Si tuviste un problema o necesitas rescindir el contrato
             tempranamente, clickeá en “Rescindir contrato” para cancelar este
             alquiler. Tené en cuenta que al rescindir el contrato tempranamente
-            vas a tener que pagar el 10% de todos los meses restantes que te
-            quedan de contrato.
+            vas a tener que pagar el 10% del valor de todos los meses restantes
+            que te quedan de contrato.
           </p>
           <fieldset>
             <label htmlFor="note">Nota al dueño:</label>
