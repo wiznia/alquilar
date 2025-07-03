@@ -322,7 +322,7 @@ export default function Calendar() {
                   <Icon name="arrowLeftCalendar" />
                 </button>
                 <button onClick={nextMonth}>
-                  <Icon name="arrowrightCalendar" />
+                  <Icon name="arrowRightCalendar" />
                 </button>
               </div>
             </div>

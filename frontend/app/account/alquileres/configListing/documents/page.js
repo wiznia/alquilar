@@ -20,6 +20,7 @@ import Link from 'next/link';
 import { useUnifiedSubmit } from '@/app/hooks/useHandleSubmit';
 import { useToast } from '@/components/ToastContext';
 import useListingNotificationRefetch from '@/app/hooks/useListingNotificationRefetch';
+import Icon from '@/components/Icon';
 
 function Documentation() {
   const { user } = useAuth();
@@ -40,7 +41,7 @@ function Documentation() {
   const [uploadImage] = useMutation(UPLOAD_IMAGES);
   const [updateListing, { loading: updateLoading }] =
     useMutation(UPDATE_LISTING);
-  const { form, setForm, errors, validateFormCheck } = useFormValidation(
+  const { setForm, errors, validateFormCheck } = useFormValidation(
     data?.getListingById,
     'uploadDocuments',
   );
@@ -300,17 +301,75 @@ function Documentation() {
           <div className="account__info-inner">
             <h6>Tu contrato de alquiler:</h6>
             {data?.getListingById?.potentialTenantAgreed !== true && (
-              <p>
-                Confirmá que todos tus datos estén bien y que no haya ningún
-                error. Si hay algun problema, comunicate con el{' '}
-                <Link
-                  className="dark"
-                  href={`/user/${data?.getListingById?.owner?.id}`}
-                >
-                  dueño
-                </Link>
-                .
-              </p>
+              <>
+                {!data?.getListingById?.estado.includes('Alquilado') && (
+                  <>
+                    <p>
+                      Confirmá que todos tus datos estén bien y que no haya
+                      ningún error. Si hay algun problema, comunicate con el{' '}
+                      <Link
+                        className="dark"
+                        href={`/user/${data?.getListingById?.owner?.id}`}
+                        interesttarget="tooltip"
+                      >
+                        dueño
+                      </Link>
+                      .
+                    </p>
+                    <div id="tooltip" className="tooltip shadow" popover="hint">
+                      <h6>
+                        {data?.getListingById?.owner?.nombre}{' '}
+                        {data?.getListingById?.owner?.apellido}
+                      </h6>
+                      {data?.getListingById?.owner?.telefono && (
+                        <div className="tooltip__content">
+                          <Icon
+                            name="phone"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 32 32"
+                          />
+                          <Link
+                            href={`tel:${data?.getListingById?.owner?.telefono}`}
+                          >
+                            {data?.getListingById?.owner?.telefono}
+                          </Link>
+                        </div>
+                      )}
+                      {data?.getListingById?.owner?.celular && (
+                        <div className="tooltip__content">
+                          <Icon
+                            name="phone"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 32 32"
+                          />
+                          <Link
+                            className="p"
+                            href={`tel:${data?.getListingById?.owner?.celular}`}
+                          >
+                            {data?.getListingById?.owner?.celular}
+                          </Link>
+                        </div>
+                      )}
+                      <div className="tooltip__content">
+                        <Icon
+                          name="mail"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 32 22"
+                        />
+                        <Link
+                          className="p"
+                          href={`mailto:${data?.getListingById?.owner?.email}`}
+                        >
+                          {data?.getListingById?.owner?.email}
+                        </Link>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </>
             )}
             <div className="account__item-photo-item">
               <span className="account__item-photo-extension">
@@ -324,22 +383,24 @@ function Documentation() {
                 Ver
               </Link>
             </div>
-            <div className="button-container">
-              <button
-                onClick={handleSubmitContract}
-                className="button"
-                disabled={updateLoading}
-              >
-                {updateLoading ? (
-                  <span className="loader"></span>
-                ) : data?.getListingById?.contract?.potentialTenantAgreed ===
-                  true ? (
-                  'Desconfirmar datos'
-                ) : (
-                  'Confirmar datos'
-                )}
-              </button>
-            </div>
+            {!data?.getListingById?.estado.includes('Alquilado') && (
+              <div className="button-container">
+                <button
+                  onClick={handleSubmitContract}
+                  className="button"
+                  disabled={updateLoading}
+                >
+                  {updateLoading ? (
+                    <span className="loader"></span>
+                  ) : data?.getListingById?.contract?.potentialTenantAgreed ===
+                    true ? (
+                    'Desconfirmar datos'
+                  ) : (
+                    'Confirmar datos'
+                  )}
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

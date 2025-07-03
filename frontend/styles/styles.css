@@ -83,6 +83,9 @@ li {
 }
 
 .documentation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   li {
     list-style-type: disc;
     color: var(--primary-text);
@@ -278,6 +281,30 @@ select::picker-icon {
   display: none;
 }
 /* End Select */
+
+[interesttarget="tooltip"] {
+  interest-target-show-delay: 0s;
+  interest-target-hide-delay: 0s;
+}
+
+.tooltip {
+  border: 0;
+  position-area: bottom center;
+  width: 300px;
+  padding: 16px 24px;
+  h6 {
+    color: var(--primary-bg);
+  }
+}
+
+.tooltip__content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  a {
+    text-decoration: none;
+  }
+}
 
 .shadow {
   box-shadow:

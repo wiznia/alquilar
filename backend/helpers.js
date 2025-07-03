@@ -100,6 +100,7 @@ export const listingPriceHasChanged = async () => {
         ? `https://api.bcra.gob.ar/estadisticas/v3.0/monetarias/27?desde=${listing.contract.contractStartDate}&hasta=${todayDate}&limit=1300`
         : `https://api.bcra.gob.ar/estadisticas/v3.0/monetarias/40?desde=${listing.contract.contractStartDate}&hasta=${todayDate}&limit=1300`;
 
+    console.log(today, nextAdjustmentDate, today > nextAdjustmentDate);
     if (today > nextAdjustmentDate) {
       try {
         const agent = new Agent({
