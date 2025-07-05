@@ -144,7 +144,7 @@ export default function Messages() {
               className={`messages__item ${isUnread ? 'messages__item--unread' : ''} ${isActive ? 'messages__item--active' : ''}`}
             >
               <div className="messages__item-profile-pic">
-                <Icon name="messageUser" />
+                <Icon name="user" />
               </div>
               <div className="messages__item-info">
                 <h6>
@@ -163,8 +163,12 @@ export default function Messages() {
         {openConversation ? (
           <>
             <div className="messages__item">
+              <Icon
+                onClick={() => setOpenConversation(null)}
+                name="arrowGalleryLeft"
+              />
               <div className="messages__item-profile-pic">
-                <Icon name="messageUser" />
+                <Icon name="user" />
               </div>
               <div className="messages__item-info">
                 <Link
@@ -192,7 +196,7 @@ export default function Messages() {
                         : `/user/${openConversation.receiver.id}`
                     }
                   >
-                    <Icon name="messageUserSmall" />
+                    <Icon name="user" />
                   </Link>
                   <div className="messages__bubble shadow">
                     <p>{msg.asunto}</p>

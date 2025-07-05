@@ -116,7 +116,7 @@ export default function Id() {
     <>
       <div className="user-profile-header">
         <div className="user-profile-header__pic">
-          <Icon name="userProfile" />
+          <Icon name="user" />
         </div>
         <div className="user-profile-header__info">
           <h1>
@@ -168,7 +168,7 @@ export default function Id() {
                 return (
                   <div key={i} className="rating-item">
                     <div className="rating-item__profile-pic">
-                      <Icon name="userSmall" />
+                      <Icon name="user" />
                     </div>
                     <div className="rating-item__info">
                       <h6>

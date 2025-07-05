@@ -1,6 +1,6 @@
 .account {
   display: flex;
-  gap: 114px;
+  gap: 4cqi;
   min-height: inherit;
 }
 
@@ -8,7 +8,11 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-
+  scrollbar-width: none;
+  overflow: auto;
+  li {
+    flex-shrink: 0;
+  }
   a {
     font-weight: bold;
     color: #2b2c28;
@@ -25,8 +29,7 @@
   display: flex;
   gap: 32px;
   flex-direction: column;
-  min-width: 520px;
-  max-width: 700px;
+  width: min(545px, 100%);
   h6 {
     font-weight: bold;
     color: var(--primary-text);
@@ -71,8 +74,9 @@ fieldset {
     }
   }
   &.radio {
+    flex-wrap: wrap;
     flex-direction: row;
-    gap: 48px;
+    gap: 24px 48px;
   }
 }
 .account__item-photo-upload {
@@ -94,6 +98,7 @@ fieldset {
     height: 100%;
     opacity: 0;
     position: absolute;
+    left: 0;
     cursor: pointer;
   }
 }
@@ -194,12 +199,30 @@ fieldset {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
+  @media screen and (max-width: 1023px) {
+    flex-direction: column;
+    gap: var(--margin);
+  }
 }
 
 .account-listing-container {
   display: flex;
   flex-direction: column;
   gap: 32px;
+  container-type: inline-size;
+  @container (max-width: 935px) {
+    .account-listing {
+      flex-direction: column;
+      gap: 16px;
+    }
+    .account-listing__info {
+      width: 100%;
+    }
+    .account-listing__buttons {
+      width: 100%;
+      flex-direction: column;
+    }
+  }
 }
 
 .account-listing {
@@ -228,10 +251,12 @@ fieldset {
 }
 
 .inline-nav {
+  scrollbar-width: none;
+  overflow: auto;
+  gap: 0;
   ul {
     display: contents;
   }
-  gap: 0;
   a {
     padding: 5px 25px;
   }
@@ -288,10 +313,13 @@ fieldset {
 .calendar-container {
   display: flex;
   position: relative;
+  @media screen and (max-width: 1023px) {
+    flex-direction: column;
+  }
 }
 
 .calendar__inner {
-  width: 59%;
+  width: min(650px, 100%);
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -377,11 +405,7 @@ fieldset {
 }
 
 .calendar-events {
-  width: 41%;
-  position: absolute;
-  right: 0;
-  height: 100%;
-  overflow: auto;
+  flex: 1;
 }
 
 .calendar__event {
@@ -443,8 +467,7 @@ fieldset {
   right: 0;
   z-index: 10;
   margin: auto;
-  width: max-content;
-  min-width: 650px;
+  width: min(650px, 100%);
   height: max-content;
   max-height: 70vh;
   overflow: auto;

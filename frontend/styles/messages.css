@@ -3,6 +3,22 @@
   flex: 1;
   max-height: calc(100vh - 286px);
   border-radius: var(--border-radius);
+  container-type: inline-size;
+  @media screen and (max-width: 767px) {
+    overflow: hidden;
+    .messages__inbox,
+    .messages__area {
+      width: 100cqw;
+      flex: 1 0 auto;
+      transition: transform 500ms ease;
+    }
+    .messages__inbox:has(.messages__item--active) {
+      transform: translateX(-100cqw);
+      + .messages__area {
+        transform: translateX(-100cqw);
+      }
+    }
+  }
 }
 
 .messages__inbox {
@@ -41,6 +57,9 @@
     text-align: right;
     color: var(--primary-text);
   }
+}
+.messages__item-profile-pic {
+  width: 67px;
 }
 .messages__item-info {
   width: 68%;
@@ -86,6 +105,9 @@
   flex-wrap: wrap;
   align-items: flex-end;
   gap: 6px;
+  a {
+    width: 34px;
+  }
   &.messages__conversation-owner {
     margin-inline-start: auto;
     .messages__bubble {
@@ -117,5 +139,12 @@
     display: block;
     text-align: right;
     color: var(--primary-text);
+  }
+}
+
+.back-to-inbox {
+  display: none;
+  @media screen and (max-width: 767px) {
+    display: block;
   }
 }

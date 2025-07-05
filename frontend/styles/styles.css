@@ -76,6 +76,10 @@ img {
   max-width: 100%;
 }
 
+svg {
+  height: auto;
+}
+
 ul,
 li {
   list-style-type: none;
@@ -148,6 +152,7 @@ input[type='radio'] {
   width: 25px;
   height: 25px;
   cursor: pointer;
+  flex-shrink: 0;
   &:checked {
     border-width: 6px;
   }
@@ -358,7 +363,7 @@ h5 {
 }
 
 h6 {
-  font-size: clamp(14px, 2.4vw, 19px);
+  font-size: clamp(16px, 2.4vw, 19px);
   max-width: 75ch;
   font-weight: 500;
   line-height: 1.6;
@@ -407,6 +412,7 @@ small,
   text-decoration: none;
   display: flex;
   align-items: center;
+  flex-shrink: 0;
   justify-content: center;
   gap: 13px;
   svg {
@@ -502,16 +508,25 @@ small,
 .container {
   max-width: var(--max-width);
   margin: 0 auto;
-  padding: 64px 30px;
   container-type: inline-size;
   min-height: calc(100vh - 205px);
-  @container (max-width: 1204px) {
-    padding: 0 20px;
-  }
 }
 
 main {
   min-height: calc(100vh - 286px);
+  container-type: inline-size;
+  padding: 64px 30px;
+  @container (max-width: 692px) {
+    .account {
+      flex-direction: column;
+    }
+    .account-navbar ul {
+      flex-direction: row;
+    }
+  }
+  @container (max-width: 1023px) {
+    padding: 32px 15px;
+  }
 }
 
 .search-filters {
@@ -641,11 +656,16 @@ main {
 
 .breadcrumb {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   color: var(--primary-text);
   font-weight: 700;
   a {
     text-decoration: none;
+    flex-shrink: 0;
+  }
+  div {
+    flex-shrink: 0;
   }
 }
 

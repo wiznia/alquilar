@@ -62,7 +62,7 @@ export default function Notifications({
         sortedNotifications.map((notification) => (
           <div key={notification._id} className="notification">
             <div className="notification__pic">
-              <Icon name="notificationUser" />
+              <Icon name="user" />
             </div>
             <div className="notification__info small">
               <div

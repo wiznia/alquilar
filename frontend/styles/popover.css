@@ -45,6 +45,7 @@
     padding-block-start: 25px;
     max-height: 600px;
     scrollbar-width: thin;
+    scrollbar-color: #636363 #f9f9f9;
     overflow: auto;
     @media screen and (min-width: 1280px) {
       width: 350px;

@@ -91,7 +91,7 @@ export default function ContactForm({
       {contactCard && (
         <div className="contact-card shadow">
           <div className="contact-card__profile-pic">
-            <Icon name="contactUser" />
+            <Icon name="user" />
           </div>
           <div className="contact-card__info">
             <h6>
