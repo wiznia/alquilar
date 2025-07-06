@@ -279,9 +279,6 @@
       margin-block-start: 0;
     }
   }
-  .gallery__container {
-    flex-basis: 280px;
-  }
   .entry__list {
     gap: 16px 24px;
     .list {
@@ -290,17 +287,70 @@
   }
 }
 .related-listings {
-  display: flex;
-  gap: 40px;
-  overflow: auto;
+  overflow-x: scroll;
   scroll-snap-type: x mandatory;
-  margin-block-start: 32px;
+  scrollbar-width: none;
+  scroll-behavior: smooth;
+  scroll-marker-group: after;
+  margin: 32px 0 10px;
+  columns: 1;
+  anchor-name: --carousel;
+  height: 720px;
+  text-align: center;
+  &::scroll-button(left) {
+    content: '⮜' / 'Scroll left';
+    position-area: span-right center;
+    text-indent: -5px;
+  }
+  &::scroll-button(right) {
+    content: '⮞' / 'Scroll right';
+    position-area: span-left center;
+    text-indent: 5px;
+  }
+  &::scroll-button(*) {
+    background: var(--primary-bg);
+    border: 0;
+    border-radius: 100%;
+    position-anchor: --carousel;
+    position: absolute;
+    z-index: 10;
+    font-size: 35px;
+    color: #fff;
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+  }
+  &::scroll-marker-group {
+    position: fixed;
+    position-anchor: --carousel;
+    position-area: block-end;
+    display: grid;
+    grid-auto-columns: 20px;
+    grid-auto-flow: column;
+    gap: 20px;
+  }
+  &::column {
+    scroll-snap-align: center;
+  }
+  &::column::scroll-marker {
+    content: '';
+    border: 1px solid #ccc;
+    border-radius: 100%;
+    aspect-ratio: 1;
+    width: 16px;
+  }
+  &::column::scroll-marker:target-current {
+    background-color: var(--primary-bg);
+    border-color: transparent;
+  }
   .entry {
-    flex-direction: column;
-    min-width: 370px;
-    &:nth-child(3n - 2) {
-      scroll-snap-align: start;
-    }
+    width: min(354px, 100%);
+    display: inline-grid;
+    margin: 0 16px;
+    text-align: left;
     .gallery {
       height: 280px;
     }

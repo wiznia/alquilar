@@ -117,7 +117,11 @@ export default function Id() {
     <>
       <div className="user-profile-header">
         <div className="user-profile-header__pic">
-          <Gravatar email={user?.email} className="gravatar" size={250} />
+          {user ? (
+            <Gravatar email={user?.email} className="gravatar" size={250} />
+          ) : (
+            <Icon name="user" />
+          )}
         </div>
         <div className="user-profile-header__info">
           <h1>
@@ -169,11 +173,15 @@ export default function Id() {
                 return (
                   <div key={i} className="rating-item">
                     <div className="rating-item__profile-pic">
-                      <Gravatar
-                        email={user?.email}
-                        className="gravatar"
-                        size={67}
-                      />
+                      {user ? (
+                        <Gravatar
+                          email={user?.email}
+                          className="gravatar"
+                          size={67}
+                        />
+                      ) : (
+                        <Icon name="user" />
+                      )}
                     </div>
                     <div className="rating-item__info">
                       <h6>
