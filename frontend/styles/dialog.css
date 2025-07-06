@@ -23,7 +23,6 @@ dialog {
   fieldset {
     .terms__inner {
       display: flex;
-      gap: 12px;
       align-items: center;
     }
   }

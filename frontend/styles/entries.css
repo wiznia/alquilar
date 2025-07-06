@@ -97,7 +97,7 @@
       flex-direction: column;
       height: auto;
       .gallery__thumbnails {
-        grid-template-columns: repeat(auto-fill, minmax(197px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
         max-width: none;
         order: 1;
       }

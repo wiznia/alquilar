@@ -299,6 +299,7 @@ export const GET_POTENTIAL_TENANTS_BY_LISTING = gql`
     getPotentialTenantsByListing(ids: $ids) {
       nombre
       apellido
+      email
       id
       dni
       provincia

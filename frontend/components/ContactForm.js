@@ -6,6 +6,7 @@ import { useAuth } from '../components/AuthContext';
 import { useRef, useState } from 'react';
 import { useToast } from './ToastContext';
 import Icon from './Icon';
+import Gravatar from 'react-gravatar';
 
 export default function ContactForm({
   contactCard,
@@ -91,7 +92,7 @@ export default function ContactForm({
       {contactCard && (
         <div className="contact-card shadow">
           <div className="contact-card__profile-pic">
-            <Icon name="user" />
+            <Gravatar email={user?.email} className="gravatar" />
           </div>
           <div className="contact-card__info">
             <h6>

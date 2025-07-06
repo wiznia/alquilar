@@ -14,6 +14,7 @@ import { useState, useRef, useEffect } from 'react';
 import formatDateTime from '@/lib/formatDateTime';
 import Link from 'next/link';
 import Icon from './Icon';
+import Gravatar from 'react-gravatar';
 
 export default function Messages() {
   const { user } = useAuth();
@@ -144,7 +145,10 @@ export default function Messages() {
               className={`messages__item ${isUnread ? 'messages__item--unread' : ''} ${isActive ? 'messages__item--active' : ''}`}
             >
               <div className="messages__item-profile-pic">
-                <Icon name="user" />
+                <Gravatar
+                  className="gravatar"
+                  email={conversation?.sender?.email}
+                />
               </div>
               <div className="messages__item-info">
                 <h6>
@@ -168,7 +172,10 @@ export default function Messages() {
                 name="arrowGalleryLeft"
               />
               <div className="messages__item-profile-pic">
-                <Icon name="user" />
+                <Gravatar
+                  className="gravatar"
+                  email={openConversation?.sender.email}
+                />
               </div>
               <div className="messages__item-info">
                 <Link
@@ -196,7 +203,14 @@ export default function Messages() {
                         : `/user/${openConversation.receiver.id}`
                     }
                   >
-                    <Icon name="user" />
+                    <Gravatar
+                      className="gravatar"
+                      email={
+                        msg?.senderId !== user?.id
+                          ? openConversation?.sender?.email
+                          : user?.id
+                      }
+                    />
                   </Link>
                   <div className="messages__bubble shadow">
                     <p>{msg.asunto}</p>

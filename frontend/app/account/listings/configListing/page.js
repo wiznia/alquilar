@@ -28,6 +28,7 @@ import removeTypename from '@/lib/removeTypename';
 import { useToast } from '@/components/ToastContext';
 import useListingNotificationRefetch from '@/app/hooks/useListingNotificationRefetch';
 import RatingForm from '@/components/RatingForm';
+import Gravatar from 'react-gravatar';
 
 function ConfigListing() {
   const { user } = useAuth();
@@ -502,25 +503,7 @@ function ConfigListing() {
                 {dataPotentialTenants.getPotentialTenantsByListing.map(
                   (tenant, i) => (
                     <div className="account__info-ownership-item" key={i}>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="40"
-                        height="39"
-                        fill="none"
-                      >
-                        <rect
-                          width="39"
-                          height="38"
-                          x=".074"
-                          y=".457"
-                          fill="#FF9500"
-                          rx="19"
-                        />
-                        <path
-                          fill="#FAFAFA"
-                          d="M19.574 17.957a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9ZM10.074 27.707v1.125c0 .298.125.584.348.796.223.21.525.329.84.329h16.625c.315 0 .617-.119.84-.33.222-.21.347-.497.347-.795v-1.125c0-1.79-.75-3.507-2.087-4.773-1.336-1.266-3.148-1.977-5.038-1.977H17.2c-1.89 0-3.702.711-5.038 1.977-1.336 1.266-2.087 2.983-2.087 4.773Z"
-                        />
-                      </svg>
+                      <Gravatar className="gravatar" email={tenant?.email} />
                       <small>
                         {tenant.nombre} {tenant.apellido}
                       </small>

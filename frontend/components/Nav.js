@@ -8,6 +8,7 @@ import { useRef, useState } from 'react';
 import { MARK_NOTIFICATIONS_AS_READ } from './queries/queries';
 import { useMutation } from '@apollo/client';
 import Icon from './Icon';
+import Gravatar from 'react-gravatar';
 
 export default function Nav() {
   const { user, logout } = useAuth();
@@ -55,7 +56,7 @@ export default function Nav() {
             style={{ anchorName: accountAnchorName }}
           >
             <a>
-              <Icon name="user" />
+              <Gravatar email={user?.email} className="gravatar" />
               {user?.nombre} {user?.apellido.slice(0, 1)}.
             </a>
           </button>

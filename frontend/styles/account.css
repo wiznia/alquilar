@@ -27,6 +27,7 @@
 
 .account__info {
   display: flex;
+  flex: 1;
   gap: 32px;
   flex-direction: column;
   width: min(545px, 100%);
@@ -51,9 +52,13 @@ fieldset {
     color: var(--primary-text);
     &.account__item-inner--half {
       align-items: flex-start;
+      justify-content: flex-end;
       flex-direction: column;
       gap: 12px;
       flex: 1;
+      input {
+        width: 100%;
+      }
     }
   }
   .account__item-number {
@@ -180,7 +185,10 @@ fieldset {
 }
 
 .account-map {
-  width: 100%;
+  width: min(350px, 100%);
+  @media screen and (max-width: 1023px) {
+    display: none;
+  }
 }
 
 .account__column,
