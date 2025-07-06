@@ -13,6 +13,7 @@ import { useState } from 'react';
 import { useFormValidation } from '@/app/hooks/useFormValidation';
 import { useToast } from '@/components/ToastContext';
 import Icon from '@/components/Icon';
+import Gravatar from 'react-gravatar';
 
 export default function Id() {
   const { user } = useAuth();
@@ -116,7 +117,7 @@ export default function Id() {
     <>
       <div className="user-profile-header">
         <div className="user-profile-header__pic">
-          <Icon name="user" />
+          <Gravatar email={user?.email} className="gravatar" size={250} />
         </div>
         <div className="user-profile-header__info">
           <h1>
@@ -168,7 +169,11 @@ export default function Id() {
                 return (
                   <div key={i} className="rating-item">
                     <div className="rating-item__profile-pic">
-                      <Icon name="user" />
+                      <Gravatar
+                        email={user?.email}
+                        className="gravatar"
+                        size={67}
+                      />
                     </div>
                     <div className="rating-item__info">
                       <h6>
