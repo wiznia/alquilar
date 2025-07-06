@@ -27,7 +27,6 @@
 
 .account__info {
   display: flex;
-  flex: 1;
   gap: 32px;
   flex-direction: column;
   width: min(545px, 100%);
@@ -413,6 +412,8 @@ fieldset {
 }
 
 .calendar-events {
+  display: flex;
+  align-items: flex-start;
   flex: 1;
 }
 
