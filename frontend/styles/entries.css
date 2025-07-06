@@ -323,6 +323,10 @@
     align-items: baseline;
     justify-content: center;
   }
+  &::scroll-button(*):disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
   &::scroll-marker-group {
     position: fixed;
     position-anchor: --carousel;
