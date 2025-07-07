@@ -515,7 +515,7 @@ small,
   max-width: var(--max-width);
   margin: 0 auto;
   container-type: inline-size;
-  min-height: calc(100vh - 205px);
+  min-height: calc(100vh - 158px);
 }
 
 main {

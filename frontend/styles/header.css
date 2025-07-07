@@ -50,7 +50,7 @@ nav {
     text-decoration: none;
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 10px;
   }
 }
 
@@ -58,6 +58,7 @@ nav {
   background-color: transparent;
   opacity: 0;
   border: 0;
+  border-radius: var(--border-radius);
   box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.16);
   position-area: bottom span-left;
   position-try-fallbacks:
@@ -94,6 +95,7 @@ nav {
 
 .nav-popover__inner {
   background-color: #fff;
+  border-radius: var(--border-radius);
   padding: 15px;
 }
 

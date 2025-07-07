@@ -297,6 +297,7 @@
   anchor-name: --carousel;
   height: 720px;
   text-align: center;
+  container-type: size;
   &::scroll-button(left) {
     content: '⮜' / 'Scroll left';
     position-area: span-right center;
@@ -338,6 +339,7 @@
   }
   &::column {
     scroll-snap-align: center;
+    scrll-snap-stop: always;
   }
   &::column::scroll-marker {
     content: '';
@@ -352,7 +354,9 @@
   }
   .entry {
     width: min(354px, 100%);
+    height: calc(100cqh - 47px);
     display: inline-grid;
+    align-items: flex-start;
     margin: 0 16px;
     text-align: left;
     .gallery {
