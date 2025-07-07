@@ -292,7 +292,7 @@
   scrollbar-width: none;
   scroll-behavior: smooth;
   scroll-marker-group: after;
-  margin: 32px 0 10px;
+  margin: var(--margin) 0;
   columns: 1;
   anchor-name: --carousel;
   height: 720px;
@@ -336,6 +336,7 @@
     grid-auto-columns: 20px;
     grid-auto-flow: column;
     gap: 20px;
+    margin-block-start: 16px;
   }
   &::column {
     scroll-snap-align: center;
@@ -354,16 +355,16 @@
   }
   .entry {
     width: min(354px, 100%);
-    height: calc(100cqh - 47px);
+    height: calc(100cqh - 16px);
     display: inline-grid;
     align-items: flex-start;
     margin: 0 16px;
     text-align: left;
-    .gallery {
-      height: 280px;
-    }
     .entry__heart {
       top: 308px;
+    }
+    .entry__info {
+      block-size: calc(100cqh - 284px);
     }
   }
 }
