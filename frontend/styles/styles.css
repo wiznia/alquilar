@@ -690,7 +690,7 @@ main {
   border: 1px solid #76d8a3;
   padding: 18px 24px;
   color: #2dc071;
-  width: 75ch;
+  width: min(75ch, calc(100% - 2rem));
   margin: auto;
   display: flex;
   justify-content: space-between;

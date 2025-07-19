@@ -1331,6 +1331,22 @@ const resolvers = {
         user.markModified('documentation');
       }
 
+      const updatableFields = [
+        'nombre',
+        'apellido',
+        'email',
+        'dni',
+        'telefono',
+        'celular',
+        'condicion_fiscal',
+      ];
+
+      updatableFields.forEach((field) => {
+        if (typeof input[field] !== 'undefined') {
+          user[field] = input[field];
+        }
+      });
+
       await user.save();
       return true;
     },

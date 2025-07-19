@@ -312,15 +312,20 @@ const typeDefs = `
   }
 
   input UpdateUserInput {
-    nombre: String
     apellido: String
-    email: String
-    provincia: String
     barrio: String
-    localidad: String
-    telefono: Int
+    celular: Int
+    condicion_fiscal: String
+    direccion: String
+    dni: Int
     documentation: [DocumentsDataInput]
+    email: String
+    localidad: String
+    nombre: String
+    provincia: String
     ratings: [RatingInput]
+    telefono: Int
+    tipo_de_cuenta: String
   }
 
   input RatingInput {

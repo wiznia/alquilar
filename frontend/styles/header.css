@@ -61,7 +61,10 @@ nav {
   border-radius: var(--border-radius);
   box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.16);
   position-area: bottom span-left;
-  position-try-fallbacks: flip-block, flip-inline;
+  position-try-fallbacks:
+    flip-block,
+    flip-inline,
+    flip-block flip-inline;
   container-type: anchored;
   top: auto;
   min-width: 220px;

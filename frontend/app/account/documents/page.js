@@ -18,9 +18,9 @@ function Documents() {
   const id = useSearchParams().get('id');
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [newFiles, setNewFiles] = useState([]);
-  const [showUploadFiles, setShowUploadFiles] = useState(true);
+  const [, setShowUploadFiles] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-  const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [, setUploadSuccess] = useState(false);
   const [globalDocsEnabled, setGlobalDocsEnabled] = useState(
     user?.documentation?.documentsAreGlobal || false,
   );

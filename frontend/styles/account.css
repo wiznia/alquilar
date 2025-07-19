@@ -29,7 +29,7 @@
   display: flex;
   gap: 32px;
   flex-direction: column;
-  width: min(545px, 100%);
+  width: min(650px, 100%);
   h6 {
     font-weight: bold;
     color: var(--primary-text);
