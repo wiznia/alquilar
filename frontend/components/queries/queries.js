@@ -277,6 +277,7 @@ export const GET_USER_BY_ID = gql`
           nombre
           apellido
           id
+          email
         }
         rating
         message

@@ -44,7 +44,7 @@ const resolvers = {
     getUser: async (_, { id }) => {
       return await User.findById(id).populate({
         path: 'ratings.user',
-        select: 'nombre apellido',
+        select: 'nombre apellido email',
       });
     },
     getPotentialTenantsByListing: async (_, { ids }) => {

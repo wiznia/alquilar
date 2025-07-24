@@ -92,11 +92,7 @@ export default function ContactForm({
       {contactCard && (
         <div className="contact-card shadow">
           <div className="contact-card__profile-pic">
-            {user ? (
-              <Gravatar email={user?.email} className="gravatar" size={67} />
-            ) : (
-              <Icon name="user" />
-            )}
+            <Gravatar email={email} className="gravatar" size={67} />
           </div>
           <div className="contact-card__info">
             <h6>

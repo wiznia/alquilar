@@ -14,6 +14,7 @@ import { Suspense, useEffect, useState } from 'react';
 import InlineNav from '@/components/InlineNav';
 import { usePathname } from 'next/navigation';
 import formatDateTime from '@/lib/formatDateTime';
+import Gravatar from 'react-gravatar';
 
 function Notifications() {
   const { user } = useAuth();
