@@ -35,6 +35,9 @@ a {
     font-weight: bold;
     color: var(--primary-text);
   }
+  &:has(button) {
+    text-decoration: none;
+  }
 }
 
 fieldset {

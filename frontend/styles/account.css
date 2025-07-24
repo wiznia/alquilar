@@ -51,7 +51,6 @@ fieldset {
     color: var(--primary-text);
     &.account__item-inner--half {
       align-items: flex-start;
-      justify-content: flex-end;
       flex-direction: column;
       gap: 12px;
       flex: 1;

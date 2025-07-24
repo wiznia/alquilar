@@ -197,14 +197,39 @@ export default function Settings() {
               </div>
             </div>
           </fieldset>
+          <div className="button-container">
+            <button
+              onClick={handleSubmit}
+              type="submit"
+              name="publish"
+              className="button"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <span className="loader"></span>
+              ) : (
+                <span>Actualizar</span>
+              )}
+            </button>
+          </div>
           <fieldset>
             <div className="account__item">
               <div className="account__item-inner account__item-inner--half">
-                <p className="text-danger">Eliminar cuenta:</p>
-                <p>
-                  Vas a eliminar tu cuenta, se borrará todo el contenido
-                  incluyendo mensajes guardados en tu bandeja de entrada, etc.
-                </p>
+                <h6>Eliminar cuenta:</h6>
+                {user?.tipo_de_cuenta === 'Dueño' ? (
+                  <p>
+                    Vas a eliminar tu cuenta, se borrará todo el contenido
+                    incluyendo tus mensajes en tu bandeja de entrada, tus
+                    publicaciones, documentos y eventos que hayas configurado.
+                  </p>
+                ) : (
+                  <p>
+                    Vas a eliminar tu cuenta, se borrará todo el contenido
+                    incluyendo tus mensajes en tu bandeja de entrada,
+                    publicaciones guardadas en tu wishlist y eventos que hayas
+                    configurado.
+                  </p>
+                )}
                 <div className="button-container">
                   <Link
                     href={{
@@ -231,21 +256,6 @@ export default function Settings() {
               </div>
             </div>
           </fieldset>
-          <div className="button-container">
-            <button
-              onClick={handleSubmit}
-              type="submit"
-              name="publish"
-              className="button"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <span className="loader"></span>
-              ) : (
-                <span>Actualizar</span>
-              )}
-            </button>
-          </div>
         </form>
       </div>
     </div>

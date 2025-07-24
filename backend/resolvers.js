@@ -857,6 +857,8 @@ const resolvers = {
     },
     deleteUser: async (_, { id }) => {
       await User.deleteOne({ _id: id });
+      await Listing.deleteMany({ owner: id });
+      await Event.deleteMany({ senderId: id });
 
       return true;
     },
