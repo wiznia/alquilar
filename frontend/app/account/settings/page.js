@@ -6,6 +6,7 @@ import { useAuth } from '@/components/AuthContext';
 import { UPDATE_USER } from '@/components/queries/queries';
 import { useToast } from '@/components/ToastContext';
 import { useMutation } from '@apollo/client';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 export default function Settings() {
@@ -115,7 +116,7 @@ export default function Settings() {
                 <p>DNI:</p>
                 <input
                   type="number"
-                  name="number"
+                  name="dni"
                   placeholder="DNI"
                   required
                   onChange={handleChange}
@@ -133,7 +134,7 @@ export default function Settings() {
                 <p>Teléfono:</p>
                 <input
                   type="number"
-                  name="number"
+                  name="telefono"
                   placeholder="Teléfono"
                   required
                   onChange={handleChange}
@@ -151,7 +152,7 @@ export default function Settings() {
                 <p>Celular:</p>
                 <input
                   type="number"
-                  name="number"
+                  name="celular"
                   placeholder="Celular"
                   required
                   onChange={handleChange}
@@ -193,6 +194,40 @@ export default function Settings() {
                     {errors.condicion_fiscal}
                   </small>
                 )}
+              </div>
+            </div>
+          </fieldset>
+          <fieldset>
+            <div className="account__item">
+              <div className="account__item-inner account__item-inner--half">
+                <p className="text-danger">Eliminar cuenta:</p>
+                <p>
+                  Vas a eliminar tu cuenta, se borrará todo el contenido
+                  incluyendo mensajes guardados en tu bandeja de entrada, etc.
+                </p>
+                <div className="button-container">
+                  <Link
+                    href={{
+                      pathname: '/account/settings/deleteUser',
+                      query: {
+                        id: user?.id,
+                      },
+                    }}
+                  >
+                    <button
+                      type="submit"
+                      name="deleteUser"
+                      className="button button--danger"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <span className="loader"></span>
+                      ) : (
+                        <span>Eliminar cuenta</span>
+                      )}
+                    </button>
+                  </Link>
+                </div>
               </div>
             </div>
           </fieldset>

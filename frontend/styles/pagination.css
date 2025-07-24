@@ -2,7 +2,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 150px 0 85px;
+  margin: 50px 0 25px;
+  @media screen and (min-width: 768px) {
+    margin: 150px 0 85px;
+  }
 }
 
 .pagination__item,

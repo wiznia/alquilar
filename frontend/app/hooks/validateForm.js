@@ -15,7 +15,6 @@ export const validateForm = (form, formType, extraFields = {}) => {
   if (formType === 'register') {
     if (!form.tipo_de_cuenta)
       errors.tipo_de_cuenta = 'Seleccioná un tipo de cuenta.';
-    if (!form.usuario) errors.usuario = 'El usuario es obligatorio.';
     if (!form.nombre) errors.nombre = 'El nombre es obligatorio.';
     if (!form.apellido) errors.apellido = 'El apellido es obligatorio.';
     if (!form.condicion_fiscal)
@@ -24,6 +23,7 @@ export const validateForm = (form, formType, extraFields = {}) => {
     if (!form.dni) errors.dni = 'El DNI es obligatorio.';
     else if (!/^\d{7,8}$/.test(form.dni))
       errors.dni = 'El DNI debe tener 7 u 8 números.';
+    if (!form.direccion) errors.direccion = 'La dirección es obligatoria.';
 
     if (!form.terms)
       errors.terms = 'Tenés que aceptar los términos y condiciones.';

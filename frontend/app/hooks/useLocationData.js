@@ -4,7 +4,7 @@ import { useProvinceCity } from './useProvinceCity';
 export const useLocationData = (initialProvince = '', initialCity = '') => {
   const [selectedProvince, setSelectedProvince] = useState(initialProvince);
   const [selectedCity, setSelectedCity] = useState(initialCity);
-  const [selectedLocalidad, setSelectedLocalidad] = useState('');
+  const [, setSelectedLocalidad] = useState('');
   const [cityData, setCityData] = useState([]);
   const [localidadesData, setLocalidadesData] = useState([]);
 

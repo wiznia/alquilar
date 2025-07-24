@@ -315,17 +315,12 @@ const resolvers = {
         provincia,
         telefono,
         tipo_de_cuenta,
-        usuario,
       },
     ) => {
       const existingEmail = await User.findOne({ email });
-      const existingUser = await User.findOne({ usuario });
 
       if (existingEmail) {
         throw new Error('Email already exists');
-      }
-      if (existingUser) {
-        throw new Error('User already exists');
       }
       const hashedPassword = await bcrypt.hash(password, 10);
       const newUser = new User({
@@ -343,7 +338,6 @@ const resolvers = {
         ratings: [],
         telefono,
         tipo_de_cuenta,
-        usuario,
       });
       await newUser.save();
       const token = jwt.sign(
@@ -393,7 +387,6 @@ const resolvers = {
         telefono: newUser.telefono,
         tipo_de_cuenta: newUser.tipo_de_cuenta,
         token,
-        usuario: newUser.usuario,
       };
     },
     login: async (_, { email, password }, { res }) => {
@@ -859,6 +852,11 @@ const resolvers = {
     },
     deleteListing: async (_, { id }) => {
       await Listing.deleteOne({ _id: id });
+
+      return true;
+    },
+    deleteUser: async (_, { id }) => {
+      await User.deleteOne({ _id: id });
 
       return true;
     },

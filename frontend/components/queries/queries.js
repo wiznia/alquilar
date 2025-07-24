@@ -683,6 +683,12 @@ export const DELETE_LISTING = gql`
   }
 `;
 
+export const DELETE_USER = gql`
+  mutation DeleteUser($id: ID!) {
+    deleteUser(id: $id)
+  }
+`;
+
 export const UPLOAD_IMAGES = gql`
   mutation uploadImage($files: [Upload!]!, $userId: ID!, $listingId: ID!) {
     uploadImage(files: $files, userId: $userId, listingId: $listingId) {

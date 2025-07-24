@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useFormValidation } from '@/app/hooks/useFormValidation';
 import { useAuth } from '@/components/AuthContext';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocationData } from '@/app/hooks/useLocationData';
 import Select from '@/components/Select';
 import { useToast } from '@/components/ToastContext';
@@ -83,6 +83,12 @@ export default function Page() {
       setErrors(newErrors);
     }
   };
+
+  useEffect(() => {
+    if (form?.provincia) {
+      setSelectedProvince(form.provincia);
+    }
+  }, [form?.provincia]);
 
   return (
     <Modal>

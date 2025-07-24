@@ -11,7 +11,6 @@ const typeDefs = `
       provincia: String
       token: String
       tipo_de_cuenta: String
-      usuario: String
       potential_tenant: [ID]
     ): User
     getListings(
@@ -180,7 +179,6 @@ const typeDefs = `
     telefono: Int
     tipo_de_cuenta: String!
     token: String
-    usuario: String!
     documentation: Documentation
   }
   
@@ -421,12 +419,12 @@ const typeDefs = `
       provincia: String!
       telefono: Int
       tipo_de_cuenta: String!
-      usuario: String!
     ): User
     createListing(input: CreateListingInput!): Listing
     updateListing(id: ID!, input: UpdateListingInput!, senderId: ID): Listing
     updateUser(id: ID!, input: UpdateUserInput!): Boolean
     deleteListing(id: ID!): Boolean
+    deleteUser(id: ID!): Boolean
     login(email: String!, password: String!): User
     logout: Boolean
     resetPassword(token: String!, newPassword: String!): Boolean

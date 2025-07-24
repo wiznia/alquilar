@@ -1,40 +1,42 @@
 'use client';
 
+import { useAuth } from '@/components/AuthContext';
 import ModalDialog from '@/components/ModalDialog';
 import { useToast } from '@/components/ToastContext';
-import { DELETE_LISTING } from '@/components/queries/queries';
+import { DELETE_USER } from '@/components/queries/queries';
 import { useMutation } from '@apollo/client';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 
-function DeleteListingModal() {
+function DeleteUserModal() {
+  const { logout } = useAuth();
   const router = useRouter();
   const id = useSearchParams().get('id');
-  const [deleteListing] = useMutation(DELETE_LISTING);
+  const [deleteUser] = useMutation(DELETE_USER);
   const showToast = useToast();
 
   const handleSubmit = async () => {
     try {
-      await deleteListing({
+      await deleteUser({
         variables: {
           id,
         },
       });
-      showToast('Inmueble eliminado con éxito!');
-      router.back();
+      showToast('Lamentamos que te hayas ido :(');
+      router.push('/');
+      logout();
     } catch (error) {
       showToast(
-        `Hubo un problema al eliminar este inmueble: ${error}`,
+        `Hubo un problema al tratar de eliminar este usuario: ${error}`,
         'error',
       );
-      console.error('Error deleting listing:', error);
+      console.error('Error deleting user:', error);
     }
   };
-
   return (
     <ModalDialog
-      title="¿Estás seguro que querés eliminar esta publicación?"
-      buttonText="Eliminar"
+      title="¿Estás seguro que querés eliminar esta cuenta?"
+      buttonText="Eliminar cuenta"
       handleSubmit={handleSubmit}
     ></ModalDialog>
   );
@@ -43,7 +45,7 @@ function DeleteListingModal() {
 export default function Page() {
   return (
     <Suspense fallback={<p>Loading...</p>}>
-      <DeleteListingModal />
+      <DeleteUserModal />
     </Suspense>
   );
 }
