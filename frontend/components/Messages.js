@@ -191,37 +191,48 @@ export default function Messages() {
               </div>
             </div>
             <div className="messages__conversation" ref={messagesEndRef}>
-              {openConversation.messages.map((msg, index) => (
-                <div
-                  key={`${msg.messageId}-${index}`}
-                  className={`messages__conversation-container ${msg.senderId === user?.id ? 'messages__conversation-owner' : ''}`}
-                >
-                  <Link
-                    href={
-                      msg.senderId !== user?.id
-                        ? `/user/${openConversation.sender.id}`
-                        : `/user/${openConversation.receiver.id}`
-                    }
+              {openConversation.messages.map((msg, index) => {
+                const otherUserId =
+                  msg.senderId === user?.id
+                    ? openConversation.sender.id === user?.id
+                      ? openConversation.receiver.id
+                      : openConversation.sender.id
+                    : user?.id;
+
+                return (
+                  <div
+                    key={`${msg.messageId}-${index}`}
+                    className={`messages__conversation-container ${msg.senderId === user?.id ? 'messages__conversation-owner' : ''}`}
                   >
-                    <Gravatar
-                      className="gravatar"
-                      email={
-                        msg?.senderId !== user?.id
-                          ? openConversation?.sender?.email
-                          : user?.id
+                    <Link
+                      href={
+                        msg.senderId !== user?.id
+                          ? `/user/${openConversation.sender.id}`
+                          : `/user/${openConversation.receiver.id}`
                       }
-                    />
-                  </Link>
-                  <div className="messages__bubble shadow">
-                    <p>{msg.asunto}</p>
-                    <small>{formatDateTime(msg.createdAt)}</small>
+                    >
+                      <Gravatar
+                        className="gravatar"
+                        email={
+                          msg?.senderId !== user?.id
+                            ? openConversation?.sender?.email
+                            : user?.id
+                        }
+                      />
+                    </Link>
+                    <div className="messages__bubble shadow">
+                      <p>{msg.asunto}</p>
+                      <small>{formatDateTime(msg.createdAt)}</small>
+                    </div>
+                    <small>
+                      {msg.senderId === user?.id &&
+                        msg.readBy?.includes(otherUserId) && (
+                          <Icon name="messageRead" />
+                        )}
+                    </small>
                   </div>
-                  <small>
-                    {msg.readBy?.includes(openConversation.sender.id) &&
-                      msg.senderId === user?.id && <Icon name="messageRead" />}
-                  </small>
-                </div>
-              ))}
+                );
+              })}
             </div>
             <div className="messages__footer">
               <form

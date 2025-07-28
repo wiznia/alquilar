@@ -13,6 +13,7 @@ export default function Settings() {
   const { user } = useAuth();
   const showToast = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingDeleteAccount] = useState(false);
   const { setForm, form, errors, handleChange, validateFormCheck } =
     useFormValidation(user, 'updateUser', 'updateUser');
   const [updateUser] = useMutation(UPDATE_USER);
@@ -243,9 +244,9 @@ export default function Settings() {
                       type="submit"
                       name="deleteUser"
                       className="button button--danger"
-                      disabled={isLoading}
+                      disabled={isLoadingDeleteAccount}
                     >
-                      {isLoading ? (
+                      {isLoadingDeleteAccount ? (
                         <span className="loader"></span>
                       ) : (
                         <span>Eliminar cuenta</span>
