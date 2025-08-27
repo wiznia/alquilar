@@ -148,6 +148,7 @@ export default function Messages() {
                 <Gravatar
                   className="gravatar"
                   email={conversation?.sender?.email}
+                  size={60}
                 />
               </div>
               <div className="messages__item-info">
