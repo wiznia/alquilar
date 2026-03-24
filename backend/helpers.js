@@ -97,8 +97,9 @@ export const listingPriceHasChanged = async () => {
 
     const adjustmentApiUrl =
       adjustmentMethod === 'IPC'
-        ? `https://api.bcra.gob.ar/estadisticas/v3.0/monetarias/27?desde=${listing.contract.contractStartDate}&hasta=${todayDate}&limit=1300`
-        : `https://api.bcra.gob.ar/estadisticas/v3.0/monetarias/40?desde=${listing.contract.contractStartDate}&hasta=${todayDate}&limit=1300`;
+        ? `https://api.bcra.gob.ar/estadisticas/v4.0/Monetarias/27?desde=${listing.contract.contractStartDate}&hasta=${todayDate}
+`
+        : `https://api.bcra.gob.ar/estadisticas/v4.0/Monetarias/40?desde=${listing.contract.contractStartDate}&hasta=${todayDate}`;
 
     console.log(today, nextAdjustmentDate, today > nextAdjustmentDate);
     if (today > nextAdjustmentDate) {
@@ -126,7 +127,7 @@ export const listingPriceHasChanged = async () => {
         const toMonth = new Date(fechaAjuste);
         toMonth.setDate(1);
 
-        const ipcMensualRaw = results
+        const ipcMensualRaw = results[0].detalle
           .map((r) => ({ ...r, fecha: new Date(r.fecha) }))
           .filter((r) => r.fecha >= fromMonth && r.fecha <= toMonth);
 
@@ -139,11 +140,12 @@ export const listingPriceHasChanged = async () => {
 
         if (adjustmentMethod === 'ICL') {
           const firstValue = Number(
-            results.find((r) => r.fecha === start.toISOString().slice(0, 10))
-              ?.valor,
+            results[0].detalle.find(
+              (r) => r.fecha === start.toISOString().slice(0, 10),
+            )?.valor,
           );
           const lastValue = Number(
-            results.find(
+            results[0].detalle.find(
               (r) => r.fecha === nextAdjustmentDate.toISOString().slice(0, 10),
             )?.valor,
           );
