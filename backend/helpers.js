@@ -69,11 +69,11 @@ export const listingPriceHasChanged = async () => {
   for (const listing of rentedListings) {
     const start = new Date(listing.contract.contractStartDate);
     const today = new Date();
-    const todayDate = new Date().toISOString().slice(0, 10);
+    const todayDate = today.toISOString().slice(0, 10);
     const adjustmentType = listing.contract.contractAdjustmentType;
     const adjustmentMethod = listing.contract.contractAdjustmentMethod;
 
-    if (!start) return;
+    if (!start || isNaN(start.getTime())) continue;
 
     const adjustmentMap = {
       anual: 12,
@@ -81,108 +81,129 @@ export const listingPriceHasChanged = async () => {
       trimestral: 3,
       cuatrimestral: 4,
     };
+
     const monthsToAdd = adjustmentMap[adjustmentType];
-    const lastAdjustedDate = new Date(
-      listing.precioLastAdjustmentDate || start,
-    );
-    let nextAdjustmentDate = new Date(start);
 
-    while (nextAdjustmentDate <= today) {
-      nextAdjustmentDate.setMonth(nextAdjustmentDate.getMonth() + monthsToAdd);
-    }
+    const lastAdjustedDate = listing.precioLastAdjustmentDate
+      ? new Date(listing.precioLastAdjustmentDate)
+      : start;
 
-    nextAdjustmentDate.setMonth(nextAdjustmentDate.getMonth() - monthsToAdd);
+    const nextAdjustmentDate = new Date(lastAdjustedDate);
+    nextAdjustmentDate.setMonth(nextAdjustmentDate.getMonth() + monthsToAdd);
 
-    if (lastAdjustedDate >= nextAdjustmentDate) return;
+    if (today < nextAdjustmentDate) continue;
 
+    const lastAdjustedDateStr = lastAdjustedDate.toISOString().slice(0, 10);
     const adjustmentApiUrl =
       adjustmentMethod === 'IPC'
-        ? `https://api.bcra.gob.ar/estadisticas/v4.0/Monetarias/27?desde=${listing.contract.contractStartDate}&hasta=${todayDate}
-`
-        : `https://api.bcra.gob.ar/estadisticas/v4.0/Monetarias/40?desde=${listing.contract.contractStartDate}&hasta=${todayDate}`;
+        ? `https://api.bcra.gob.ar/estadisticas/v4.0/Monetarias/27?desde=${lastAdjustedDateStr}&hasta=${todayDate}`
+        : `https://api.bcra.gob.ar/estadisticas/v4.0/Monetarias/40?desde=${lastAdjustedDateStr}&hasta=${todayDate}`;
 
-    console.log(today, nextAdjustmentDate, today > nextAdjustmentDate);
-    if (today > nextAdjustmentDate) {
-      try {
-        const agent = new Agent({
-          connect: {
-            rejectUnauthorized: false,
-          },
-        });
-        const response = await fetch(adjustmentApiUrl, { dispatcher: agent });
+    try {
+      const agent = new Agent({
+        connect: {
+          rejectUnauthorized: false,
+        },
+      });
 
-        if (!response.ok) {
-          throw new Error(`Error fetching data for listing ${listing._id}`);
-        }
-        const data = await response.json();
-        const { results } = data;
+      const response = await fetch(adjustmentApiUrl, { dispatcher: agent });
 
-        const fechaInicio = new Date(start);
-        const fechaAjuste = new Date(nextAdjustmentDate);
+      if (!response.ok) {
+        throw new Error(
+          `Error fetching data for listing ${listing._id}: ${response.statusText}`,
+        );
+      }
 
-        const fromMonth = new Date(fechaInicio);
-        fromMonth.setMonth(fromMonth.getMonth() + 1);
-        fromMonth.setDate(1);
+      const data = await response.json();
+      const { results } = data;
 
-        const toMonth = new Date(fechaAjuste);
-        toMonth.setDate(1);
+      if (!results || results.length === 0) {
+        console.warn(`No adjustment data found for listing ${listing._id}`);
+        continue;
+      }
 
-        const ipcMensualRaw = results[0].detalle
-          .map((r) => ({ ...r, fecha: new Date(r.fecha) }))
-          .filter((r) => r.fecha >= fromMonth && r.fecha <= toMonth);
+      const fechaInicio = new Date(lastAdjustedDate);
+      const fechaAjuste = new Date(nextAdjustmentDate);
 
-        const ipcMensual = ipcMensualRaw
-          .filter((r) => !isNaN(r.valor))
-          .map((r) => Number(r.valor));
+      const fromMonth = new Date(fechaInicio);
+      fromMonth.setMonth(fromMonth.getMonth() + 1);
+      fromMonth.setDate(1);
 
-        let adjustedPrice;
-        let adjustmentProvisional = false;
+      const toMonth = new Date(fechaAjuste);
+      toMonth.setDate(1);
 
-        if (adjustmentMethod === 'ICL') {
-          const firstValue = Number(
-            results[0].detalle.find(
-              (r) => r.fecha === start.toISOString().slice(0, 10),
-            )?.valor,
+      const ipcMensualRaw = results[0].detalle
+        .map((r) => ({ ...r, fecha: new Date(r.fecha) }))
+        .filter((r) => r.fecha >= fromMonth && r.fecha <= toMonth);
+
+      const ipcMensual = ipcMensualRaw
+        .filter((r) => !isNaN(r.valor))
+        .map((r) => Number(r.valor));
+
+      let adjustedPrice;
+      let adjustmentProvisional = false;
+
+      if (adjustmentMethod === 'ICL') {
+        const firstValue = Number(
+          results[0].detalle.find((r) => r.fecha === lastAdjustedDateStr)
+            ?.valor,
+        );
+
+        const lastValue = Number(
+          results[0].detalle.find(
+            (r) => r.fecha === nextAdjustmentDate.toISOString().slice(0, 10),
+          )?.valor,
+        );
+
+        if (isNaN(firstValue) || isNaN(lastValue)) {
+          console.warn(
+            `Missing ICL values for listing ${listing._id}: firstValue=${firstValue}, lastValue=${lastValue}`,
           );
-          const lastValue = Number(
-            results[0].detalle.find(
-              (r) => r.fecha === nextAdjustmentDate.toISOString().slice(0, 10),
-            )?.valor,
-          );
-          adjustedPrice = (lastValue / firstValue) * listing.precio;
+          adjustmentProvisional = true;
+          adjustedPrice = listing.precio;
         } else {
-          if (ipcMensual.length < ipcMensualRaw.length) {
-            adjustmentProvisional = true;
-          }
+          adjustedPrice = Math.round((lastValue / firstValue) * listing.precio);
+        }
+      } else {
+        if (ipcMensual.length < ipcMensualRaw.length) {
+          adjustmentProvisional = true;
+        }
 
-          const expectedLastMonth = toMonth.getTime();
-          const actualLastMonth =
-            ipcMensualRaw.length > 0
-              ? ipcMensualRaw[ipcMensualRaw.length - 1].fecha.getTime()
-              : null;
-          if (actualLastMonth !== expectedLastMonth) {
-            adjustmentProvisional = true;
-          }
+        const expectedLastMonth = toMonth.getTime();
+        const actualLastMonth =
+          ipcMensualRaw.length > 0
+            ? ipcMensualRaw[ipcMensualRaw.length - 1].fecha.getTime()
+            : null;
 
-          let index = 1.0;
-          for (const monthly of ipcMensual) {
+        if (actualLastMonth !== expectedLastMonth) {
+          adjustmentProvisional = true;
+        }
+
+        let index = 1.0;
+        for (const monthly of ipcMensual) {
+          if (!isNaN(monthly)) {
             index *= 1 + monthly / 100;
           }
-          adjustedPrice = Math.round(listing.precio * index);
         }
 
-        await Listing.findByIdAndUpdate(listing._id, {
-          $set: {
-            precio: adjustedPrice,
-            precioLastAdjustmentDate: nextAdjustmentDate
-              .toISOString()
-              .slice(0, 10),
-            adjustmentProvisional,
-          },
-        });
-      } catch (error) {
-        console.error(`Error with listing ${listing._id}:`, error);
+        adjustedPrice = Math.round(listing.precio * index);
       }
+
+      await Listing.findByIdAndUpdate(listing._id, {
+        $set: {
+          precio: adjustedPrice,
+          precioLastAdjustmentDate: nextAdjustmentDate
+            .toISOString()
+            .slice(0, 10),
+          adjustmentProvisional,
+        },
+      });
+
+      console.log(
+        `Updated listing ${listing._id}: ${listing.precio} → ${adjustedPrice}`,
+      );
+    } catch (error) {
+      console.error(`Error processing listing ${listing._id}:`, error.message);
     }
   }
 };
